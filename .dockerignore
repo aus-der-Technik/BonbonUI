@@ -1,0 +1,9 @@
+node_modules
+dist
+storybook-static
+coverage
+.git
+.gitlab-ci.yml
+.svelte-kit
+.vite
+**/*.log

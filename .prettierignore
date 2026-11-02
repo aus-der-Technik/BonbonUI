@@ -1,0 +1,14 @@
+dist
+coverage
+node_modules
+package-lock.json
+storybook-static
+.svelte-kit
+# Scratch area: plans and throwaway sibling projects with their own formatting setup.
+temp
+# CI / Helm / container manifests follow GitLab & Helm conventions, not Prettier's.
+.gitlab-ci.yml
+Deployment
+# MDX: Prettier formats it with its Markdown printer and corrupts MDX expressions —
+# `{/* comment */}` comes back as `{/_ comment _/}`, which is invalid MDX.
+*.mdx

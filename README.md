@@ -10,11 +10,6 @@ example).
 
 ## Use it in an app
 
-```ini
-# .npmrc
-@bonbon-ui:registry=https://git.ausdertechnik.de/api/v4/packages/npm/
-//git.ausdertechnik.de/api/v4/packages/npm/:_authToken=${NPM_TOKEN}
-```
 
 ```bash
 npm install @bonbon-ui/core
@@ -96,10 +91,3 @@ Node ≥ 24.
 | `npm run build-storybook` | static Storybook → `storybook-static/`                            |
 | `npm run check`           | lint + format + typecheck + tests — run before handing work over  |
 
-## Release & deploy
-
-- Push to `main` → CI builds, scans and deploys Storybook to <https://ui-admin.ops.gcb-cloud.de>.
-- Push a `feature/*` branch → preview at `https://ui-admin-<slug>.feature.gcb-cloud.de`
-  (tear down with the manual _Remove (feature)_ job).
-- Tag a semver version (`git tag 0.2.0 && git push --tags`) → the npm package is published at that
-  version.

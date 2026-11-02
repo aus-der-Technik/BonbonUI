@@ -1,0 +1,12 @@
+/.idea
+node_modules
+dist
+coverage
+*.log
+.DS_Store
+.vite
+.svelte-kit
+storybook-static
+/temp
+/.env
+/CLAUDE.md
