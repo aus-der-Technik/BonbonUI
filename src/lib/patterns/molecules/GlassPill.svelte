@@ -4,12 +4,15 @@
    * (a list switch, a toolbar of filters). Lighter than the title pill and only slightly
    * blurred, so the page shows through; same specular edge and bloom. `wrap` lets the content
    * break onto several lines, rounding the pill into a card. `gap` spaces its children on the
-   * layout scale, so a toolbar needs no inner wrapper.
+   * layout scale, so a toolbar needs no inner wrapper. Thick glass by default (`lens`, see
+   * GlassLens); `lens={false}` keeps it frosted.
    *
    *   <GlassPill as="search" label="Filters" grow><SearchField … /><Button … /></GlassPill>
    */
   import type { Snippet } from 'svelte';
   import { space, type Space } from '../layout/space';
+  import GlassLens from '../atoms/GlassLens.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
 
   interface Props {
     /** `search` for a toolbar of filters (a search landmark), `div` otherwise. */
@@ -22,6 +25,8 @@
     /** Space between the children (default a tight 0.45rem). */
     gap?: Space | undefined;
     class?: string;
+    /** Refraction of the pill (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
     children: Snippet;
   }
 
@@ -33,8 +38,11 @@
     wrap = false,
     gap,
     class: className = '',
+    lens = {},
     children,
   }: Props = $props();
+
+  let lensDrawn = $state(false);
 </script>
 
 <svelte:element
@@ -42,10 +50,13 @@
   class="glass {className}"
   class:grow
   class:wrap
+  class:lensed={lens !== false && lensDrawn}
   style:max-width={maxWidth}
   style:gap={space(gap)}
+  style:--pill-frost={frostFilter(lens)}
   aria-label={label}
 >
+  {#if lens !== false}<GlassLens {...lens} bind:active={lensDrawn} />{/if}
   {@render children()}
 </svelte:element>
 
@@ -66,12 +77,18 @@
       color-mix(in srgb, var(--pill-light) 12%, transparent) 48%,
       color-mix(in srgb, var(--pill-light) 32%, transparent)
     );
-    backdrop-filter: blur(9px) saturate(210%) brightness(1.04);
-    -webkit-backdrop-filter: blur(9px) saturate(210%) brightness(1.04);
+    backdrop-filter: var(--pill-frost, blur(9px) saturate(210%) brightness(1.04));
+    -webkit-backdrop-filter: var(--pill-frost, blur(9px) saturate(210%) brightness(1.04));
     border: 0.75px solid var(--pill-border);
     box-shadow: var(--shadow-header-pill);
     /* Fields inside are glass too. */
     --input-bg: color-mix(in srgb, var(--pill-light) 38%, transparent);
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the pill only lends it a thin body. */
+  .glass.lensed {
+    background: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .grow {
     flex: 1;

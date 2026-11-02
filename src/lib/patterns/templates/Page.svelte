@@ -21,6 +21,7 @@
   import AppHeader from '../organisms/AppHeader.svelte';
   import Backdrop from './Backdrop.svelte';
   import { space, type Space } from '../layout/space';
+  import type { LensOptions } from '../../utils/lens';
 
   interface Props {
     title?: string | undefined;
@@ -32,6 +33,8 @@
     actions?: Snippet | undefined;
     /** The header's actions fill the width beside the title pill. */
     fillActions?: boolean;
+    /** Refraction of the standard header's title pill (see TitlePill); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
     /** Your own header instead of the standard one (still front layer, still sticky). */
     header?: Snippet | undefined;
     /** A second sticky row under the header: tabs, a segmented control, a toolbar. */
@@ -66,6 +69,7 @@
     onhome,
     actions,
     fillActions = false,
+    lens,
     header,
     nav,
     sidebar,
@@ -116,7 +120,7 @@
         <div class="top-row">{@render header()}</div>
       {:else if title}
         <div class="top-row top-row--header">
-          <AppHeader {title} {subtitle} {href} {onhome} {fillActions} {actions} />
+          <AppHeader {title} {subtitle} {href} {onhome} {fillActions} {actions} {lens} />
         </div>
       {/if}
       {#if nav}<div class="top-row top-row--nav">{@render nav()}</div>{/if}

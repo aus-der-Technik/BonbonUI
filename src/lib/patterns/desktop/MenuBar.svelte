@@ -34,6 +34,8 @@
   import AppIcon from '../atoms/AppIcon.svelte';
   import Icon from '../atoms/Icon.svelte';
   import { greeting as dailyGreeting } from '../../utils/delight';
+  import GlassLens from '../atoms/GlassLens.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
   import MenuList from './MenuList.svelte';
   import type { AppColor, ContextMenuItem, MenuBarMenu } from './shared.svelte';
 
@@ -67,6 +69,8 @@
     label?: string;
     /** Extra content before the status items. */
     trailing?: Snippet | undefined;
+    /** Refraction of the shelf (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
   }
 
   let {
@@ -87,7 +91,10 @@
     floating = true,
     label = 'Menu bar',
     trailing,
+    lens = {},
   }: Props = $props();
+
+  let lensDrawn = $state(false);
 
   const id = $props.id();
   const hasLogo = $derived(!!logo || !!logoMenu);
@@ -164,7 +171,13 @@
   {#if hello?.wink}<span class="wink">{hello.wink}</span>{/if}
 {/snippet}
 
-<header class="menubar" class:floating>
+<header
+  class="menubar"
+  class:floating
+  class:lensed={lens !== false && lensDrawn}
+  style:--layer-front-blur={frostFilter(lens)}
+>
+  {#if lens !== false}<GlassLens {...lens} bind:active={lensDrawn} />{/if}
   <div class="menus" role="menubar" aria-label={label} bind:this={bar}>
     {#each all as menu, i (menu.label + i)}
       <div class="slot" class:extra={i > firstApp}>
@@ -267,6 +280,13 @@
     color: var(--text);
     font-size: var(--fs-md);
     user-select: none;
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the shelf only lends it a thin body. */
+  .lensed {
+    isolation: isolate;
+    background: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   /* The shelf: it floats, so the wallpaper reads as one surface behind it. */
   .floating {

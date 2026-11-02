@@ -13,14 +13,18 @@
    * middle, call-to-action buttons on the right, all on one liquid-glass pill (front layer,
    * sticky). Below 720px of width the links fold into a menu button that opens a sheet under
    * the bar. Like the AppHeader's title pill, the bar catches a one-shot sugar-glass sheen when
-   * the pointer arrives. Put it in a Page's `header` snippet.
+   * the pointer arrives. The bar is thick glass (`lens`, see GlassLens): it magnifies what
+   * scrolls under it and bends it at the rim; `lens={false}` keeps it frosted. Put it in a
+   * Page's `header` snippet.
    *
    *   <NavBar brand="Larkspur" links={[{ label: 'Pricing', href: '/pricing', active: true }]}>
    *     {#snippet actions()}<Button variant="primary" shape="pill" label="Sign up" />{/snippet}
    *   </NavBar>
    */
   import type { Snippet } from 'svelte';
+  import GlassLens from '../atoms/GlassLens.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
 
   interface Props {
     /** Brand name, set as a wordmark. */
@@ -39,6 +43,8 @@
     label?: string;
     menuLabel?: string;
     closeMenuLabel?: string;
+    /** Refraction of the bar (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
   }
 
   let {
@@ -52,12 +58,14 @@
     label = 'Main',
     menuLabel = 'Open menu',
     closeMenuLabel = 'Close menu',
+    lens = {},
   }: Props = $props();
 
   const id = $props.id();
   let open = $state(false);
   let root: HTMLElement | undefined = $state();
   let toggle: HTMLButtonElement | undefined = $state();
+  let lensDrawn = $state(false);
 
   function navigate(link: NavLink, event: MouseEvent) {
     onnavigate?.(link, event);
@@ -78,8 +86,9 @@
 
 <svelte:window onclick={onwindowclick} onkeydown={onwindowkeydown} />
 
-<header class="navbar" bind:this={root}>
-  <div class="bar">
+<header class="navbar" bind:this={root} style:--layer-front-blur={frostFilter(lens)}>
+  <div class="bar" class:lensed={lens !== false && lensDrawn}>
+    {#if lens !== false}<GlassLens {...lens} bind:active={lensDrawn} />{/if}
     {#if brand || logo}
       <a class="brand" href={brandHref}>
         {#if logo}<span class="logo">{@render logo()}</span>{/if}
@@ -171,6 +180,13 @@
     box-shadow: var(--layer-front-shadow);
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the bar only lends it a thin body. */
+  .bar.lensed {
+    isolation: isolate;
+    background: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   /* Sugar-glass sheen: one sweep of light across the pill per hover. */
   .bar::after {

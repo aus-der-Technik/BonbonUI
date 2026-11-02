@@ -34,6 +34,7 @@ export { default as Textarea } from './patterns/atoms/Textarea.svelte';
 export { default as Tooltip } from './patterns/atoms/Tooltip.svelte';
 export { default as VisuallyHidden } from './patterns/atoms/VisuallyHidden.svelte';
 export { default as AppIcon } from './patterns/atoms/AppIcon.svelte';
+export { default as GlassLens } from './patterns/atoms/GlassLens.svelte';
 export { default as Heading } from './patterns/atoms/Heading.svelte';
 export { default as Image } from './patterns/atoms/Image.svelte';
 export { default as Price } from './patterns/atoms/Price.svelte';
@@ -233,6 +234,7 @@ export { downloadBlob, fetchAndDownload } from './utils/download';
 export { formatBytes, uploadFile, UploadError, type UploadOptions } from './utils/upload';
 export { every, poll, type PollOptions } from './utils/poll';
 export { renderMarkdown } from './utils/markdown';
+export { buildLens, canRefract, frostFilter, LENS_DEFAULTS, type LensOptions } from './utils/lens';
 
 // Collaboration types and helpers
 export type { Participant, Presence } from './patterns/molecules/AvatarStack.svelte';

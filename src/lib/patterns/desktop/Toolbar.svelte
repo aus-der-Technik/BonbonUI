@@ -30,6 +30,8 @@
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import SearchField from '../molecules/SearchField.svelte';
+  import GlassLens from '../atoms/GlassLens.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
 
   interface Props {
     title?: string | undefined;
@@ -48,6 +50,9 @@
     children?: Snippet | undefined;
     /** At the very end. */
     trailing?: Snippet | undefined;
+    /** Refraction of the floating and bar variants (magnify, rim, rimBend, chroma, blur,
+        saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
   }
 
   let {
@@ -62,7 +67,11 @@
     leading,
     children,
     trailing,
+    lens = {},
   }: Props = $props();
+
+  let lensDrawn = $state(false);
+  const glass = $derived(variant !== 'plain' && lens !== false);
 
   let root: HTMLElement;
   let focusAt = $state(0);
@@ -90,8 +99,11 @@
   tabindex="-1"
   aria-label={title ?? label}
   bind:this={root}
+  class:lensed={glass && lensDrawn}
+  style:--layer-front-blur={variant === 'plain' ? undefined : frostFilter(lens)}
   {onkeydown}
 >
+  {#if glass}<GlassLens {...lens || {}} bind:active={lensDrawn} />{/if}
   {@render leading?.()}
   {#if title}
     <div class="title">
@@ -146,6 +158,13 @@
     background: var(--layer-front-bg);
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the bar only lends it a thin body. */
+  .toolbar.lensed {
+    isolation: isolate;
+    background: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .toolbar--floating {
     top: calc(var(--page-top, 0px) + var(--sticky-gap));

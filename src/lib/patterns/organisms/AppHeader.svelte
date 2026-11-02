@@ -15,6 +15,7 @@
   import type { Snippet } from 'svelte';
   import TitlePill from '../molecules/TitlePill.svelte';
   import { scrollToTop } from '../../utils/motion';
+  import type { LensOptions } from '../../utils/lens';
 
   interface Props {
     title: string;
@@ -27,9 +28,11 @@
     /** The actions fill the width beside the title pill, starting at its side. */
     fillActions?: boolean;
     actions?: Snippet | undefined;
+    /** Refraction of the title pill (see TitlePill); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
   }
 
-  let { title, subtitle, href, hint, onhome, fillActions = false, actions }: Props = $props();
+  let { title, subtitle, href, hint, onhome, fillActions = false, actions, lens }: Props = $props();
 </script>
 
 <header class="hdr">
@@ -41,6 +44,7 @@
         {href}
         hint={hint ?? (href ? undefined : 'Back to top')}
         onclick={href ? onhome : (onhome ?? scrollToTop)}
+        {lens}
       />
     </div>
     {#if actions}<div class="actions">{@render actions()}</div>{/if}

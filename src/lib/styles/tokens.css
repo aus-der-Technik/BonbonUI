@@ -87,6 +87,13 @@
   --pill-rim: rgba(255, 255, 255, 0.8);
   --pill-edge: rgba(255, 255, 255, 0.85);
   --pill-bloom: rgba(255, 255, 255, 0.45);
+  /* Thinner body for glass that refracts (GlassLens): a dense tint would cover the lens up. */
+  --pill-lens-tint: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.1) 48%,
+    rgba(255, 255, 255, 0.24)
+  );
 
   /* Chart roles */
   --up: #2a78d6;
@@ -142,6 +149,12 @@
     --pill-rim: rgba(255, 255, 255, 0.12);
     --pill-edge: rgba(255, 255, 255, 0.18);
     --pill-bloom: rgba(255, 255, 255, 0.08);
+    --pill-lens-tint: linear-gradient(
+      150deg,
+      rgba(58, 58, 64, 0.46),
+      rgba(36, 36, 40, 0.28) 48%,
+      rgba(52, 52, 58, 0.4)
+    );
     --up: #3987e5;
     --down: #e66767;
     --line: #3987e5;
@@ -206,6 +219,12 @@
   --pill-rim: rgba(255, 255, 255, 0.12);
   --pill-edge: rgba(255, 255, 255, 0.18);
   --pill-bloom: rgba(255, 255, 255, 0.08);
+  --pill-lens-tint: linear-gradient(
+    150deg,
+    rgba(58, 58, 64, 0.46),
+    rgba(36, 36, 40, 0.28) 48%,
+    rgba(52, 52, 58, 0.4)
+  );
   --up: #3987e5;
   --down: #e66767;
   --line: #3987e5;
@@ -372,6 +391,8 @@
   --layer-front-border: var(--pill-border);
   --layer-front-shadow: var(--shadow-header-pill);
   --layer-front-blur: var(--blur-pill);
+  /* A front layer with a GlassLens: the lens does the scattering, so the body thins out. */
+  --layer-front-lens-bg: var(--pill-lens-tint);
 
   /* ── Legacy aliases (the names existing apps declare; prefer the new names above) ── */
   --brand-red: var(--accent);

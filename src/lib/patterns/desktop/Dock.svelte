@@ -13,6 +13,8 @@
    */
   import type { Snippet } from 'svelte';
   import AppIcon from '../atoms/AppIcon.svelte';
+  import GlassLens from '../atoms/GlassLens.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
   import { getDesktop, isSeparator, rove, type DockApp, type DockEntry } from './shared.svelte';
 
   interface Props {
@@ -33,6 +35,8 @@
     icon?: Snippet<[DockApp]> | undefined;
     /** Extra content at the end (e.g. a clock). */
     trailing?: Snippet | undefined;
+    /** Refraction of the tray (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
   }
 
   let {
@@ -46,7 +50,10 @@
     jarOpen = false,
     icon,
     trailing,
+    lens = {},
   }: Props = $props();
+
+  let lensDrawn = $state(false);
 
   const manager = getDesktop();
   let focusAt = $state(0);
@@ -83,7 +90,16 @@
 
 <!-- Arrow keys bubble up from the buttons inside (roving focus). -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<nav class="dock" aria-label={label} style:--dock-size-prop="{size}px" bind:this={root} {onkeydown}>
+<nav
+  class="dock"
+  class:lensed={lens !== false && lensDrawn}
+  aria-label={label}
+  style:--dock-size-prop="{size}px"
+  style:--layer-front-blur={frostFilter(lens)}
+  bind:this={root}
+  {onkeydown}
+>
+  {#if lens !== false}<GlassLens {...lens} bind:active={lensDrawn} />{/if}
   {#if onjar}
     <button
       type="button"
@@ -181,6 +197,13 @@
     box-shadow: var(--layer-front-shadow);
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the tray only lends it a thin body. */
+  .dock.lensed {
+    isolation: isolate;
+    background: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .item {
     position: relative;

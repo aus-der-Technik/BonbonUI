@@ -3,11 +3,14 @@
    * TitlePill molecule — the liquid glass pill with a glowing accent bar and "App — what it
    * does", which opens an app's header. `logo` replaces the bar (an app icon, a mark). A link with
    * `href`, a button with `onclick` (e.g. back to top), plain otherwise; links and buttons catch a
-   * sugar-glass sheen on hover and squish when pressed.
+   * sugar-glass sheen on hover and squish when pressed. Thick glass by default (`lens`, see
+   * GlassLens); `lens={false}` keeps it frosted.
    *
    *   <TitlePill title="Inventory" subtitle="stock across all stores" href="/" />
    */
   import type { Snippet } from 'svelte';
+  import GlassLens from '../atoms/GlassLens.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
 
   interface Props {
     title: string;
@@ -19,12 +22,17 @@
     hint?: string | undefined;
     /** In place of the accent bar, e.g. an app icon. */
     logo?: Snippet | undefined;
+    /** Refraction of the pill (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
   }
 
-  let { title, subtitle, href, onclick, hint, logo }: Props = $props();
+  let { title, subtitle, href, onclick, hint, logo, lens = {} }: Props = $props();
+  let lensDrawn = $state(false);
+  const lensed = $derived(lens !== false && lensDrawn);
 </script>
 
 {#snippet content()}
+  {#if lens !== false}<GlassLens {...lens} bind:active={lensDrawn} />{/if}
   {#if logo}{@render logo()}{:else}<span class="bar" aria-hidden="true"></span>{/if}
   <span class="title">
     {title}{#if subtitle}<span class="light">{` — ${subtitle}`}</span>{/if}
@@ -34,6 +42,8 @@
 {#if href}
   <a
     class="pill"
+    class:lensed
+    style:--blur-pill={frostFilter(lens)}
     {href}
     title={hint}
     onclick={(event) => {
@@ -51,9 +61,16 @@
     }}>{@render content()}</a
   >
 {:else if onclick}
-  <button type="button" class="pill" title={hint} {onclick}>{@render content()}</button>
+  <button
+    type="button"
+    class="pill"
+    class:lensed
+    style:--blur-pill={frostFilter(lens)}
+    title={hint}
+    {onclick}>{@render content()}</button
+  >
 {:else}
-  <div class="pill">{@render content()}</div>
+  <div class="pill" class:lensed style:--blur-pill={frostFilter(lens)}>{@render content()}</div>
 {/if}
 
 <style>
@@ -87,6 +104,12 @@
     transition:
       box-shadow var(--motion-base) var(--ease-out),
       transform var(--motion-quick) var(--ease-jelly);
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the pill only lends it a thin body. */
+  .pill.lensed {
+    --pill-tint: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   a.pill:hover,
   button.pill:hover {

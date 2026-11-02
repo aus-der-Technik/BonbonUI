@@ -14,9 +14,13 @@
    *
    *   <Layer level="panel" gap="md">…</Layer>
    *   <Layer level="front" direction="horizontal">…filters…</Layer>
+   *
+   * Front layers are thick glass (`lens`, see GlassLens); `lens={false}` keeps them frosted.
    */
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
+  import GlassLens from '../atoms/GlassLens.svelte';
+  import { frostFilter, type LensOptions } from '../../utils/lens';
   import {
     alignValue,
     justifyValue,
@@ -48,6 +52,8 @@
     collapse?: Breakpoint | undefined;
     grow?: boolean;
     class?: string;
+    /** Front only: refraction (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    lens?: LensOptions | false | undefined;
     children?: Snippet | undefined;
   }
 
@@ -65,11 +71,14 @@
     collapse,
     grow = false,
     class: extraClass = '',
+    lens = {},
     children,
     ...rest
   }: Props = $props();
 
   const pad = $derived(padding ?? (level === 'ground' ? 'none' : level === 'front' ? 'sm' : 'md'));
+  let lensDrawn = $state(false);
+  const glass = $derived(level === 'front' && lens !== false);
   const form = $derived(
     shape ?? (level === 'front' && direction === 'horizontal' ? 'pill' : 'card'),
   );
@@ -82,13 +91,16 @@
     : ''} {collapse ? `layer--collapse-${collapse}` : ''} {extraClass}"
   class:layer--wrap={wrap}
   class:layer--grow={grow}
+  class:layer--lensed={glass && lensDrawn}
   data-layer={level}
+  style:--layer-front-blur={level === 'front' ? frostFilter(lens) : undefined}
   style:--layer-gap={space(gap)}
   style:--layer-pad={space(pad)}
   style:--layer-align={alignValue(align ?? (direction === 'vertical' ? 'stretch' : 'center'))}
   style:--layer-justify={justifyValue(justify ?? 'start')}
   {...rest}
 >
+  {#if glass}<GlassLens {...lens || {}} bind:active={lensDrawn} />{/if}
   {@render children?.()}
 </svelte:element>
 
@@ -159,6 +171,13 @@
     box-shadow: var(--layer-front-shadow);
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
+  }
+  /* Thick glass: the lens scatters and bends the backdrop, the layer only lends it a thin body. */
+  .layer--front.layer--lensed {
+    isolation: isolate;
+    background: var(--layer-front-lens-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .layer--edge-top {
     top: calc(var(--page-top, 0px) + var(--sticky-gap));
