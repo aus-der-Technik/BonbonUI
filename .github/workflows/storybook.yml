@@ -1,0 +1,59 @@
+name: Storybook
+
+# Builds Storybook on every push and pull request; pushes to main also publish the static
+# build to the `gh-pages` branch, which GitHub Pages serves.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer push to the same ref supersedes a running build.
+concurrency:
+  group: storybook-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      # No lockfile is committed, so `npm ci` is not an option.
+      - run: npm install --no-audit --no-fund
+
+      - run: npm run build-storybook
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: storybook-static
+          retention-days: 7
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: storybook-static
+          path: storybook-static
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: storybook-static
+          publish_branch: gh-pages
+          # Each deploy replaces the branch with a single commit instead of growing history.
+          force_orphan: true
+          commit_message: 'Deploy Storybook from ${{ github.sha }}'
