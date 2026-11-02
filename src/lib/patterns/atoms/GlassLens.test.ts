@@ -105,6 +105,20 @@ describe('lens on front-layer glass', () => {
     }
   });
 
+  it("keeps mirrored copies out of a surface's own queries", () => {
+    sized();
+    // happy-dom is not Chromium, so the lens mirrors the page here, as it does in Safari.
+    const host = render(Toolbar, {
+      title: 'Inbox',
+      items: [
+        { icon: 'edit', label: 'Compose' },
+        { icon: 'trash', label: 'Delete' },
+      ],
+    });
+    expect(host.querySelector('.refract > span')?.shadowRoot).toBeTruthy();
+    expect(host.querySelectorAll('.tool')).toHaveLength(2);
+  });
+
   it('leaves panels and plain toolbars alone', () => {
     sized();
     const panel = render(Layer, { level: 'panel', children: html('<span>x</span>') });

@@ -68,12 +68,12 @@ describe('canRefract', () => {
     expect(canRefract()).toBe(false);
   });
 
-  it('refracts in WebKit only at the top level', () => {
+  it('leaves WebKit to the mirror, even at the top level', () => {
     supports(true);
     as(
       'Mozilla/5.0 (Macintosh) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
     );
-    expect(canRefract()).toBe(window.self === window.top);
+    expect(canRefract()).toBe(false);
   });
 
   it('needs backdrop-filter', () => {

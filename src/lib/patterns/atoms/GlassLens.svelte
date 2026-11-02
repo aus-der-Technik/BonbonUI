@@ -7,8 +7,10 @@
    * surface) and thins its tint (or the tint would cover the refraction up). The surface must
    * be a stacking context (`isolation: isolate`) with a border radius; the lens takes both.
    *
-   * Drawn in Chromium and top-level Safari; Firefox, Safari inside an iframe (Storybook) and
-   * reduced transparency keep the frosted look, and `active` stays false.
+   * Chromium bends the real backdrop. WebKit and Gecko only filter an element's own painting,
+   * never its backdrop, so there the lens paints a live, inert copy of the page under the
+   * surface and bends that (see `utils/mirror.ts`) — the same picture, at the cost of a partial
+   * DOM copy per lens. Reduced transparency keeps the frosted look and `active` false.
    *
    *   <div class="bar" class:lensed>
    *     <GlassLens magnify={1.3} rim={31} rimBend={45} chroma={0.07} bind:active={lensed} />
@@ -16,6 +18,7 @@
    *   </div>
    */
   import { untrack } from 'svelte';
+  import { LENS_ATTR, Mirror } from '../../utils/mirror';
   import {
     buildLens,
     canRefract,
@@ -47,7 +50,8 @@
   let box = $state<HTMLElement | undefined>();
   let width = $state(0);
   let height = $state(0);
-  let supported = $state(false);
+  /** Can the engine bend the real backdrop? Unknown until mounted. */
+  let supported = $state<boolean | null>(null);
   // Opting out of transparency opts out of the distortion too.
   let reduced = $state(false);
 
@@ -96,9 +100,12 @@
     };
   });
 
-  const wanted = $derived(refraction === true || (refraction === 'auto' && supported));
+  /** `real` bends the backdrop itself, `mirror` a copy of the page (see the header). */
+  const mode = $derived<'real' | 'mirror' | 'none'>(
+    refraction === false || reduced || supported === null ? 'none' : supported ? 'real' : 'mirror',
+  );
   const lens = $derived(
-    wanted && !reduced && width > 12 && height > 12
+    mode !== 'none' && width > 12 && height > 12
       ? buildLens({ width, height, magnify, rim, rimBend })
       : null,
   );
@@ -131,10 +138,38 @@
     if (!mounted) return '';
     const scatter = `blur(${0.8 + mounted.nudge}px) saturate(${saturate}%) brightness(1.02)`;
     const bend = `url(#${mounted.id})`;
+    // The copy is ordinary content: scattering and bending run through one `filter`.
+    if (mode === 'mirror') return `-webkit-filter:${bend} ${scatter};filter:${bend} ${scatter}`;
     return (
       `-webkit-backdrop-filter:${scatter};backdrop-filter:${scatter};` +
       `-webkit-filter:${bend};filter:${bend}`
     );
+  });
+
+  /*
+   * The mirror lives as long as the lens is drawn in mirror mode — not per lens change: a new
+   * filter id replaces the layer, and the existing copy simply moves into the new one.
+   */
+  const mirrored = $derived(mode === 'mirror' && !!lens);
+  let mirror = $state.raw<Mirror | null>(null);
+  let layer = $state<HTMLElement | undefined>();
+
+  $effect(() => {
+    if (!mirrored || !box?.parentElement) return;
+    const created = new Mirror(box, box.parentElement);
+    mirror = created;
+    return () => {
+      created.destroy();
+      mirror = null;
+    };
+  });
+
+  $effect(() => {
+    if (!mirror || !layer) return;
+    // The layer is rendered empty; its only child is the mirror's host, which Svelte never sees.
+    // eslint-disable-next-line svelte/no-dom-manipulating
+    layer.append(mirror.host);
+    mirror.sync();
   });
 
   // The colour fringe: one displacement per channel, each a little stronger or weaker.
@@ -145,7 +180,7 @@
 
 <!-- The box clips the layer to the surface's radius; the layer rounds itself too, because
      Chromium does not clip a backdrop-filtered descendant to an ancestor's rounded corners. -->
-<span class="lens" bind:this={box} aria-hidden="true">
+<span class="lens" bind:this={box} aria-hidden="true" {...{ [LENS_ATTR]: '' }}>
   {#if lens}
     <!-- Keyed on the id: any change replaces filter and layer (see `filterId`). The filter comes
          first — WebKit leaves a reference to a not-yet-inserted filter dead. -->
@@ -214,8 +249,15 @@
       </svg>
     {/key}
     {#key mounted?.id}
-      {#if mounted}<span class="refract" style={refractStyle}></span>{/if}
+      {#if mounted}<span
+          class="refract"
+          class:refract--mirror={mode === 'mirror'}
+          style={refractStyle}
+          bind:this={layer}
+        ></span>{/if}
     {/key}
+    <!-- Over the opaque copy the surface's own body would be lost: it rides on top instead. -->
+    {#if mode === 'mirror'}<span class="body"></span>{/if}
   {/if}
 </span>
 
@@ -239,5 +281,16 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
+  }
+  .refract--mirror {
+    overflow: hidden;
+  }
+  .body {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--layer-front-lens-bg);
+    /* The bevel; the outer shadow parts are clipped by the box. */
+    box-shadow: var(--layer-front-shadow);
   }
 </style>

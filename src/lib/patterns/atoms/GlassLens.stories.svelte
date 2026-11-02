@@ -40,9 +40,9 @@
 
 <!-- Thick glass over stripes and text — scroll the stage. `magnify` enlarges the middle, `rim`
      is the width of the zone where contours bend and `rimBend` how far, `chroma` splits the
-     colours at the edge. `blur` is the frosted fallback, `saturate` applies to both.
-     Refraction is drawn in Chrome and in Safari outside an iframe; Firefox and Storybook in
-     Safari show the frosted fallback (`refraction: true` forces it on). -->
+     colours at the edge. `blur` is the frosted fallback (`refraction: false`), `saturate`
+     applies to both. Chrome bends the real backdrop; Safari and Firefox bend a live copy of the
+     page, so the glass looks the same everywhere. -->
 <Story name="Playground">
   {#snippet template(args)}
     <div class="stage">

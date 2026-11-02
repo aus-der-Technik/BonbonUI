@@ -13,7 +13,7 @@
 
 /** How a glass surface refracts; every value is optional and falls back to `LENS_DEFAULTS`. */
 export interface LensOptions {
-  /** `'auto'` refracts where the engine can draw it and stays frosted elsewhere. */
+  /** `false` keeps the glass frosted; `true` and `'auto'` refract (see GlassLens). */
   refraction?: boolean | 'auto' | undefined;
   /** Magnification inside the glass (1 = none). */
   magnify?: number | undefined;
@@ -173,21 +173,16 @@ export function lensFingerprint(...parts: (string | number)[]): string {
 }
 
 /**
- * Can this engine displace the real backdrop here? The displacement is an ordinary `filter` on a
- * layer that itself carries the `backdrop-filter`. Chromium draws that everywhere, WebKit only in
- * the top-level document (inside an iframe — Storybook — it silently drops it), Gecko never.
- * Nothing of this can be feature-detected: `CSS.supports` only knows the properties exist, and
- * no script can read back what was painted.
+ * Can this engine displace the real backdrop? The displacement is an ordinary `filter` on a layer
+ * that itself carries the `backdrop-filter`: Chromium bends the backdrop with it, WebKit and
+ * Gecko filter only the layer's own (empty) painting. Nothing of this can be feature-detected —
+ * `CSS.supports` only knows the properties exist, and no script can read back what was painted.
+ * Where it returns false, GlassLens bends a mirrored copy of the page instead.
  */
 export function canRefract(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
   const backdrop =
     CSS.supports?.('backdrop-filter', 'blur(1px)') ||
     CSS.supports?.('-webkit-backdrop-filter', 'blur(1px)');
-  if (!backdrop) return false;
-  const ua = navigator.userAgent;
-  if (/Chrome\/\d+/.test(ua)) return true;
-  // Only Firefox writes "Gecko/<n>"; the others say "like Gecko".
-  if (/\bGecko\/\d+/.test(ua)) return false;
-  return window.self === window.top;
+  return !!backdrop && /Chrome\/\d+/.test(navigator.userAgent);
 }
