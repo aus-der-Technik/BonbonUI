@@ -1,0 +1,20 @@
+/* Docs pages (MDX + autodocs): let the tinted backdrop show and use the library's type. */
+.sbdocs.sbdocs-wrapper {
+  background: transparent;
+  font-family: var(--font-sans);
+}
+.sbdocs.sbdocs-content {
+  max-width: 980px;
+}
+.sbdocs h1,
+.sbdocs h2,
+.sbdocs h3 {
+  font-family: var(--font-sans) !important;
+  letter-spacing: -0.015em;
+}
+.sbdocs a {
+  color: var(--accent-ink);
+}
+.sbdocs .docs-story {
+  background: var(--bg);
+}
