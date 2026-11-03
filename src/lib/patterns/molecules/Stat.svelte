@@ -5,10 +5,16 @@
    * good) and an optional sparkline whose latest point is marked in the accent. No card around
    * it — put several in a Grid, or inside a panel.
    *
+   * When `value` changes the figure glows briefly, so an update is noticed. KpiTile takes the
+   * same delta props, so the two are interchangeable (Stat on the ground, KpiTile on a card).
+   *
    *   <Stat label="Open tasks" value={128} delta={-12} deltaLabel="vs last week" goodWhen="down" />
    */
   import Icon from '../atoms/Icon.svelte';
   import type { IconName } from '../atoms/icons';
+  import { changeCue } from '../atoms/changed';
+  import DeltaPill from './DeltaPill.svelte';
+  import { deltaDirection, deltaTone, formatDelta, type GoodWhen } from './delta';
 
   interface Props {
     label: string;
@@ -22,7 +28,7 @@
     /** The period it is compared against, e.g. "vs last week". */
     deltaLabel?: string | undefined;
     /** Which direction is good news (colours the change). */
-    goodWhen?: 'up' | 'down' | 'none';
+    goodWhen?: GoodWhen;
     /** Recent values, oldest first, for the sparkline. */
     trend?: number[] | undefined;
     icon?: IconName | undefined;
@@ -55,25 +61,9 @@
   const shown = $derived(
     typeof value === 'number' ? new Intl.NumberFormat(locale).format(value) : value,
   );
-  const direction = $derived(
-    delta == null || delta === 0 ? 'flat' : delta > 0 ? 'up' : ('down' as 'up' | 'down' | 'flat'),
-  );
-  const tone = $derived(
-    direction === 'flat' || goodWhen === 'none'
-      ? 'neutral'
-      : direction === goodWhen
-        ? 'good'
-        : 'bad',
-  );
-  const change = $derived(
-    deltaText ??
-      (delta == null
-        ? undefined
-        : `${new Intl.NumberFormat(locale, {
-            signDisplay: 'exceptZero',
-            maximumFractionDigits: 1,
-          }).format(delta)} %`),
-  );
+  const direction = $derived(deltaDirection(delta));
+  const tone = $derived(deltaTone(direction, goodWhen));
+  const change = $derived(deltaText ?? (delta == null ? undefined : formatDelta(delta, locale)));
 
   const points = $derived.by(() => {
     if (!trend || trend.length < 2) return [];
@@ -96,20 +86,12 @@
     {#if icon}<Icon name={icon} size={14} />{/if}
     {label}
   </span>
-  <span class="value">
+  <span class="value" use:changeCue={shown}>
     {shown}{#if unit}<span class="unit">{unit}</span>{/if}
   </span>
   {#if change || deltaLabel}
     <span class="delta">
-      {#if change}
-        <span class="change change--{tone}">
-          <Icon
-            name={direction === 'up' ? 'arrow-up' : direction === 'down' ? 'arrow-down' : 'minus'}
-            size={12}
-          />
-          {change}
-        </span>
-      {/if}
+      {#if change}<DeltaPill text={change} {direction} {tone} />{/if}
       {#if deltaLabel}<span class="period">{deltaLabel}</span>{/if}
     </span>
   {/if}
@@ -165,6 +147,11 @@
     line-height: 1.05;
     color: var(--text);
     font-variant-numeric: tabular-nums;
+    /* Room for the changed-value glow (bb-changed) without shifting the figure. */
+    margin-inline: calc(var(--space-1) * -1);
+    padding-inline: var(--space-1);
+    border-radius: var(--radius-sm);
+    width: fit-content;
   }
   .stat--sm .value {
     font-size: var(--fs-2xl);
@@ -185,25 +172,6 @@
     align-items: center;
     gap: var(--space-2);
     font-size: var(--fs-xs);
-  }
-  .change {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    padding: 0.1rem 0.45rem;
-    border-radius: var(--radius-pill);
-    font-weight: var(--fw-semibold);
-    font-variant-numeric: tabular-nums;
-    background: var(--fill-muted);
-    color: var(--text-2);
-  }
-  .change--good {
-    background: var(--tint-ok);
-    color: var(--ok);
-  }
-  .change--bad {
-    background: var(--tint-danger);
-    color: var(--danger);
   }
   .period {
     color: var(--text-3);

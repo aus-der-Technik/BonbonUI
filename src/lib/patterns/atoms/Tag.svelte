@@ -15,6 +15,8 @@
   import Icon from './Icon.svelte';
   import Swatch from './Swatch.svelte';
   import { colorValue, isPaletteColor, type PaletteColor } from './palette';
+  import { changeCue } from './changed';
+  import type { Tone } from '../tone';
 
   interface Props {
     label: string;
@@ -23,7 +25,7 @@
     /** Colour dot in front of the label: a palette name or any CSS colour. */
     color?: string | undefined;
     count?: number | string | undefined;
-    tone?: 'neutral' | 'ok' | 'warn' | 'danger' | 'info' | 'accent' | PaletteColor;
+    tone?: Tone | PaletteColor;
     mono?: boolean;
     href?: string | undefined;
     external?: boolean;
@@ -60,7 +62,7 @@
   {#if dot}<Swatch color={dot} size={8} />{/if}
   {#if name}<span class="key">{name}</span>{/if}
   <span class="label" class:mono>{label}</span>
-  {#if count != null}<span class="count">×{count}</span>{/if}
+  {#if count != null}<span class="count" use:changeCue={count}>×{count}</span>{/if}
 {/snippet}
 
 {#if href}
@@ -129,7 +131,15 @@
       color var(--motion-quick) var(--ease-out);
   }
   .tag--action {
+    position: relative;
     cursor: pointer;
+  }
+  /* The chip looks xs; the pointer target is at least --target-min tall. */
+  .tag--action::before,
+  .remove::before {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - var(--target-min)) / 2));
   }
   .tag--action:hover {
     border-color: var(--accent-border);
@@ -203,6 +213,7 @@
     font-family: var(--font-mono);
   }
   .count {
+    border-radius: var(--radius-xs);
     color: var(--text-3);
     font-variant-numeric: tabular-nums;
   }
@@ -210,6 +221,7 @@
     color: var(--text-3);
   }
   .remove {
+    position: relative;
     display: grid;
     place-items: center;
     width: 18px;

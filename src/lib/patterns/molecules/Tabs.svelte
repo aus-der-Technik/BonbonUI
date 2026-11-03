@@ -49,6 +49,12 @@
   }: Props = $props();
 
   const routed = $derived(tabs.some((t) => t.href));
+  const current = $derived(tabs.find((t) => t.value === value));
+  // The one tab stop: the selected tab, else the first enabled one (a value that matches no tab
+  // must not leave the tablist unreachable).
+  const focusValue = $derived(
+    current && !current.disabled ? current.value : tabs.find((t) => !t.disabled)?.value,
+  );
 
   const id = $props.id();
   let list = $state<HTMLElement>();
@@ -63,7 +69,7 @@
 
   function onkeydown(event: KeyboardEvent) {
     const enabled = tabs.filter((t) => !t.disabled);
-    const at = enabled.findIndex((t) => t.value === value);
+    const at = enabled.findIndex((t) => t.value === focusValue);
     const moves: Record<string, number> = {
       ArrowRight: at + 1,
       ArrowLeft: at - 1,
@@ -119,8 +125,8 @@
             id="{id}-tab-{tab.value}"
             data-value={tab.value}
             aria-selected={tab.value === value}
-            aria-controls="{id}-panel"
-            tabindex={tab.value === value ? 0 : -1}
+            aria-controls={panel ? `${id}-panel` : undefined}
+            tabindex={tab.value === focusValue ? 0 : -1}
             disabled={tab.disabled}
             onclick={() => select(tab.value)}
           >
@@ -137,7 +143,7 @@
       class="panel"
       role="tabpanel"
       id="{id}-panel"
-      aria-labelledby="{id}-tab-{value}"
+      aria-labelledby={current && !routed ? `${id}-tab-${value}` : undefined}
       tabindex="0"
     >
       {@render panel(value)}
@@ -308,7 +314,7 @@
       inset 0 1px 0 var(--pill-light);
   }
   .tab:is(:disabled, [aria-disabled='true']) {
-    opacity: 0.45;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .tab:focus-visible {
@@ -339,7 +345,7 @@
   }
   /* On phones the actions get their own row above the tabs, so they never cover the scrolling
      list. */
-  @media (max-width: 640px) {
+  @media (max-width: 720px) {
     .bar {
       flex-wrap: wrap;
     }

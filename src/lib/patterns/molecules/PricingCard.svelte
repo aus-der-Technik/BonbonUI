@@ -12,10 +12,11 @@
    *   <PricingCard name="Team" price={29} period="/ month" features={['5 seats', 'SSO']}
    *     highlighted badge="Most popular" onselect={() => …} />
    */
-  import type { Snippet } from 'svelte';
+  import { onDestroy, type Snippet } from 'svelte';
   import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
   import Price from '../atoms/Price.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
 
   interface Props {
     name: string;
@@ -34,7 +35,10 @@
     badge?: string | undefined;
     ctaLabel?: string;
     ctaHref?: string | undefined;
+    /** May return a promise: the button spins; if it rejects, the button says `failedLabel`. */
     onselect?: (() => void | Promise<void>) | undefined;
+    /** Shown on the button for a few seconds when `onselect` failed. */
+    failedLabel?: string;
     /** Replaces the default button. */
     actions?: Snippet | undefined;
     currency?: string;
@@ -58,9 +62,10 @@
     ctaLabel = 'Get started',
     ctaHref,
     onselect,
+    failedLabel = "Didn't work — try again",
     actions,
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     freeLabel = 'Free',
     includedLabel = 'Included',
     excludedLabel = 'Not included',
@@ -68,6 +73,9 @@
 
   const id = $props.id();
   let busy = $state(false);
+  let failed = $state(false);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  onDestroy(() => clearTimeout(timer));
   const items = $derived(
     features.map((f) => (typeof f === 'string' ? { label: f, included: true } : f)),
   );
@@ -75,8 +83,14 @@
   async function select() {
     if (!onselect) return;
     busy = true;
+    failed = false;
+    clearTimeout(timer);
     try {
       await onselect();
+    } catch {
+      // Feedback where the user acted: the button itself says it did not work.
+      failed = true;
+      timer = setTimeout(() => (failed = false), 4000);
     } finally {
       busy = false;
     }
@@ -118,15 +132,19 @@
       {@render actions()}
     {:else}
       <Button
-        variant={highlighted ? 'primary' : 'secondary'}
+        variant={failed ? 'danger' : highlighted ? 'primary' : 'secondary'}
         size="lg"
         shape="pill"
-        label={ctaLabel}
+        icon={failed ? 'alert' : undefined}
+        label={failed ? failedLabel : ctaLabel}
         href={ctaHref}
         {busy}
         onclick={ctaHref ? undefined : select}
         class="cta-button"
       />
+      <span class="live" role="status">
+        {#if failed}<VisuallyHidden>{failedLabel}</VisuallyHidden>{/if}
+      </span>
     {/if}
   </div>
 
@@ -137,7 +155,8 @@
           <span class="mark" aria-hidden="true">
             <Icon name={item.included === false ? 'minus' : 'check'} size={13} />
           </span>
-          <span class="sr">{item.included === false ? excludedLabel : includedLabel}:</span>
+          <VisuallyHidden>{item.included === false ? excludedLabel : includedLabel}:</VisuallyHidden
+          >
           {item.label}
         </li>
       {/each}
@@ -232,6 +251,10 @@
     flex-direction: column;
     gap: var(--space-2);
   }
+  /* Out of the flex flow, so the empty live region adds no gap. */
+  .live {
+    position: absolute;
+  }
   .cta :global(.cta-button) {
     width: 100%;
     justify-content: center;
@@ -268,14 +291,6 @@
   .excluded .mark {
     color: var(--text-3);
     background: var(--fill-subtle);
-  }
-  .sr {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
 
   @media (prefers-reduced-motion: reduce) {

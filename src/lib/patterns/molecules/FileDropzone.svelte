@@ -210,7 +210,7 @@
     box-shadow: var(--glass-inset);
   }
   .disabled {
-    opacity: 0.7;
+    opacity: var(--disabled-opacity);
   }
   .pick {
     display: grid;

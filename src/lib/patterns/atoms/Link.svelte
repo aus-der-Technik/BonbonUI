@@ -10,6 +10,7 @@
   import type { Snippet } from 'svelte';
   import type { HTMLAnchorAttributes } from 'svelte/elements';
   import Icon from './Icon.svelte';
+  import VisuallyHidden from './VisuallyHidden.svelte';
 
   interface Props extends Omit<HTMLAnchorAttributes, 'children' | 'class' | 'href'> {
     href?: string | null | undefined;
@@ -40,12 +41,14 @@
     rel={external ? 'noopener noreferrer' : undefined}
     {...rest}
   >
-    {@render children()}{#if external}<Icon name="external" size={13} /><span class="sr-only"
-        >{externalLabel}</span
+    {@render children()}{#if external}<Icon name="external" size={13} /><VisuallyHidden
+        >{externalLabel}</VisuallyHidden
       >{/if}
   </a>
 {:else}
-  <span class="link missing">{@render children()}<span class="sr-only">{missingLabel}</span></span>
+  <span class="link missing"
+    >{@render children()}<VisuallyHidden>{missingLabel}</VisuallyHidden></span
+  >
 {/if}
 
 <style>
@@ -80,13 +83,5 @@
     outline: var(--focus-ring);
     outline-offset: 2px;
     border-radius: var(--radius-xs);
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
 </style>

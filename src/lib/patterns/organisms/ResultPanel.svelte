@@ -11,6 +11,7 @@
    */
   import type { Snippet } from 'svelte';
   import LoadingOverlay from '../atoms/LoadingOverlay.svelte';
+  import Alert from '../molecules/Alert.svelte';
   import CopyButton from '../molecules/CopyButton.svelte';
 
   interface Props {
@@ -54,7 +55,7 @@
   {/if}
   <div class="body" style:min-height={minHeight}>
     {#if status === 'error'}
-      <p class="error" role="alert">{error || errorFallback}</p>
+      <div class="error"><Alert message={error || errorFallback} /></div>
     {:else if status === 'empty'}
       <p class="placeholder">{placeholder}</p>
     {:else}
@@ -106,15 +107,9 @@
     color: var(--text-3);
     font-size: var(--fs-md);
   }
+  /* Error text may be a multi-line message from a tool. */
   .error {
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-lg);
-    border: 1px solid color-mix(in srgb, var(--danger) 24%, transparent);
-    background: var(--tint-danger);
-    color: var(--text);
-    font-size: var(--fs-md);
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
   }
   @media (prefers-reduced-transparency: reduce) {
     .panel {

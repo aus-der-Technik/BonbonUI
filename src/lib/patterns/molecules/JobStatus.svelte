@@ -24,9 +24,19 @@
     /** Extra counts on the right, e.g. "3 failed". */
     detail?: string | undefined;
     labels?: Partial<Record<JobState, string>>;
+    /** The progress text, e.g. "17 of 40". */
+    progressLabel?: (done: number, total: number) => string;
   }
 
-  let { status, step, done, total, detail, labels = {} }: Props = $props();
+  let {
+    status,
+    step,
+    done,
+    total,
+    detail,
+    labels = {},
+    progressLabel = (d, t) => `${numberFormat.format(d)} of ${numberFormat.format(t)}`,
+  }: Props = $props();
 
   const DEFAULT_LABELS: Record<JobState, string> = {
     idle: 'Not started',
@@ -64,7 +74,7 @@
     <ProgressBar
       value={done ?? 0}
       max={total ?? 0}
-      label="{numberFormat.format(done ?? 0)} of {numberFormat.format(total ?? 0)}"
+      label={progressLabel(done ?? 0, total ?? 0)}
       showValue
       tone={status === 'failed' ? 'warn' : status === 'done' || status === 'cached' ? 'ok' : 'info'}
     />

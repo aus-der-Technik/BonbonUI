@@ -26,6 +26,7 @@
    */
   import Avatar from '../atoms/Avatar.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import EmptyState from '../molecules/EmptyState.svelte';
   import { candy, relativeTime, toDate } from '../../utils/collab';
 
   interface Props {
@@ -34,7 +35,11 @@
     now?: Date | undefined;
     locale?: string;
     markAllLabel?: string;
-    emptyText?: string;
+    emptyTitle?: string | undefined;
+    emptyMessage?: string | undefined;
+    emptyIcon?: IconName | undefined;
+    /** @deprecated Use `emptyMessage`. */
+    emptyText?: string | undefined;
     unreadLabel?: string;
     /** "3 unread" next to the title. */
     countLabel?: (unread: number) => string;
@@ -48,7 +53,10 @@
     now,
     locale = 'en',
     markAllLabel = 'Mark all as read',
-    emptyText = 'You are all caught up. Treat yourself.',
+    emptyTitle,
+    emptyMessage,
+    emptyIcon = 'check-circle',
+    emptyText,
     unreadLabel = 'Unread',
     countLabel = (unread) => `${unread} unread`,
     onopen,
@@ -135,10 +143,11 @@
       {/each}
     </ul>
   {:else}
-    <p class="empty">
-      <span class="empty-icon"><Icon name="check-circle" size={22} /></span>
-      {emptyText}
-    </p>
+    <EmptyState
+      title={emptyTitle}
+      message={emptyMessage ?? emptyText ?? 'You are all caught up. Treat yourself.'}
+      icon={emptyIcon}
+    />
   {/if}
 </section>
 
@@ -242,11 +251,13 @@
     width: 36px;
     height: 36px;
     border-radius: calc(var(--radius-md) + 2px);
-    background: linear-gradient(160deg, color-mix(in srgb, var(--c) 78%, #fff), var(--c) 70%);
-    color: #fff;
+    /* Lit from above: the candy colour a step lighter at the top. The glyph is black or white,
+       whichever reads on it (the rule of the --on-* tokens). */
+    background: linear-gradient(160deg, oklch(from var(--c) calc(l + 0.1) c h), var(--c) 70%);
+    color: oklch(from var(--c) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
     box-shadow:
       0 4px 10px -4px color-mix(in srgb, var(--c) 70%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      inset 0 1px 0 color-mix(in srgb, var(--pill-light) 45%, transparent);
   }
   .text {
     flex: 1;
@@ -286,25 +297,6 @@
     border-radius: 50%;
     background: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-faint);
-  }
-  .empty {
-    display: grid;
-    justify-items: center;
-    gap: var(--space-2);
-    margin: 0;
-    padding: var(--space-6) var(--space-4);
-    color: var(--text-3);
-    font-size: var(--fs-sm);
-    text-align: center;
-  }
-  .empty-icon {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--tint-ok);
-    color: var(--ok);
   }
   .sr-only {
     position: absolute;

@@ -8,6 +8,7 @@
   import Text from '../atoms/Text.svelte';
   import Stack from '../layout/Stack.svelte';
   import { appMenus, desktopIcons, dock as dockItems, wallpapers } from '../../demo/mock-desktop';
+  import type { DesktopIcon, DesktopPoint } from './shared.svelte';
 
   const { Story } = defineMeta({
     title: 'Organisms/Desktop & OS/Desktop',
@@ -21,24 +22,46 @@
   let notes = $state(true);
   let files = $state(true);
   let focused = $state<string | undefined>('notes');
+  let icons = $state<DesktopIcon[]>(desktopIcons.map((i) => ({ ...i })));
+  let selected = $state<string | undefined>();
+  let renaming = $state<string | undefined>();
+
+  /** A new folder lands under the pointer with its name ready to type. */
+  function newFolder(at: DesktopPoint) {
+    const taken = new Set(icons.map((i) => i.label));
+    let label = 'Untitled folder';
+    for (let n = 2; taken.has(label); n++) label = `Untitled folder ${n}`;
+    const id = `new-${Date.now()}`;
+    icons = [...icons, { id, label, icon: 'folder', color: 'blue', ...at }];
+    selected = id;
+    renaming = id;
+  }
 </script>
 
 <!-- A whole screen: the tint mesh as wallpaper, the top shelf, icons, a widget, two windows and
      the candy tray. Click a window to bring it to the front (it takes the tint rim), drag it
      by its title bar, resize it from the corner. Minimise one: it shrinks into its tray icon;
-     click the icon and it grows back out. Right-click the wallpaper for its menu.
+     click the icon and it grows back out. Right-click the wallpaper and choose New folder: it
+     lands right under the pointer (`contextmenu` as a function gets that spot; the icon keeps it
+     as `x`/`y`) with its name ready to type — Enter keeps it, Escape the old one. F2 renames
+     any icon.
 
      Why does the wallpaper default to the tint mesh? One colour drives the whole system; letting
      the wallpaper drift in the same three hues makes every app's accent look at home on it.
      Why do windows fly to and from the tray? Motion should answer "where did it go?" — a
      window that just vanishes leaves you hunting; one that shrinks into its icon shows you
-     where to get it back. -->
+     where to get it back.
+     Why does a new folder appear under the pointer? You were looking there when you asked for
+     it; an item that appears in a far corner has to be searched for before it can be named. -->
 <Story name="Desktop" asChild>
   <Desktop
-    icons={desktopIcons}
+    {icons}
     bind:focused
-    contextmenu={[
-      { label: 'New folder', icon: 'folder' },
+    bind:selected
+    bind:renaming
+    onrename={(id, label) => (icons = icons.map((i) => (i.id === id ? { ...i, label } : i)))}
+    contextmenu={(at) => [
+      { label: 'New folder', icon: 'folder', onselect: () => newFolder(at) },
       { label: 'Change wallpaper…', icon: 'image' },
     ]}
   >

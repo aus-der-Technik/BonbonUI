@@ -178,7 +178,7 @@
       0 0 0 5px color-mix(in srgb, var(--tint) 20%, transparent);
   }
   .disabled {
-    opacity: 0.5;
+    opacity: var(--disabled-opacity);
   }
   .disabled input {
     cursor: default;

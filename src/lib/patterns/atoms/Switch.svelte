@@ -146,7 +146,7 @@
     cursor: default;
   }
   .disabled {
-    opacity: 0.5;
+    opacity: var(--disabled-opacity);
   }
   .text {
     display: grid;
@@ -176,8 +176,8 @@
     .switch,
     .thumb {
       transition:
-        background-color var(--motion-quick) ease,
-        transform var(--motion-quick) ease;
+        background-color var(--motion-quick) var(--ease-out),
+        transform var(--motion-quick) var(--ease-out);
     }
     .switch:active:not(:disabled) .thumb {
       width: var(--_thumb);

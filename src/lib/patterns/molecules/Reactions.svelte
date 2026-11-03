@@ -30,6 +30,8 @@
     addLabel?: string;
     /** Accessible name of one reaction button. */
     reactionLabel?: (reaction: Reaction) => string;
+    /** Tooltip naming who reacted; `rest` is how many are not listed in `people`. */
+    peopleLabel?: (people: string[], rest: number) => string;
     /** Called after the list changed: the emoji and whether you now react with it. */
     ontoggle?: ((emoji: string, mine: boolean) => void) | undefined;
   }
@@ -43,6 +45,8 @@
     addLabel = 'Add reaction',
     reactionLabel = (r) =>
       `${r.emoji} ${r.count} ${r.count === 1 ? 'reaction' : 'reactions'}${r.mine ? ', including yours' : ''}`,
+    peopleLabel = (people, rest) =>
+      rest > 0 ? `${people.join(', ')} and ${rest} more` : people.join(', '),
     ontoggle,
   }: Props = $props();
 
@@ -65,8 +69,7 @@
 
   const tip = (r: Reaction) => {
     if (!r.people?.length) return undefined;
-    const rest = r.count - r.people.length;
-    return rest > 0 ? `${r.people.join(', ')} and ${rest} more` : r.people.join(', ');
+    return peopleLabel(r.people, Math.max(0, r.count - r.people.length));
   };
 </script>
 

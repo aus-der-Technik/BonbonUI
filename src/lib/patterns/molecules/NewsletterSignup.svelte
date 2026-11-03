@@ -224,7 +224,8 @@
     font-weight: var(--fw-medium);
     color: color-mix(in oklab, var(--ok) var(--ink-share), var(--ink-mix));
     background: var(--tint-ok);
-    animation: bb-pop var(--motion-base) var(--ease-spring);
+    /* Full-width at times: too big for a spring, it eases in. */
+    animation: bb-pop var(--motion-base) var(--ease-out);
     transform-origin: left center;
   }
   .newsletter--center .success {

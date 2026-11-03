@@ -2,138 +2,67 @@
   /**
    * RefreshButton molecule — the header's accent "Refresh" pill. While a live connection pushes
    * updates (`live`), it steps back into a calm glass pill with a small pulsing green status dot
-   * ("Auto refreshing") — status, not a second primary action; `loading` spins the icon (or speeds up the pulse). Below 640px only the icon stays.
+   * ("Auto refreshing") — status, not a second primary action; `loading` spins the icon (or
+   * speeds up the pulse). Below 720px only the icon (or the dot) stays. A preset of Button and
+   * StatusDot, so it presses, shines and spins like every other button. Inside a panel the
+   * accent pill is too loud: `variant="secondary"` (or `ghost` on glass) and `size="sm"` make it
+   * a quiet tool of that panel.
    *
    *   <RefreshButton loading={busy} onclick={reload} />
    */
-  import Icon from '../atoms/Icon.svelte';
+  import Button from '../atoms/Button.svelte';
+  import StatusDot from '../atoms/StatusDot.svelte';
 
   interface Props {
     live?: boolean;
     loading?: boolean;
+    /** `primary` for the page header; `secondary` or `ghost` inside a panel or card. */
+    variant?: 'primary' | 'secondary' | 'ghost';
+    size?: 'sm' | 'md' | 'lg';
     label?: string;
     liveLabel?: string;
     liveHint?: string;
+    /** Accessible name in live mode, from the live label and the action label. */
+    liveActionLabel?: (liveLabel: string, label: string) => string;
     onclick?: (() => void) | undefined;
   }
 
   let {
     live = false,
     loading = false,
+    variant = 'primary',
+    size = 'lg',
     label = 'Refresh',
     liveLabel = 'Auto refreshing',
     liveHint = 'Updates appear automatically',
+    liveActionLabel = (state, action) => `${state} — ${action.toLowerCase()} now`,
     onclick,
   }: Props = $props();
 </script>
 
-<button
-  type="button"
-  class="refresh"
-  class:live
-  class:spinning={loading}
-  aria-busy={loading ? 'true' : undefined}
-  aria-label={live ? `${liveLabel} — ${label.toLowerCase()} now` : label}
+{#snippet dot()}<span class="dot" class:fast={loading}><StatusDot tone="ok" pulse /></span
+  >{/snippet}
+
+<Button
+  variant={live ? 'ghost' : variant}
+  {size}
+  icon={live ? undefined : 'refresh'}
+  leading={live ? dot : undefined}
+  label={live ? liveLabel : label}
+  busy={loading}
+  collapse
+  aria-label={live ? liveActionLabel(liveLabel, label) : label}
   title={live ? liveHint : undefined}
-  {onclick}
->
-  {#if live}<span class="dot" aria-hidden="true"></span>{:else}<Icon name="refresh" />{/if}
-  <span class="label">{live ? liveLabel : label}</span>
-</button>
+  onclick={() => onclick?.()}
+/>
 
 <style>
-  .refresh {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    height: var(--control-lg);
-    padding: 0 1.1rem 0 0.95rem;
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    flex-shrink: 0;
-    background:
-      var(--sheen) 150% 0 / 250% 100% no-repeat,
-      var(--grad-primary);
-    color: var(--on-accent);
-    font: inherit;
-    font-size: var(--fs-md);
-    font-weight: var(--fw-semibold);
-    border: 1px solid var(--border-on-accent);
-    box-shadow: var(--shadow-primary);
-    transition:
-      box-shadow var(--motion-base) var(--ease-out),
-      transform var(--motion-quick) var(--ease-jelly);
-  }
-  /* Buttons don't lift; they brighten and catch a sheen. */
-  .refresh:hover {
-    box-shadow: var(--shadow-primary-hover);
-    animation: bb-sheen var(--motion-slow) var(--ease-out);
-  }
-  .refresh:active {
-    transform: var(--press-squish);
-  }
-  .refresh:focus-visible {
-    outline: var(--focus-ring);
-    outline-offset: 2px;
-  }
-  .spinning :global(.icon) {
-    animation: bb-spin 0.8s linear infinite;
-  }
-  /* Live is a status, so it must not compete with the page's primary button. */
-  .live {
-    color: var(--text);
-    background:
-      var(--sheen) 150% 0 / 250% 100% no-repeat,
-      var(--pill-tint);
-    border-color: var(--pill-border);
-    box-shadow: var(--shadow-frosted);
-    backdrop-filter: var(--blur-pill);
-    -webkit-backdrop-filter: var(--blur-pill);
-  }
-  .live:hover {
-    box-shadow: var(--shadow-frosted-hover);
-  }
   .dot {
-    width: 8px;
-    height: 8px;
-    margin: 0 0.3rem;
-    border-radius: 50%;
-    background: var(--ok);
-    animation: pulse 2s var(--ease-out) infinite;
+    display: inline-flex;
+    margin: 0 0.2rem;
   }
-  .live.spinning .dot {
+  /* Loading while live: the pulse quickens instead of a spinner joining in. */
+  .fast :global(.dot--pulse::after) {
     animation-duration: 0.6s;
-  }
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent);
-    }
-    70%,
-    100% {
-      box-shadow: 0 0 0 7px transparent;
-    }
-  }
-  @media (max-width: 640px) {
-    .label {
-      display: none;
-    }
-    .refresh {
-      width: var(--control-lg);
-      padding: 0;
-      justify-content: center;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .dot {
-      animation: none;
-    }
-    .refresh {
-      transition: none;
-    }
-    .refresh:hover,
-    .refresh:active {
-      transform: none;
-      animation: none;
-    }
   }
 </style>

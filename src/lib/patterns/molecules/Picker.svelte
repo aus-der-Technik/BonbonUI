@@ -13,12 +13,15 @@
    * Picker molecule — a header switcher (e.g. between data sets): a frosted pill showing the current
    * title and meta line that drops down a glass listbox. Not a native select, so options can
    * carry a meta line and marks. Arrow keys / Home / End move, Enter or Space picks, Escape
-   * closes and returns focus. The list drops in as a frosted glass popover; the chosen option is
-   * tinted in the accent with a tick.
+   * closes and returns focus. The list grows out of the trigger as a frosted glass popover (in
+   * the top layer, flipping above when there is no room below); the chosen option is tinted in
+   * the accent with a tick.
    *
    *   <Picker label="Workspace" options={workspaces} bind:value={workspace} />
    */
+  import { tick } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
+  import { anchorTo } from './anchor';
 
   interface Props {
     options: PickerOption[];
@@ -60,10 +63,15 @@
         0,
         options.findIndex((o) => o.value === value),
       );
-      await Promise.resolve();
+      await tick();
       list?.focus();
     }
   }
+
+  $effect(() => {
+    if (!open || !list) return;
+    return anchorTo(list, button, { placement: 'bottom-start', gap: 10 });
+  });
 
   function pick(option: PickerOption) {
     open = false;
@@ -105,7 +113,13 @@
   }
 </script>
 
-<svelte:document onpointerdown={onDocumentPointerDown} />
+<svelte:document
+  onpointerdown={onDocumentPointerDown}
+  onfocusin={(event) => {
+    // Focus that left the window (relatedTarget null) and came back elsewhere.
+    if (open && !root.contains(event.target as Node)) open = false;
+  }}
+/>
 
 <div class="picker" bind:this={root}>
   <button
@@ -133,6 +147,7 @@
       role="listbox"
       aria-label={label}
       tabindex="-1"
+      popover="manual"
       aria-activedescendant={active >= 0 ? `${id}-opt-${active}` : undefined}
       onkeydown={onListKeydown}
       onfocusout={(event) => {
@@ -216,6 +231,7 @@
     box-shadow: var(--layer-selected-shadow);
   }
   .trigger:disabled {
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .trigger:focus-visible {
@@ -251,19 +267,21 @@
     transform: rotate(180deg);
   }
   .pop {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
+    /* Placed by anchorTo (fixed, in the top layer), which also sets the transform-origin. */
+    position: fixed;
+    inset: auto;
+    margin: 0;
     z-index: var(--z-popover);
-    width: max(100%, 22rem);
+    width: max(var(--anchor-width, 100%), 22rem);
     max-width: min(32rem, calc(100vw - 2rem));
-    max-height: min(26rem, 70vh);
+    max-height: min(26rem, 70vh, var(--anchor-room, 70vh));
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 0.45rem;
+    color: var(--text);
     border-radius: var(--radius-pop);
     outline: none;
     box-shadow: var(--shadow-pop);
-    transform-origin: top left;
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
   .heading {
@@ -327,7 +345,7 @@
     color: var(--draft);
     background: var(--tint-warn);
   }
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     .trigger {
       min-width: 0;
     }

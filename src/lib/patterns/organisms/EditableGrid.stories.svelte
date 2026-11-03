@@ -3,7 +3,6 @@
   import EditableGrid, { type CellValue, type GridRow } from './EditableGrid.svelte';
   import Sheet from './Sheet.svelte';
   import Badge from '../atoms/Badge.svelte';
-  import Button from '../atoms/Button.svelte';
   import Kbd from '../atoms/Kbd.svelte';
   import CodeBlock from '../molecules/CodeBlock.svelte';
   import Stack from '../layout/Stack.svelte';
@@ -38,6 +37,15 @@
 <script lang="ts">
   let rows = $state<GridRow[]>(venueRows());
   let draft = $state<GridRow | null>(null);
+  let draftRows = $state<GridRow[]>(venueRows().slice(0, 4));
+  let added = $state<number | null>(null);
+
+  function saveDraft() {
+    if (!draft) return;
+    draftRows = [...draftRows, { ...draft }];
+    added = draftRows.length - 1;
+    draft = null;
+  }
 
   let structRows = $state<GridRow[]>([
     {
@@ -111,6 +119,30 @@
   </Stack>
 </Story>
 
+<!-- Feedback at the cell. Click `id` or `updated_at`: `lockedHint` explains why in a bubble anchored
+     to that cell. Enter a capacity of 200000: the save is refused and `errorMessage` puts the
+     reason right under the cell (red, announced), not in a footer far away. -->
+<Story name="Locked hint and save error" asChild>
+  <Stack style="height:30rem">
+    <Sheet title="Venues" about="Locked columns explain themselves; refused saves say why.">
+      <EditableGrid
+        columns={venueColumns}
+        {rows}
+        oncommit={commit}
+        lockedHint={(column) =>
+          column.type === 'TIMESTAMP'
+            ? `${column.name} is set by the database when the row changes.`
+            : `${column.name} is the key of the row and cannot be changed.`}
+        errorMessage={(error) =>
+          error instanceof Error && error.message === 'capacity out of range'
+            ? 'Not saved: no venue holds more than 100,000 people.'
+            : 'Not saved — try again.'}
+        label="Venues"
+      />
+    </Sheet>
+  </Stack>
+</Story>
+
 <!-- `wrap`: long values break onto several lines instead of being cut off. -->
 <Story name="Wrapped" asChild>
   <Stack style="height:30rem">
@@ -120,25 +152,22 @@
   </Stack>
 </Story>
 
-<!-- `draft` (bindable) pins a green row under the header for a new record: Enter submits,
-     Escape cancels. The code below shows the draft as it is typed. -->
+<!-- New rows are made where they land: with `ondraftsubmit`, "+ New row" after the last row opens
+     `draft` (bindable) in place, with Save and Cancel right under it; Enter submits, Escape
+     cancels. The saved row appears where the draft was and flashes green. The code below shows
+     the draft as it is typed. -->
 <Story name="Draft row" asChild>
   <Stack gap="sm" style="height:28rem">
     <Sheet title="Venues" about="Add a venue">
-      {#snippet tools()}
-        <Button
-          variant={draft ? 'ghost' : 'success'}
-          shape="pill"
-          icon={draft ? 'close' : 'plus'}
-          label={draft ? 'Cancel' : 'Add row'}
-          onclick={() => (draft = draft ? null : {})}
-        />
-      {/snippet}
       <EditableGrid
         columns={venueColumns}
-        rows={rows.slice(0, 4)}
+        rows={draftRows}
         bind:draft
-        oncommit={commit}
+        highlight={added}
+        oncommit={(row, column, value) => {
+          draftRows = draftRows.map((r, i) => (i === row ? { ...r, [column]: value } : r));
+        }}
+        ondraftsubmit={saveDraft}
         label="Venues"
       />
     </Sheet>

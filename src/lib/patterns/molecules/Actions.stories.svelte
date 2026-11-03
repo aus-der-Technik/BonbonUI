@@ -76,6 +76,16 @@
   </Row>
 </Story>
 
+<!-- Inside a panel the accent pill would compete with the page's main action: a secondary or
+     ghost RefreshButton in a smaller size belongs to the panel it refreshes. -->
+<Story name="RefreshButton in a panel" asChild>
+  <Row gap="sm">
+    <RefreshButton variant="secondary" size="sm" />
+    <RefreshButton variant="ghost" size="sm" />
+    <RefreshButton variant="secondary" size="md" loading />
+  </Row>
+</Story>
+
 <!-- Two-step delete: quiet and neutral at rest (a list of rows with red "Delete"s reads loud), the
      first click arms it into a solid danger button next to "Cancel", with one
      gummy wobble so the "are you sure?" is felt. Escape disarms. Deleting never throws
@@ -94,6 +104,17 @@
       onconfirm={() => new Promise((resolve) => setTimeout(resolve, 800))}
     />
   </Row>
+</Story>
+
+<!-- With `doneLabel` the button itself says "Deleted" with a check for two seconds after the
+     promise resolves — the confirmation shows where you clicked, and screen readers hear it
+     politely. Then it returns to rest. -->
+<Story name="ConfirmButton done" asChild>
+  <ConfirmButton
+    icon="trash"
+    doneLabel="Deleted"
+    onconfirm={() => new Promise((resolve) => setTimeout(resolve, 600))}
+  />
 </Story>
 
 <!-- A rejected promise shows its message beside the buttons. -->

@@ -2,14 +2,16 @@
   /**
    * Drawer organism — a liquid-glass panel that glides in from the side for a record's detail
    * or a form, without leaving the list. It floats a little off the viewport edges (full width
-   * on phones). Native `<dialog>` (focus trap, Escape, top layer); a click on the backdrop
-   * closes it.
+   * on phones). Native `<dialog>` (focus trap, Escape, top layer). It closes like every overlay:
+   * Escape, the close button at the top end, or a click on the backdrop (`closeOnBackdrop`) —
+   * a press that starts inside and is released beside it never counts.
    *
    *   <Drawer open={editing} title="Jane Doe" subtitle="jane.doe@example.com"
    *     onclose={() => (editing = false)}>…{#snippet footer()}…{/snippet}</Drawer>
    */
   import type { Snippet } from 'svelte';
-  import Icon from '../atoms/Icon.svelte';
+  import Button from '../atoms/Button.svelte';
+  import { backdropClick } from '../../utils/overlay';
 
   interface Props {
     open: boolean;
@@ -19,6 +21,8 @@
     /** The edge it slides in from. */
     side?: 'end' | 'start';
     closeLabel?: string;
+    /** A click on the backdrop closes it. */
+    closeOnBackdrop?: boolean;
     onclose: () => void;
     children: Snippet;
     footer?: Snippet | undefined;
@@ -31,6 +35,7 @@
     width = '32rem',
     side = 'end',
     closeLabel = 'Close',
+    closeOnBackdrop = true,
     onclose,
     children,
     footer,
@@ -48,11 +53,6 @@
       else dialog.removeAttribute('open');
     }
   });
-
-  function onBackdrop(event: MouseEvent) {
-    // A click on the dialog element itself (not its content) landed on the backdrop.
-    if (event.target === dialog) onclose();
-  }
 </script>
 
 <dialog
@@ -61,7 +61,7 @@
   style:--width={width}
   aria-labelledby="{id}-title"
   onclose={() => open && onclose()}
-  onclick={onBackdrop}
+  use:backdropClick={closeOnBackdrop ? onclose : undefined}
 >
   {#if open}
     <div class="inner">
@@ -70,9 +70,14 @@
           <h2 id="{id}-title">{title}</h2>
           {#if subtitle}<p>{subtitle}</p>{/if}
         </div>
-        <button type="button" class="close" aria-label={closeLabel} onclick={onclose}>
-          <Icon name="close" size={16} />
-        </button>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon="close"
+          iconOnly
+          label={closeLabel}
+          onclick={onclose}
+        />
       </header>
       <div class="body">{@render children()}</div>
       {#if footer}<footer>{@render footer()}</footer>{/if}
@@ -107,10 +112,12 @@
   .drawer--start[open] {
     animation-name: drawer-in-start;
   }
+  /* One backdrop for every overlay (Dialog, Drawer, DetailPanel). */
   .drawer::backdrop {
+    --overlay-blur: var(--blur-backdrop, var(--blur-glass));
     background: var(--backdrop);
-    backdrop-filter: blur(6px) saturate(120%);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
+    backdrop-filter: var(--overlay-blur);
+    -webkit-backdrop-filter: var(--overlay-blur);
     animation: backdrop-in var(--motion-base) var(--ease-out);
   }
   .inner {
@@ -139,33 +146,6 @@
     margin-top: 2px;
     font-size: var(--fs-sm);
     color: var(--text-3);
-  }
-  .close {
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-    width: var(--control-sm);
-    height: var(--control-sm);
-    border: 0;
-    border-radius: var(--radius-pill);
-    background: var(--fill-hover);
-    color: var(--text-2);
-    cursor: pointer;
-    transition:
-      background-color var(--motion-quick) var(--ease-out),
-      color var(--motion-quick) var(--ease-out),
-      transform var(--motion-quick) var(--ease-jelly);
-  }
-  .close:hover {
-    background: var(--fill-muted);
-    color: var(--text);
-  }
-  .close:active {
-    transform: var(--press-squish);
-  }
-  .close:focus-visible {
-    outline: var(--focus-ring);
-    outline-offset: 2px;
   }
   .body {
     flex: 1;

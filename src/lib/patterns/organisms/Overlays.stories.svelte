@@ -31,18 +31,26 @@
   let feedbackOpen = $state(false);
   let failingOpen = $state(false);
   let selected = $state(3);
+  let dialogTrigger = $state<HTMLElement>();
+  let feedbackTrigger = $state<HTMLElement>();
+  let removed = $state(0);
   const toasts = new ToastQueue();
   const topToasts = new ToastQueue();
   let n = 0;
 </script>
 
-<!-- A modal of liquid glass: it eases in over a dimmed, blurred page (big surfaces never
-     overshoot) and turns into a bottom
-     sheet on phones. Put the safe action left, the destructive one right. -->
+<!-- A modal of liquid glass over a dimmed, blurred page (big surfaces never overshoot); a bottom
+     sheet on phones. Given the button that opened it as `origin`, it grows out of that button
+     and shrinks back into it, so you see what caused it. Escape, the close button and a click
+     on the backdrop close it, like every overlay. Put the safe action left, the destructive one
+     right. -->
 <Story name="Dialog" asChild>
-  <Button label="Switch data set" onclick={() => (dialogOpen = true)} />
+  <span bind:this={dialogTrigger} style="display:inline-block">
+    <Button label="Switch data set" onclick={() => (dialogOpen = true)} />
+  </span>
   <Dialog
     open={dialogOpen}
+    origin={dialogTrigger}
     title="Discard changes?"
     intro="Three cells have not been saved yet."
     onclose={() => (dialogOpen = false)}
@@ -58,16 +66,19 @@
 <!-- Thumbs or stars plus a comment. Sends after 700 ms; the thank-you tick draws itself in with a
      few sprinkles, then the dialog closes itself. -->
 <Story name="FeedbackDialog" asChild>
-  <Button
-    variant="glass"
-    shape="pill"
-    size="lg"
-    icon="message-plus"
-    label="Give feedback"
-    onclick={() => (feedbackOpen = true)}
-  />
+  <span bind:this={feedbackTrigger} style="display:inline-block">
+    <Button
+      variant="glass"
+      shape="pill"
+      size="lg"
+      icon="message-plus"
+      label="Give feedback"
+      onclick={() => (feedbackOpen = true)}
+    />
+  </span>
   <FeedbackDialog
     open={feedbackOpen}
+    origin={feedbackTrigger}
     title="How was this page?"
     onclose={() => (feedbackOpen = false)}
     onsubmit={() => new Promise((resolve) => setTimeout(resolve, 700))}
@@ -84,34 +95,42 @@
   />
 </Story>
 
-<!-- Toasts float bottom-right by default, slide in from their edge and glide aside as others
-     leave. A success toast throws a few sprinkles from its icon, once, when it lands
-     (`sprinkle={false}` turns that off); warnings and errors never do. Errors stay until
-     dismissed (`timeout` 0). -->
+<!-- A corner is far from where you act, so toasts carry two kinds of news: what happened in the
+     background (a sync, a teammate), and the outcome of an action whose control is gone — then
+     with a way back ("Undo"). Feedback for a button still on screen belongs at that button.
+     Toasts float bottom-right by default, slide in from their edge and glide aside as others
+     leave; the countdown pauses while the pointer or focus is on them, and errors stay until
+     dismissed. -->
 <Story name="Toaster" asChild>
   <Row>
-    <Button label="Saved" onclick={() => toasts.push(`Order #${10420 + ++n} saved`)} />
     <Button
-      label="Warning"
-      onclick={() => toasts.push('Reloaded: 2 orders changed meanwhile', 'warn')}
+      variant="danger"
+      icon="trash"
+      label="Delete order #{10421 + removed}"
+      onclick={() => {
+        const order = 10421 + removed++;
+        toasts.push(`Order #${order} deleted`, 'ok', {
+          action: { label: 'Undo', onaction: () => removed-- },
+        });
+      }}
+    />
+    <Button
+      label="Background sync"
+      onclick={() => toasts.push(`Reloaded: ${++n} orders changed meanwhile`, 'warn')}
     />
     <Button
       variant="danger"
       label="Error"
-      onclick={() => toasts.push('Could not save: someone else edited this order', 'error', 0)}
+      onclick={() => toasts.push('Could not save: someone else edited this order', 'error')}
     />
   </Row>
-  <Toaster toasts={toasts.items} ondismiss={(id) => toasts.dismiss(id)} />
+  <Toaster queue={toasts} />
 </Story>
 
 <!-- `placement="top-center"`: for apps whose bottom edge is busy (a dock, a composer). -->
 <Story name="Toaster at the top" asChild>
   <Button label="Copy link" icon="link" onclick={() => topToasts.push('Link copied')} />
-  <Toaster
-    toasts={topToasts.items}
-    placement="top-center"
-    ondismiss={(id) => topToasts.dismiss(id)}
-  />
+  <Toaster queue={topToasts} placement="top-center" />
 </Story>
 
 <!-- A front-layer element, so it is sticky, not fixed: it rides along the bottom of the viewport

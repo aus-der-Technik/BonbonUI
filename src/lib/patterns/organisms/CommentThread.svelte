@@ -18,7 +18,12 @@
    * CommentThread organism — a discussion on one thing (a paragraph, a card, a cell) on a glass
    * card: an optional quote of what it is about, the comments, a reply box and Resolve. Resolved
    * threads fold to a single line that opens again on click. Replies come back through
-   * `onreply`; while its promise runs the box is busy, afterwards it is cleared.
+   * `onreply`; while its promise runs the box is busy, afterwards it is cleared. If it rejects,
+   * the draft stays and `replyErrorMessage` shows right under the box.
+   *
+   * Without comments it is a new thread: just the quote and a compact composer
+   * (`startPlaceholder`, `startLabel`) — no empty list. `oncancel` adds a "Discard" button
+   * (`cancelLabel`) that drops the draft and lets you close the thread where it was opened.
    *
    *   <CommentThread quote="Launch in Q3" comments={thread} onreply={send} onresolve={resolve} />
    */
@@ -26,6 +31,7 @@
   import Composer from '../molecules/Composer.svelte';
   import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import Alert from '../molecules/Alert.svelte';
 
   interface Props {
     comments: ThreadComment[];
@@ -44,6 +50,17 @@
     resolveLabel?: string;
     reopenLabel?: string;
     resolvedLabel?: string;
+    /** Shown under the reply box when `onreply` rejects; the draft is kept. */
+    replyErrorMessage?: string;
+    dismissLabel?: string;
+    /** Placeholder of the composer of a thread without comments yet. */
+    startPlaceholder?: string;
+    /** Send button of a thread without comments yet. */
+    startLabel?: string;
+    /** The button that drops a draft (shown with `oncancel`). */
+    cancelLabel?: string;
+    /** Discard: the draft is cleared, then this is called (e.g. to close a new thread). */
+    oncancel?: (() => void) | undefined;
     /** "3 comments" in the folded line. */
     countLabel?: (count: number) => string;
     onreply?: ((text: string) => void | Promise<void>) | undefined;
@@ -65,25 +82,46 @@
     resolveLabel = 'Resolve',
     reopenLabel = 'Reopen',
     resolvedLabel = 'Resolved',
+    replyErrorMessage = 'Your reply was not sent. Try again.',
+    dismissLabel = 'Dismiss',
+    startPlaceholder = 'Start the discussion…',
+    startLabel = 'Comment',
+    cancelLabel = 'Discard',
+    oncancel,
     countLabel = (count) => `${count} ${count === 1 ? 'comment' : 'comments'}`,
     onreply,
     onresolve,
     onreact,
   }: Props = $props();
 
+  // Reactions change inside the thread; the `comments` prop stays the parent's.
+  let reacted = $state<Record<string, Reaction[]>>({});
+
   let draft = $state('');
   let busy = $state(false);
+  let failed = $state(false);
   let expanded = $state(false);
 
   const showReply = $derived((canReply ?? !!onreply) && !resolved);
   const folded = $derived(resolved && !expanded);
+  // Tolerates a missing list: a thread without comments is a new one.
+  const fresh = $derived(!comments?.length);
+
+  function discard() {
+    draft = '';
+    failed = false;
+    oncancel?.();
+  }
 
   async function reply(text: string) {
     if (!onreply) return;
     busy = true;
+    failed = false;
     try {
       await onreply(text);
       draft = '';
+    } catch {
+      failed = true;
     } finally {
       busy = false;
     }
@@ -96,7 +134,7 @@
   }
 </script>
 
-<section class="thread" class:active class:resolved aria-label={label}>
+<section class="thread" class:active class:resolved class:fresh aria-label={label}>
   {#if folded}
     <button type="button" class="folded" aria-expanded="false" onclick={() => (expanded = true)}>
       <span class="check"><Icon name="check" size={14} /></span>
@@ -108,10 +146,10 @@
       <Icon name="chevron-down" size={16} />
     </button>
   {:else}
-    {#if quote || onresolve}
+    {#if quote || (onresolve && !fresh)}
       <header class="head">
         {#if quote}<blockquote class="quote">{quote}</blockquote>{/if}
-        {#if onresolve}
+        {#if onresolve && !fresh}
           <Button
             size="sm"
             variant={resolved ? 'secondary' : 'glass'}
@@ -123,31 +161,38 @@
         {/if}
       </header>
     {/if}
-    <ol class="list">
-      {#each comments as comment, index (comment.id)}
-        <li>
-          <Comment
-            author={comment.author}
-            src={comment.src}
-            time={comment.time}
-            text={comment.text}
-            role={comment.role}
-            edited={comment.edited ?? false}
-            reactions={comment.reactions}
-            {now}
-            {locale}
-            size={index === 0 ? 'md' : 'sm'}
-            onreact={onreact ? (emoji, mine) => onreact(comment.id, emoji, mine) : undefined}
-          />
-        </li>
-      {/each}
-    </ol>
+    {#if !fresh}
+      <ol class="list">
+        {#each comments as comment, index (comment.id)}
+          <li>
+            <Comment
+              author={comment.author}
+              src={comment.src}
+              time={comment.time}
+              text={comment.text}
+              role={comment.role}
+              edited={comment.edited ?? false}
+              bind:reactions={
+                () => reacted[comment.id] ?? comment.reactions,
+                (next) => {
+                  if (next) reacted[comment.id] = next;
+                }
+              }
+              {now}
+              {locale}
+              size={index === 0 ? 'md' : 'sm'}
+              onreact={onreact ? (emoji, mine) => onreact(comment.id, emoji, mine) : undefined}
+            />
+          </li>
+        {/each}
+      </ol>
+    {/if}
     {#if showReply}
       <Composer
         bind:value={draft}
-        label={replyLabel}
-        placeholder={replyPlaceholder}
-        buttonLabel={replyLabel}
+        label={fresh ? startLabel : replyLabel}
+        placeholder={fresh ? startPlaceholder : replyPlaceholder}
+        buttonLabel={fresh ? startLabel : replyLabel}
         icon="send"
         layout="inline"
         minRows={1}
@@ -156,6 +201,14 @@
         {busy}
         onsubmit={reply}
       />
+      {#if oncancel}
+        <div class="cancel">
+          <Button size="sm" variant="ghost" shape="pill" label={cancelLabel} onclick={discard} />
+        </div>
+      {/if}
+      {#if failed}
+        <Alert message={replyErrorMessage} {dismissLabel} ondismiss={() => (failed = false)} />
+      {/if}
     {/if}
   {/if}
 </section>
@@ -182,6 +235,16 @@
   }
   .resolved:not(.active) {
     padding: var(--space-2);
+  }
+  /* A new thread is only the quote and the composer: tighter, no room for an empty list. */
+  .fresh {
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+  .cancel {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: calc(var(--space-2) * -1);
   }
   .head {
     display: flex;
@@ -257,7 +320,7 @@
     height: 22px;
     border-radius: 50%;
     background: var(--ok);
-    color: #fff;
+    color: var(--on-ok);
     flex-shrink: 0;
   }
   .folded-text {

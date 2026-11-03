@@ -10,7 +10,6 @@ example).
 
 ## Use it in an app
 
-
 ```bash
 npm install @bonbon-ui/core
 npm install leaflet # only if you use MapView
@@ -73,11 +72,11 @@ exist as aliases of the new tokens; set `tint="#e3000f"` to keep the old red.
 | Templates  | Application, Page, Backdrop, AdminLayout, AuthLayout, ErrorPage, SplitLayout, DashboardGrid                                                                                                                                     |
 | Layout     | Stack, Row, Grid, Spacer, Layer, Section                                                                                                                                                                                        |
 | Organisms  | AppHeader, DataTable, EditableGrid, charts, Dialog, Drawer, Sheet, SideNav · NavBar, Hero, FeatureGrid, PricingTable, Faq, SiteFooter · ProductGrid, ProductGallery, CartSummary · KanbanBoard, CommentThread, NotificationList |
-| Desktop/OS | Desktop, Window, MenuBar, Dock, Launchpad, ControlCenter, Widget, ContextMenu, CommandPalette, Toolbar, SourceList, TreeView, Inspector, StatusBar, NotificationBanner/Center                                                   |
+| Desktop/OS | Desktop, Window, MenuBar, Dock, AppJar, QuickSettings, Widget, ContextMenu, CommandPalette, Toolbar, SourceList, TreeView, Inspector, StatusBar, NotificationBanner/Center                                                      |
 | Molecules  | Tabs, SegmentedControl, Picker, MultiSelect, Autocomplete, Field, Alert, Toast, KpiTile, Stat, Calendar, DatePicker, Popover, Stepper, Carousel, Banner, AvatarStack, ProductCard, PricingCard, …                               |
 | Atoms      | Button, Card, Badge, Tag, Input, Select, Switch, Checkbox, Radio, Slider, Text, Heading, Image, Price, AppIcon, StatusDot, Icon (100+ glyphs), …                                                                                |
-| Pages      | Operations (overview, quality rating, crawl & extract, classifier bench, prompt playground, bundle export, archive), Admin, Website, Shop, Collaboration, Desktop OS and a mail app                                             |
-| Utilities  | de-DE formats, chart scales, `ToastQueue`, `renderMarkdown` (sanitized), `uploadFile`, `downloadBlob`, `poll` / `every`, date helpers                                                                                           |
+| Pages      | Landing page, Shop (storefront to checkout), Admin console (overview, users, settings, documents, jobs, AI lab, data, sign-in), Team workspace, Document editor, Spreadsheet, Slide deck, Desktop OS — each with design notes   |
+| Utilities  | English formats (locale as a prop), chart scales, `ToastQueue`, `renderMarkdown` (sanitized), `uploadFile`, `downloadBlob`, `poll` / `every`, date helpers                                                                      |
 
 ## Develop
 
@@ -90,4 +89,3 @@ Node ≥ 24.
 | `npm run build`           | typecheck + `svelte-package` → `dist/` + publint                  |
 | `npm run build-storybook` | static Storybook → `storybook-static/`                            |
 | `npm run check`           | lint + format + typecheck + tests — run before handing work over  |
-

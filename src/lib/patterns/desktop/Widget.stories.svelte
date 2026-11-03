@@ -65,3 +65,14 @@
     <Text size="2xl" weight="bold" tone="inherit">86 new</Text>
   </Widget>
 </Story>
+
+<!-- `filled` picks its ink from the fill: white on deep candy, near-black on light candy
+     (yellow, mint, cyan), with the same lightness rule as the status tokens — so every colour
+     stays readable without anyone choosing a text colour. -->
+<Story name="Filled colours" asChild>
+  <Row gap="md" align="start">
+    {#each ['blue', 'pink', 'yellow', 'mint', 'cyan', 'orange'] as color (color)}
+      <Widget title={color} icon="sparkles" {color} filled figure="21°" caption="Readable ink" />
+    {/each}
+  </Row>
+</Story>

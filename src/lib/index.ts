@@ -14,6 +14,7 @@ export { default as Card } from './patterns/atoms/Card.svelte';
 export { default as Checkbox } from './patterns/atoms/Checkbox.svelte';
 export { default as Divider } from './patterns/atoms/Divider.svelte';
 export { default as Icon } from './patterns/atoms/Icon.svelte';
+export { default as IconButton } from './patterns/atoms/IconButton.svelte';
 export { default as Input } from './patterns/atoms/Input.svelte';
 export { default as Kbd } from './patterns/atoms/Kbd.svelte';
 export { default as Link } from './patterns/atoms/Link.svelte';
@@ -48,6 +49,8 @@ export {
   paletteFor,
   type PaletteColor,
 } from './patterns/atoms/palette';
+export { changeCue, flashChanged } from './patterns/atoms/changed';
+export { toneOf, noticeRole, type Tone, type LegacyTone } from './patterns/tone';
 
 // Molecules
 export { default as Alert } from './patterns/molecules/Alert.svelte';
@@ -99,6 +102,7 @@ export { default as VersionRail } from './patterns/molecules/VersionRail.svelte'
 
 export { default as AvatarStack } from './patterns/molecules/AvatarStack.svelte';
 export { default as Popover } from './patterns/molecules/Popover.svelte';
+export { default as ToolGroup } from './patterns/molecules/ToolGroup.svelte';
 export { default as Reactions } from './patterns/molecules/Reactions.svelte';
 export { default as Comment } from './patterns/molecules/Comment.svelte';
 export { default as TaskList } from './patterns/molecules/TaskList.svelte';
@@ -197,7 +201,7 @@ export type { PickerOption } from './patterns/molecules/Picker.svelte';
 export type { RadioOption } from './patterns/molecules/RadioGroup.svelte';
 export type { TabItem } from './patterns/molecules/Tabs.svelte';
 export type { Crumb } from './patterns/molecules/Breadcrumbs.svelte';
-export type { MenuEntry } from './patterns/molecules/DropdownMenu.svelte';
+export type { MenuEntry, MenuTriggerProps } from './patterns/molecules/DropdownMenu.svelte';
 export type { NavGroup, NavItem } from './patterns/organisms/SideNav.svelte';
 export type { ActivityEntry } from './patterns/organisms/ActivityLog.svelte';
 export type { CheckboxOption } from './patterns/molecules/CheckboxGroup.svelte';
@@ -210,7 +214,7 @@ export {
   type StructField,
 } from './patterns/molecules/StructTree.svelte';
 export type { ResourceStatus } from './patterns/organisms/ResourceList.svelte';
-export type { Column, SortOrder } from './patterns/organisms/DataTable.svelte';
+export type { Column, SortOrder, TableSelection } from './patterns/organisms/DataTable.svelte';
 export {
   cellKind,
   listItems,
@@ -228,8 +232,26 @@ export type { BarRow } from './patterns/organisms/HorizontalBarChart.svelte';
 // Utilities
 export * from './utils/format';
 export * from './utils/chart';
-export { scrollToTop } from './utils/motion';
-export { ToastQueue, type ToastItem, type ToastTone } from './utils/toasts.svelte';
+export {
+  scrollToTop,
+  motion,
+  glide,
+  originFrom,
+  cubicBezier,
+  prefersReducedMotion,
+  type Motion,
+  type MotionSpeed,
+  type MotionEase,
+  type GlideParams,
+} from './utils/motion';
+export { backdropClick, tabbables, trapTab, fromOtherModal } from './utils/overlay';
+export {
+  ToastQueue,
+  type ToastItem,
+  type ToastTone,
+  type ToastAction,
+  type ToastOptions,
+} from './utils/toasts.svelte';
 export { downloadBlob, fetchAndDownload } from './utils/download';
 export { formatBytes, uploadFile, UploadError, type UploadOptions } from './utils/upload';
 export { every, poll, type PollOptions } from './utils/poll';
@@ -239,9 +261,19 @@ export { buildLens, canRefract, frostFilter, LENS_DEFAULTS, type LensOptions } f
 // Collaboration types and helpers
 export type { Participant, Presence } from './patterns/molecules/AvatarStack.svelte';
 export type { PopoverPlacement, PopoverTriggerProps } from './patterns/molecules/Popover.svelte';
+export type { GoodWhen } from './patterns/molecules/delta';
+export {
+  anchorTo,
+  computePosition,
+  type AnchorPlacement,
+  type AnchorOptions,
+  type AnchorPosition,
+  type AnchorSide,
+} from './patterns/molecules/anchor';
+export { ariaKeyShortcuts, isApplePlatform, keyLabels } from './patterns/atoms/keys';
 export type { Reaction } from './patterns/molecules/Reactions.svelte';
 export type { TaskItem } from './patterns/molecules/TaskList.svelte';
-export type { CalendarEvent } from './patterns/molecules/Calendar.svelte';
+export type { CalendarDay, CalendarEvent } from './patterns/molecules/Calendar.svelte';
 export type { Step, StepStatus } from './patterns/molecules/Stepper.svelte';
 export type { ThreadComment } from './patterns/organisms/CommentThread.svelte';
 export type {
@@ -277,11 +309,19 @@ export { default as Desktop } from './patterns/desktop/Desktop.svelte';
 export { default as Window } from './patterns/desktop/Window.svelte';
 export { default as MenuBar, type MenuBarStatus } from './patterns/desktop/MenuBar.svelte';
 export { default as Dock } from './patterns/desktop/Dock.svelte';
-export { default as Launchpad } from './patterns/desktop/Launchpad.svelte';
+export { default as AppJar } from './patterns/desktop/AppJar.svelte';
 export {
-  default as ControlCenter,
+  default as QuickSettings,
   type ControlToggle,
   type NowPlaying,
+} from './patterns/desktop/QuickSettings.svelte';
+export {
+  /** @deprecated use AppJar */
+  default as Launchpad,
+} from './patterns/desktop/Launchpad.svelte';
+export {
+  /** @deprecated use QuickSettings */
+  default as ControlCenter,
 } from './patterns/desktop/ControlCenter.svelte';
 export { default as Widget } from './patterns/desktop/Widget.svelte';
 export { default as ContextMenu } from './patterns/desktop/ContextMenu.svelte';
@@ -317,6 +357,7 @@ export {
   type DockApp,
   type DockEntry,
   type DesktopIcon,
+  type DesktopPoint,
   type ContextMenuItem,
   type MenuBarMenu,
 } from './patterns/desktop/shared.svelte';

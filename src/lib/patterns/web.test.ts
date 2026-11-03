@@ -41,7 +41,7 @@ describe('web helpers', () => {
   });
   it('formats money and discounts', () => {
     expect(formatPrice(12.5, 'USD', 'en-US')).toBe('$12.50');
-    expect(formatPrice(3)).toMatch(/3,00\s€/);
+    expect(formatPrice(3)).toBe('€3.00');
     expect(discountPercent(80, 100)).toBe(20);
     expect(discountPercent(100, 80)).toBe(0);
     expect(discountPercent(10, undefined)).toBe(0);
@@ -174,10 +174,10 @@ describe('Testimonial / LogoCloud / CallToAction', () => {
   it('renders wordmarks, images and links', () => {
     const host = render(LogoCloud, {
       title: 'Trusted by',
-      logos: [{ name: 'Acme' }, { name: 'Umbra', src: '/u.svg', href: '#u' }],
+      logos: [{ name: 'Example Corp' }, { name: 'Example Labs', src: '/u.svg', href: '#u' }],
     });
-    expect(text($(host, '.wordmark'))).toBe('Acme');
-    expect($(host, 'a[href="#u"] img')?.getAttribute('alt')).toBe('Umbra');
+    expect(text($(host, '.wordmark'))).toBe('Example Corp');
+    expect($(host, 'a[href="#u"] img')?.getAttribute('alt')).toBe('Example Labs');
     expect($(host, 'section')?.getAttribute('aria-labelledby')).toBeTruthy();
   });
 
@@ -235,13 +235,13 @@ describe('NavBar', () => {
   it('marks the active link and opens / closes the menu sheet', () => {
     const onnavigate = vi.fn((_l, e: MouseEvent) => e.preventDefault());
     const host = render(NavBar, {
-      brand: 'Larkspur',
+      brand: 'Example Planner',
       links,
       onnavigate,
       actions: html('<button>Sign up</button>'),
       menu: html('<p class="menu-extra">Extra</p>'),
     });
-    expect(text($(host, '.wordmark'))).toBe('Larkspur');
+    expect(text($(host, '.wordmark'))).toBe('Example Planner');
     expect($(host, '.links a[aria-current="page"]')?.textContent).toBe('Home');
     const toggle = byLabel(host, 'Open menu')!;
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
@@ -253,6 +253,18 @@ describe('NavBar', () => {
     click($$(host, '.sheet a')[1]);
     expect(onnavigate).toHaveBeenCalledWith(links[1], expect.any(MouseEvent));
     expect($(host, '.sheet')).toBeNull();
+  });
+
+  it('stays open when the click lands on the toggle icon, which swaps on open', () => {
+    const host = render(NavBar, { brand: 'N', links });
+    const toggle = byLabel(host, 'Open menu')!;
+    // A mouse click hits the glyph's <path>; the icon swaps and that path leaves the DOM.
+    toggle
+      .querySelector('path')!
+      .dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
+    flushSync();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect($(host, '.sheet')).not.toBeNull();
   });
 
   it('closes on Escape and on a click outside', () => {
@@ -314,7 +326,7 @@ describe('Faq', () => {
 describe('SiteFooter', () => {
   it('renders columns, social and legal links', () => {
     const host = render(SiteFooter, {
-      brand: 'Larkspur',
+      brand: 'Example Planner',
       tagline: 'Hi',
       columns: [{ title: 'Product', links: [{ label: 'Pricing', href: '#p' }] }],
       social: [{ label: 'Mail', href: '#m', icon: 'mail' }],
@@ -371,11 +383,15 @@ describe('QuantityStepper', () => {
     const host = render(QuantityStepper, { value: 1, min: 1, max: 3, onchange });
     const dec = byLabel(host, 'Decrease quantity') as HTMLButtonElement;
     const inc = byLabel(host, 'Increase quantity') as HTMLButtonElement;
-    expect(dec.disabled).toBe(true);
+    // At a limit the button stays focusable: marked unavailable, not disabled.
+    expect(dec.getAttribute('aria-disabled')).toBe('true');
+    expect(dec.disabled).toBe(false);
     click(inc);
     click(inc);
     expect(onchange).toHaveBeenLastCalledWith(3);
-    expect(inc.disabled).toBe(true);
+    expect(inc.getAttribute('aria-disabled')).toBe('true');
+    click(inc);
+    expect(onchange).toHaveBeenCalledTimes(2);
     expect($(host, 'input')?.getAttribute('aria-valuenow')).toBe('3');
   });
 
@@ -572,7 +588,7 @@ describe('ProductGrid', () => {
     expect($$(host, '.product')).toHaveLength(2);
     expect($(host, 'ul[role="list"]')).not.toBeNull();
     click($$(host, '[aria-label="Add to cart"]')[1]);
-    expect(onadd).toHaveBeenCalledWith(products[1]);
+    expect(onadd).toHaveBeenCalledWith(products[1], expect.any(HTMLElement));
     click($$(host, 'a.open')[0]);
     expect(onopen).toHaveBeenCalledWith(products[0]);
     expect(byLabel(host, 'Remove from wishlist')).not.toBeNull();
@@ -700,7 +716,7 @@ describe('CartSummary', () => {
 
   it('applies a code, reports an invalid one and removes it', async () => {
     const ondiscount = vi.fn(async (code: string) => {
-      if (code !== 'OK') throw new Error('bad');
+      if (code !== 'OK') throw new Error('invalid');
     });
     const onremovediscount = vi.fn();
     const host = render(CartSummary, { subtotal: 10, ondiscount, onremovediscount });

@@ -8,7 +8,12 @@
    *
    * `selected` turns it into the selected layer (tinted glass, tint rim and glow) — the chosen
    * plan, the open item. `interactive` adds a hover lift for clickable cards; with `href` the
-   * whole card is a link, with `onclick` a button (Enter and Space work).
+   * whole card is a link, with `onclick` a button.
+   *
+   * A clickable card with a `title` uses the stretched-link pattern: the title is the real button
+   * (or link, when an `href` card also has `actions`) and its hit area covers the card, so the
+   * heading stays a heading and the actions stay separate buttons above it. Without a title the
+   * card itself is the button — keep its content plain text then.
    *
    * `title` (with `count` and an `actions` snippet) adds a header row: caps title, muted count,
    * actions on the right. `accent` draws an accent stripe on the left edge. `gap` stacks the
@@ -26,6 +31,8 @@
     padding?: 'none' | 'sm' | 'md' | 'lg';
     as?: 'div' | 'section' | 'article' | 'aside' | 'li';
     title?: string | undefined;
+    /** Level of the title's heading element (default 2). */
+    headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
     count?: string | number | undefined;
     accent?: boolean;
     /** The selected layer: tinted glass with a tint rim. */
@@ -46,6 +53,7 @@
     padding = 'md',
     as = 'div',
     title,
+    headingLevel = 2,
     count,
     accent = false,
     selected = false,
@@ -60,8 +68,12 @@
     ...rest
   }: Props = $props();
 
-  const clickable = $derived(!href && !!onclick);
-  const lifts = $derived(interactive || !!href || clickable);
+  // Stretched: a real button/link on the title covers the card; the card is no control itself.
+  const stretchButton = $derived(!href && !!onclick && !!title);
+  const stretchLink = $derived(!!href && !!title && !!actions);
+  const stretched = $derived(stretchButton || stretchLink);
+  const clickable = $derived(!href && !!onclick && !stretchButton);
+  const lifts = $derived(interactive || !!href || !!onclick);
 
   function keydown(event: KeyboardEvent & { currentTarget: EventTarget & HTMLElement }) {
     (onkeydown as ((e: KeyboardEvent) => void) | null | undefined)?.(event);
@@ -74,9 +86,10 @@
 </script>
 
 <svelte:element
-  this={href ? 'a' : as}
-  {href}
+  this={href && !stretchLink ? 'a' : as}
+  href={stretchLink ? undefined : href}
   class="card card--{surface} card--pad-{padding} {extraClass}"
+  class:card--stretched={stretched}
   class:card--accent={accent}
   class:card--selected={selected}
   class:card--interactive={lifts}
@@ -85,14 +98,27 @@
   role={clickable ? 'button' : undefined}
   tabindex={clickable ? 0 : undefined}
   aria-pressed={clickable && selected ? 'true' : undefined}
-  aria-current={href && selected ? 'true' : undefined}
-  {onclick}
+  aria-current={href && selected && !stretchLink ? 'true' : undefined}
+  onclick={stretchButton ? undefined : onclick}
   onkeydown={keydown}
   {...rest}
 >
   {#if title || actions}
     <div class="card-head">
-      {#if title}<h2 class="card-title">{title}</h2>{/if}
+      {#if title}
+        <svelte:element this={`h${headingLevel}`} class="card-title">
+          {#if stretchButton}
+            <button
+              type="button"
+              class="card-hit"
+              aria-pressed={selected ? 'true' : undefined}
+              onclick={onclick as ((event: MouseEvent) => void) | undefined}>{title}</button
+            >
+          {:else if stretchLink}
+            <a class="card-hit" {href} aria-current={selected ? 'true' : undefined}>{title}</a>
+          {:else}{title}{/if}
+        </svelte:element>
+      {/if}
       {#if count != null}<span class="card-count">{count}</span>{/if}
       {#if actions}<div class="card-actions">{@render actions()}</div>{/if}
     </div>
@@ -138,6 +164,41 @@
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--text-2);
+  }
+  /* Stretched link: the title's control covers the whole card; real controls sit above it. */
+  .card--stretched {
+    position: relative;
+  }
+  .card-hit {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-align: inherit;
+    text-decoration: none;
+    text-transform: inherit;
+    cursor: pointer;
+  }
+  .card-hit::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .card-hit:focus-visible {
+    outline: none;
+  }
+  .card--stretched:has(.card-hit:focus-visible) {
+    outline: var(--focus-ring);
+    outline-offset: 3px;
+  }
+  .card--stretched .card-actions,
+  .card--stretched
+    :global(:is(a, button, input, select, textarea, label, summary, [tabindex]):not(.card-hit)) {
+    position: relative;
+    z-index: 1;
   }
   .card-count {
     font-size: var(--fs-xs);

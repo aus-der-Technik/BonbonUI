@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * Input atom — a single-line text field on the translucent input surface. Focus draws an
-   * accent rim with a soft halo; `invalid` turns it red with a small polite head-shake.
+   * accent rim with a soft halo; `invalid` turns it red with a small polite head-shake. Heights
+   * follow the control scale (sm 32 / md 36 / lg 44px), so fields line up with buttons and selects.
    *
    *   <Input type="email" placeholder="name@example.com" bind:value={email} />
    */
@@ -72,25 +73,25 @@
     }
   }
   .input[aria-invalid='true']:focus {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+    box-shadow: var(--focus-halo-danger);
   }
   .input:disabled {
-    opacity: 0.6;
+    opacity: var(--disabled-opacity);
   }
   .input--sm {
-    height: var(--control-md);
+    height: var(--control-sm);
     padding: 0 var(--space-3);
     border-radius: var(--radius-md);
     font-size: var(--fs-md);
   }
   .input--md {
-    height: calc(40px * var(--density));
+    height: var(--control-md);
     padding: 0 0.85rem;
     border-radius: var(--radius-lg);
     font-size: var(--fs-base);
   }
   .input--lg {
-    height: var(--control-xl);
+    height: var(--control-lg);
     padding: 0 var(--space-4);
     border-radius: var(--radius-xl);
     font-size: var(--fs-lg);

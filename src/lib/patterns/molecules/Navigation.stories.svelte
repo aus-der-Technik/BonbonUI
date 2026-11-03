@@ -23,6 +23,7 @@
 </script>
 
 <script lang="ts">
+  let crumb = $state('');
   let tab = $state('profile');
   let view = $state('overview');
   let last = $state('');
@@ -74,6 +75,18 @@
       { label: 'Jane Doe' },
     ]}
   />
+</Story>
+
+<!-- In an app that navigates without URLs (a file browser, a desktop window), crumbs call
+     `onnavigate` (or their own `onclick`) and render as buttons that look exactly like links. -->
+<Story name="Breadcrumbs without URLs" asChild>
+  <Stack gap="sm">
+    <Breadcrumbs
+      items={[{ label: 'Files' }, { label: 'Projects' }, { label: 'Spring launch' }]}
+      onnavigate={(item) => (crumb = item.label)}
+    />
+    {#if crumb}<StatusText message="Opened {crumb}" />{/if}
+  </Stack>
 </Story>
 
 <!-- Actions behind one button, on a frosted glass menu that grows out of the trigger's corner.

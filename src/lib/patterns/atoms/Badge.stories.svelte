@@ -23,12 +23,12 @@
           'danger',
           'info',
           'accent',
-          'brand',
           ...paletteColors,
         ],
       },
       variant: { control: 'inline-radio', options: ['soft', 'solid'] },
       size: { control: 'inline-radio', options: ['sm', 'md', 'lg'] },
+      shape: { control: 'inline-radio', options: ['rounded', 'pill'] },
     },
   });
 </script>
@@ -68,11 +68,20 @@ text. -->
   </Stack>
 </Story>
 
-<!-- `sm` is the inline meta pill next to a label; `lg` a headline badge. -->
+<!-- `sm` is the inline meta tag next to a label; `lg` a headline badge. -->
 <Story name="Sizes" asChild>
   <Row>
     <Badge size="sm" label="v1.4.2" />
-    <Badge tone="brand" label="Pro" />
-    <Badge tone="brand" size="lg" icon="sparkles" label="Featured" />
+    <Badge tone="accent" variant="solid" label="Pro" />
+    <Badge tone="accent" variant="solid" size="lg" icon="sparkles" label="Featured" />
+  </Row>
+</Story>
+
+<!-- A badge states something, so it is a rounded tag; pills are for things you press. `shape="pill"`
+opts back in where a pill is wanted anyway. -->
+<Story name="Shape" asChild>
+  <Row>
+    <Badge tone="ok" label="Rounded (default)" />
+    <Badge tone="ok" shape="pill" label="Pill" />
   </Row>
 </Story>

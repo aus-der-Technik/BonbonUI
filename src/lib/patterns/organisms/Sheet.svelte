@@ -3,7 +3,9 @@
    * Sheet organism — a full-height working card: a head with title, description and
    * tools (badges, toggles, filter), an optional loading bar and error, the body (a grid, a
    * chooser, a sign-in card…) filling the rest, and a footer line for counts and key hints.
-   * Put it last in a `fill` Page and it takes all the room below the header.
+   * Put it last in a `fill` Page and it takes all the room below the header. Its frosted glass
+   * is painted by a layer behind the content, so fixed-position children (popovers, menus,
+   * pickers in the tools) are positioned against the window, not trapped in the card.
    *
    *   <Sheet title="Products" about="Edit the catalogue in place." {tools} {footer}>
    *     <EditableGrid … />
@@ -43,18 +45,31 @@
 </section>
 
 <style>
+  /* A backdrop-filter on the card itself would become the containing block of every
+     fixed-position descendant, so the glass lives on a pseudo-layer behind the content; `clip`
+     (not `hidden`) keeps the rounded corners without making the card a scroll container. */
   .sheet {
+    position: relative;
+    isolation: isolate;
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    background: var(--layer-panel-bg);
-    backdrop-filter: var(--layer-panel-blur);
-    -webkit-backdrop-filter: var(--layer-panel-blur);
+    overflow: clip;
     border: 1px solid var(--layer-panel-border);
     border-radius: var(--radius-card);
     box-shadow: var(--layer-panel-shadow);
+  }
+  .sheet::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--layer-panel-bg);
+    backdrop-filter: var(--layer-panel-blur);
+    -webkit-backdrop-filter: var(--layer-panel-blur);
+    pointer-events: none;
   }
   .head {
     display: flex;
@@ -121,7 +136,7 @@
     }
   }
   @media (prefers-reduced-transparency: reduce) {
-    .sheet {
+    .sheet::before {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       background: var(--glass-strong);

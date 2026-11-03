@@ -10,6 +10,7 @@
    */
   import Button from '../atoms/Button.svelte';
   import Kbd from '../atoms/Kbd.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
   import type { IconName } from '../atoms/icons';
 
   interface Props {
@@ -32,6 +33,8 @@
     sendHint?: string;
     /** Hint text after Shift+Enter (`submitOn="enter"` only). */
     newlineHint?: string;
+    /** Key caps of the hint; `mod` defaults to ⌘ on Apple devices, "Ctrl" elsewhere. */
+    keyLabels?: Partial<Record<'mod' | 'enter' | 'shift', string>>;
     layout?: 'stacked' | 'inline';
     onsubmit: (value: string) => void;
   }
@@ -53,6 +56,7 @@
     hint = true,
     sendHint = 'to send',
     newlineHint = 'for a new line',
+    keyLabels = {},
     layout = 'stacked',
     onsubmit,
   }: Props = $props();
@@ -62,6 +66,7 @@
 
   const ready = $derived(!busy && !disabled && value.trim().length >= minLength);
   const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+  const keys = $derived({ mod: mac ? '⌘' : 'Ctrl', enter: 'Enter', shift: 'Shift', ...keyLabels });
 
   function submit() {
     if (ready) onsubmit(value.trim());
@@ -92,7 +97,7 @@
 </script>
 
 <div class="composer composer--{layout}" class:disabled>
-  <label class="sr-only" for={id}>{label}</label>
+  <VisuallyHidden><label for={id}>{label}</label></VisuallyHidden>
   <textarea
     bind:this={field}
     {id}
@@ -107,9 +112,11 @@
     {#if hint}
       <span class="hint" id="{id}-hint">
         {#if submitOn === 'enter'}
-          <Kbd>Enter</Kbd> {sendHint} · <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> {newlineHint}
+          <Kbd>{keys.enter}</Kbd>
+          {sendHint} · <Kbd>{keys.shift}</Kbd>+<Kbd>{keys.enter}</Kbd>
+          {newlineHint}
         {:else}
-          <Kbd>{mac ? '⌘' : 'Ctrl'}</Kbd>+<Kbd>Enter</Kbd> {sendHint}
+          <Kbd>{keys.mod}</Kbd>+<Kbd>{keys.enter}</Kbd> {sendHint}
         {/if}
       </span>
     {/if}
@@ -120,7 +127,8 @@
       {icon}
       label={busy ? busyLabel : buttonLabel}
       {busy}
-      disabled={!ready}
+      {disabled}
+      aria-disabled={!ready && !busy && !disabled ? 'true' : undefined}
       onclick={submit}
     />
   </div>
@@ -144,7 +152,7 @@
     box-shadow: var(--focus-halo), var(--glass-inset);
   }
   .composer.disabled {
-    opacity: 0.6;
+    opacity: var(--disabled-opacity);
   }
   .composer--inline {
     grid-template-columns: 1fr auto;
@@ -187,14 +195,6 @@
   .hint {
     font-size: var(--fs-xs);
     color: var(--text-3);
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
   @media (prefers-reduced-motion: reduce) {
     .composer {

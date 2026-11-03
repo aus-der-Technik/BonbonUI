@@ -13,8 +13,8 @@ export const accentColor = (color: AccentColor | undefined): string =>
 
 const formatters = new Map<string, Intl.NumberFormat>();
 
-/** Formats an amount as money, with the same defaults as the Price atom (EUR, de-DE). */
-export function formatPrice(amount: number, currency = 'EUR', locale = 'de-DE'): string {
+/** Formats an amount as money, with the same defaults as the Price atom (EUR, en). */
+export function formatPrice(amount: number, currency = 'EUR', locale = 'en'): string {
   const key = `${locale}|${currency}`;
   let format = formatters.get(key);
   if (!format) {

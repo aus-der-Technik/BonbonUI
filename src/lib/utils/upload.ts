@@ -69,8 +69,8 @@ export function uploadFile(url: string, file: File, options: UploadOptions = {})
   });
 }
 
-/** "1,4 MB": human file size in German formatting. */
-export function formatBytes(bytes: number): string {
+/** "1.4 MB": human file size; `locale` follows the interface language (English by default). */
+export function formatBytes(bytes: number, locale = 'en'): string {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let value = bytes;
   let unit = 0;
@@ -79,5 +79,5 @@ export function formatBytes(bytes: number): string {
     unit++;
   }
   const digits = unit === 0 || value >= 100 ? 0 : 1;
-  return `${new Intl.NumberFormat('de-DE', { maximumFractionDigits: digits }).format(value)} ${units[unit]}`;
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value)} ${units[unit]}`;
 }

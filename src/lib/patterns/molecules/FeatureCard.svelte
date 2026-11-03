@@ -123,7 +123,9 @@
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--feature-color) 22%, transparent);
   }
   .icon--solid {
-    color: #fff;
+    /* The feature colour is free (a candy hue, the accent or any CSS colour), so its glyph colour
+       is derived like --on-accent / --on-ok: white on dark hues, near-black on light ones. */
+    color: oklch(from var(--feature-color) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 60%),
       linear-gradient(

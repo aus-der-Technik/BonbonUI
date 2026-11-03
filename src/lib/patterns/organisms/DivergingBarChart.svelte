@@ -15,10 +15,15 @@
    * "Votes per day": up above, down below, in the chart tokens `--up` / `--down` unless
    * `upColor` / `downColor` say otherwise). Laid out at the container's real pixel width so
    * text stays unscaled; hovering a slot highlights it and shows both counts and the up share.
+   * The svg is hidden from assistive tech; a visually hidden table (caption = `label`) carries
+   * the values.
    *
    *   <DivergingBarChart data={[{ label: '14.10.', up: 12, down: 3 }]} upLabel="Helpful" />
    */
   import ChartTooltip, { type TooltipState } from '../molecules/ChartTooltip.svelte';
+  import EmptyState from '../molecules/EmptyState.svelte';
+  import type { IconName } from '../atoms/icons';
+  import ChartDataTable from './ChartDataTable.svelte';
   import { barPath, niceMax, slotAt, xTicks } from '../../utils/chart';
   import { numberFormat, percentFormat } from '../../utils/format';
 
@@ -30,8 +35,15 @@
     shareLabel?: string;
     upColor?: string;
     downColor?: string;
-    emptyText?: string;
+    emptyTitle?: string | undefined;
+    emptyMessage?: string | undefined;
+    emptyIcon?: IconName | undefined;
+    /** @deprecated Use `emptyMessage`. */
+    emptyText?: string | undefined;
+    /** Caption of the hidden data table; defaults to the up and down totals. */
     label?: string | undefined;
+    /** Heading of the label column in the hidden data table. */
+    categoryLabel?: string;
   }
 
   let {
@@ -42,8 +54,12 @@
     shareLabel = 'Up share',
     upColor = 'var(--up)',
     downColor = 'var(--down)',
-    emptyText = 'No data in this range',
+    emptyTitle,
+    emptyMessage,
+    emptyIcon,
+    emptyText,
     label,
+    categoryLabel = 'Period',
   }: Props = $props();
 
   let width = $state(0);
@@ -69,7 +85,6 @@
     const d = data[i];
     if (!d) return;
     hover = i;
-    const sum = d.up + d.down;
     tooltip = {
       x: event.clientX,
       y: event.clientY,
@@ -77,10 +92,19 @@
       rows: [
         { label: upLabel, value: numberFormat.format(d.up), color: upColor },
         { label: downLabel, value: numberFormat.format(d.down), color: downColor },
-        ...(sum ? [{ label: shareLabel, value: percentFormat.format(d.up / sum) }] : []),
+        ...(d.up + d.down ? [{ label: shareLabel, value: share(d) }] : []),
       ],
     };
   }
+
+  const share = (d: DivergingPoint) =>
+    d.up + d.down ? percentFormat.format(d.up / (d.up + d.down)) : '';
+  const tableRows = $derived(
+    data.map((d): [string, string[]] => [
+      d.title ?? d.label,
+      [numberFormat.format(d.up), numberFormat.format(d.down), share(d)],
+    ]),
+  );
 
   function leave() {
     hover = null;
@@ -90,13 +114,24 @@
 
 <div class="chart" style:height="{height}px" bind:clientWidth={width}>
   {#if !hasData}
-    <div class="empty">{emptyText}</div>
-  {:else if width > 0}
-    <svg
-      viewBox="0 0 {width} {height}"
-      role="img"
-      aria-label={label ?? `${upLabel} ${totalUp}, ${downLabel} ${totalDown}`}
-    >
+    <div class="empty">
+      <EmptyState
+        title={emptyTitle}
+        message={emptyMessage ?? emptyText ?? 'No data in this range'}
+        icon={emptyIcon}
+        compact={!emptyTitle}
+      />
+    </div>
+  {:else}
+    <ChartDataTable
+      caption={label ??
+        `${upLabel} ${numberFormat.format(totalUp)}, ${downLabel} ${numberFormat.format(totalDown)}`}
+      columns={[categoryLabel, upLabel, downLabel, shareLabel]}
+      rows={tableRows}
+    />
+  {/if}
+  {#if hasData && width > 0}
+    <svg viewBox="0 0 {width} {height}" aria-hidden="true">
       {#each gridValues as v (v)}
         {@const y = y0 - v * k}
         <line
@@ -170,7 +205,7 @@
     overflow: visible;
   }
   text {
-    font-size: 11px;
+    font-size: var(--fs-2xs);
     fill: var(--text-3);
     font-variant-numeric: tabular-nums;
   }
@@ -209,7 +244,5 @@
     inset: 0;
     display: grid;
     place-items: center;
-    color: var(--text-3);
-    font-size: var(--fs-md);
   }
 </style>

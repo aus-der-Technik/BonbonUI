@@ -136,7 +136,7 @@
       level="ground"
       quote="The calmest tool we have ever rolled out. People just started using it."
       name="Lena Vogt"
-      role="COO, Umbra Labs"
+      role="COO, Example Labs"
     />
   </Stack>
 </Story>

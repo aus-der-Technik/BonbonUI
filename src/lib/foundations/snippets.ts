@@ -157,7 +157,7 @@ export const recipeWebsite = `<script lang="ts">
 
 <Page width="wide" gap="2xl">
   {#snippet header()}
-    <NavBar brand="Larkspur" links={[{ label: 'Features', href: '#features' }, { label: 'Pricing', href: '#pricing' }]}>
+    <NavBar brand="Example Planner" links={[{ label: 'Features', href: '#features' }, { label: 'Pricing', href: '#pricing' }]}>
       {#snippet actions()}<Button variant="primary" shape="pill" label="Sign up" />{/snippet}
     </NavBar>
   {/snippet}
@@ -181,7 +181,7 @@ export const recipeShop = `<script lang="ts">
 
 <Page width="wide">
   {#snippet header()}
-    <NavBar brand="Larkspur Studio" links={[{ label: 'New in', href: '/new', active: true }]}>
+    <NavBar brand="Example Studio" links={[{ label: 'New in', href: '/new', active: true }]}>
       {#snippet actions()}<Button icon="bag" label="Cart" onclick={() => (cartOpen = true)} />{/snippet}
     </NavBar>
   {/snippet}

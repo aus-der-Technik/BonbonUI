@@ -17,7 +17,7 @@
    * scrolls under it and bends it at the rim; `lens={false}` keeps it frosted. Put it in a
    * Page's `header` snippet.
    *
-   *   <NavBar brand="Larkspur" links={[{ label: 'Pricing', href: '/pricing', active: true }]}>
+   *   <NavBar brand="Example Planner" links={[{ label: 'Pricing', href: '/pricing', active: true }]}>
    *     {#snippet actions()}<Button variant="primary" shape="pill" label="Sign up" />{/snippet}
    *   </NavBar>
    */
@@ -73,7 +73,9 @@
   }
 
   function onwindowclick(event: MouseEvent) {
-    if (open && root && !root.contains(event.target as Node)) open = false;
+    // composedPath, not contains(): the toggle swaps its icon on click, so by the time this
+    // runs the clicked <path> is detached and would count as "outside", closing the menu at once.
+    if (open && root && !event.composedPath().includes(root)) open = false;
   }
 
   function onwindowkeydown(event: KeyboardEvent) {

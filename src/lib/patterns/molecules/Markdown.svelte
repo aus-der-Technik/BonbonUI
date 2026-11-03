@@ -51,7 +51,7 @@
 <style>
   .prose {
     color: var(--text);
-    line-height: 1.6;
+    line-height: var(--leading-body);
     overflow-wrap: anywhere;
   }
   .prose--md {

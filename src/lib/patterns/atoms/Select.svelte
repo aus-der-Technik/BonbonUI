@@ -70,7 +70,7 @@
     box-shadow: var(--focus-halo);
   }
   .select:disabled {
-    opacity: 0.6;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .select--sm {

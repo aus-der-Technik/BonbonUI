@@ -1,7 +1,9 @@
 <script lang="ts">
   /**
    * ToggleChip molecule — a pressable pill. `md` is a legend or filter chip (colour dot, label,
-   * count; dimmed when off). `sm` is a toolbar toggle like "Wrap" (icon; accent-tinted when on).
+   * count); off, it keeps readable text but loses its fill — a dashed outline and a grey dot — so
+   * "off" never looks like "disabled" (which dims the whole chip). `sm` is a toolbar toggle like
+   * "Wrap" (icon; accent-tinted when on); it looks xs but has a --target-min hit area.
    *
    *   <ToggleChip label="Open" color="var(--color-green)" count={12} bind:pressed={showOpen} />
    */
@@ -9,6 +11,7 @@
   import Icon from '../atoms/Icon.svelte';
   import Swatch from '../atoms/Swatch.svelte';
   import type { IconName } from '../atoms/icons';
+  import { changeCue } from '../atoms/changed';
 
   interface Props {
     pressed?: boolean;
@@ -53,11 +56,12 @@
   {#if color}<Swatch {color} />{/if}
   {#if icon}<Icon name={icon} size={14} />{/if}
   {#if children}{@render children()}{:else}<span>{label}</span>{/if}
-  {#if count != null}<b>{count}</b>{/if}
+  {#if count != null}<b use:changeCue={count}>{count}</b>{/if}
 </button>
 
 <style>
   .chip {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
@@ -89,9 +93,10 @@
   }
   .chip:disabled {
     cursor: default;
-    opacity: 0.45;
+    opacity: var(--disabled-opacity);
   }
   b {
+    border-radius: var(--radius-xs);
     color: var(--text);
     font-weight: var(--fw-semibold);
     font-variant-numeric: tabular-nums;
@@ -107,7 +112,18 @@
     background: var(--glass-strong);
   }
   .chip--md[aria-pressed='false'] {
-    opacity: 0.5;
+    color: var(--text-3);
+    border-style: dashed;
+    border-color: var(--input-border);
+    background: transparent;
+    box-shadow: none;
+  }
+  .chip--md[aria-pressed='false'] b {
+    color: var(--text-3);
+  }
+  .chip--md[aria-pressed='false'] :global(.swatch) {
+    filter: grayscale(1);
+    opacity: 0.55;
   }
 
   .chip--sm {
@@ -116,6 +132,11 @@
     gap: var(--space-1);
     font-size: var(--fs-xs);
     font-weight: var(--fw-semibold);
+  }
+  .chip--sm::before {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - var(--target-min)) / 2)) 0;
   }
   .chip--sm:hover:not(:disabled):not([aria-pressed='true']) {
     background: var(--fill-hover);

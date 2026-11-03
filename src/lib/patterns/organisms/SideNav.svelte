@@ -21,7 +21,10 @@
    * SideNav organism — the section navigation of a multi-page app on a glass panel. The active
    * item (`aria-current="page"`) is lifted onto the selected layer: tinted glass, tint-coloured
    * text and a small pill marker on its leading edge. When the active item changes, that pill
-   * slides over to it instead of blinking. Below 900px it becomes a horizontal strip.
+   * slides over to it instead of blinking. `orientation="auto"` (default) turns it into a
+   * horizontal strip below 900px, where a Page moves the sidebar on top of the content — but
+   * not inside a dialog or drawer, where it is the whole panel and stays a vertical list.
+   * `vertical` / `horizontal` fix it either way.
    *
    *   <SideNav groups={[{ label: 'Admin', items: [{ label: 'Users', href: '/users', active: true }] }]} />
    */
@@ -30,12 +33,17 @@
   interface Props {
     groups: NavGroup[];
     label?: string;
+    /** `auto`: a strip below 900px, except inside a dialog or drawer. */
+    orientation?: 'auto' | 'vertical' | 'horizontal';
     onnavigate?: ((item: NavItem, event: MouseEvent) => void) | undefined;
   }
 
-  let { groups, label = 'Main', onnavigate }: Props = $props();
+  let { groups, label = 'Main', orientation = 'auto', onnavigate }: Props = $props();
 
   let nav: HTMLElement | undefined = $state();
+  // Inside an overlay panel the nav is the panel's content: a list, never a strip.
+  const inOverlay = $derived(!!nav?.parentElement?.closest('dialog, [role="dialog"]'));
+  const mode = $derived(orientation === 'auto' && inOverlay ? 'vertical' : orientation);
   let pill: { x: number; y: number; w: number; h: number } | null = $state(null);
   // The first placement jumps; only later moves slide.
   let ready = $state(false);
@@ -67,7 +75,13 @@
   });
 </script>
 
-<nav class="nav" class:has-pill={pill && pill.w > 0} aria-label={label} bind:this={nav}>
+<nav
+  class="nav nav--{mode}"
+  class:has-pill={pill && pill.w > 0}
+  aria-label={label}
+  data-orientation={mode}
+  bind:this={nav}
+>
   {#if pill && pill.w > 0}
     <span
       class="pill"
@@ -235,29 +249,54 @@
       transform: translate(-50%, -50%) scaleY(0);
     }
   }
+  /* The strip: groups side by side in one scrolling row of pills. */
+  .nav--horizontal {
+    grid-auto-flow: column;
+    justify-content: start;
+    overflow-x: auto;
+    border-radius: var(--radius-pill);
+  }
+  .nav--horizontal .group {
+    display: flex;
+    align-items: center;
+  }
+  .nav--horizontal .heading {
+    display: none;
+  }
+  .nav--horizontal ul {
+    grid-auto-flow: column;
+  }
+  .nav--horizontal a,
+  .nav--horizontal .pill {
+    border-radius: var(--radius-pill);
+  }
+  .nav--horizontal a[aria-current='page']::before,
+  .nav--horizontal .pill::before {
+    display: none;
+  }
   @media (max-width: 900px) {
-    .nav {
+    .nav--auto {
       grid-auto-flow: column;
       justify-content: start;
       overflow-x: auto;
       border-radius: var(--radius-pill);
     }
-    .group {
+    .nav--auto .group {
       display: flex;
       align-items: center;
     }
-    .heading {
+    .nav--auto .heading {
       display: none;
     }
-    ul {
+    .nav--auto ul {
       grid-auto-flow: column;
     }
-    a,
-    .pill {
+    .nav--auto a,
+    .nav--auto .pill {
       border-radius: var(--radius-pill);
     }
-    a[aria-current='page']::before,
-    .pill::before {
+    .nav--auto a[aria-current='page']::before,
+    .nav--auto .pill::before {
       display: none;
     }
   }

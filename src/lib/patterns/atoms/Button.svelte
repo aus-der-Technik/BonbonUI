@@ -16,8 +16,11 @@
    *
    * Buttons are pills by default — in this library the pill shape means "you can act on it".
    * `shape="rounded"` is for buttons that must sit flush in a dense grid (a table cell, an
-   * attached input group). `collapse` drops the label to a round icon button below 640px. With
-   * `href` it renders a link.
+   * attached input group). `collapse` drops the label to a round icon button below 720px. With
+   * `href` it renders a link. `xs` buttons look 24px tall but keep a 32px hit area.
+   * `aria-disabled="true"` disables a button without taking it out of the tab order — use it for
+   * a button that may become unavailable right after it was pressed (a pager's "Next" on the
+   * last page), so focus is not dropped to the page.
    *
    *   <Button variant="primary" icon="check" label="Save" onclick={save} />
    */
@@ -49,7 +52,7 @@
     label?: string | undefined;
     /** Shows only the icon; `label` becomes `aria-label`. */
     iconOnly?: boolean;
-    /** Hides the label below 640px, leaving a square icon button. */
+    /** Hides the label below 720px, leaving a square icon button. */
     collapse?: boolean;
     /** Takes the full width of its container (sign-in forms, sheets on a phone). */
     block?: boolean;
@@ -64,6 +67,9 @@
     /** For `href`: `_blank` opens a new tab (with `rel="noopener noreferrer"`). */
     target?: string | undefined;
     class?: string;
+    /** Leading content in place of the icon, e.g. a status dot; it stays when `collapse` hides
+     *  the label. */
+    leading?: Snippet | undefined;
     children?: Snippet | undefined;
   }
 
@@ -85,6 +91,7 @@
     disabled = false,
     onclick,
     class: extraClass = '',
+    leading,
     children,
     ...rest
   }: Props = $props();
@@ -92,9 +99,11 @@
   const iconSize = $derived(size === 'xs' ? 13 : size === 'sm' ? 15 : size === 'xl' ? 20 : 18);
   const SPINNING = new Set<IconName>(['refresh', 'reload']);
   const text = $derived(busy && busyLabel ? busyLabel : label);
+  // Disabled but still focusable: looks and acts disabled, keeps focus where the user is.
+  const softDisabled = $derived(rest['aria-disabled'] === true || rest['aria-disabled'] === 'true');
 
   function click(event: MouseEvent) {
-    if (busy || disabled) {
+    if (busy || disabled || softDisabled) {
       event.preventDefault();
       return;
     }
@@ -110,6 +119,7 @@
       collapse && 'btn--collapse',
       block && 'btn--block',
       busy && 'btn--busy',
+      softDisabled && 'btn--soft-disabled',
       extraClass,
     ]
       .filter(Boolean)
@@ -118,8 +128,10 @@
 </script>
 
 {#snippet content()}
+  {#if size === 'xs'}<span class="btn__hit" aria-hidden="true"></span>{/if}
   <!-- Busy: refresh-style icons spin, any other icon makes room for a spinner. -->
-  {#if busy && !(icon && SPINNING.has(icon))}<Spinner size={iconSize - 4} label="" />
+  {#if leading}{@render leading()}
+  {:else if busy && !(icon && SPINNING.has(icon))}<Spinner size={iconSize - 4} label="" />
   {:else if icon}<Icon name={icon} size={iconSize} />{/if}
   {#if !iconOnly}
     {#if children && !(busy && busyLabel)}<span class="btn__label">{@render children()}</span>
@@ -195,7 +207,7 @@
   }
 
   /* Jelly press: squish like a gummy, spring back on release. */
-  .btn:active:not(:disabled):not(.btn--busy):not(.btn--link-disabled) {
+  .btn:active:not(:disabled):not(.btn--busy):not(.btn--link-disabled):not(.btn--soft-disabled) {
     transform: var(--press-squish);
   }
 
@@ -228,9 +240,9 @@
     background-position: -50% 0;
     pointer-events: none;
   }
-  .btn--primary:hover:not(:disabled):not(.btn--busy)::after,
-  .btn--glass:hover:not(:disabled):not(.btn--busy)::after,
-  .btn--ghost:hover:not(:disabled):not(.btn--busy)::after {
+  .btn--primary:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after,
+  .btn--glass:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after,
+  .btn--ghost:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after {
     animation: bb-sheen var(--motion-slow) var(--ease-out);
   }
   .btn--glass::after,
@@ -244,9 +256,14 @@
   }
 
   .btn--link-disabled {
-    opacity: 0.45;
+    opacity: var(--disabled-opacity);
     cursor: default;
     pointer-events: none;
+  }
+  .btn.btn--soft-disabled {
+    opacity: var(--disabled-opacity);
+    cursor: default;
+    filter: none;
   }
   .btn--busy {
     cursor: progress;
@@ -257,13 +274,22 @@
   }
 
   .btn:disabled {
-    opacity: 0.45;
+    opacity: var(--disabled-opacity);
     cursor: default;
+  }
+
+  /* Invisible hit area: an xs button looks small but is as easy to hit as any control. */
+  .btn__hit {
+    position: absolute;
+    top: min(0px, calc((100% - var(--target-min)) / 2));
+    bottom: min(0px, calc((100% - var(--target-min)) / 2));
+    left: min(0px, calc((100% - var(--target-min)) / 2));
+    right: min(0px, calc((100% - var(--target-min)) / 2));
   }
 
   /* Sizes */
   .btn--xs {
-    height: calc(24px * var(--density));
+    height: var(--control-2xs);
     padding: 0 var(--space-2);
     font-size: var(--fs-2xs);
     gap: var(--space-1);
@@ -324,7 +350,7 @@
   }
 
   /* Variants. Buttons do not lift on hover (they are already raised); they brighten. */
-  .btn--secondary:hover:not(:disabled) {
+  .btn--secondary:hover:not(:disabled, .btn--soft-disabled) {
     background: color-mix(in srgb, var(--accent-faint), var(--glass-strong));
     border-color: var(--accent-border);
     color: var(--accent-ink);
@@ -339,7 +365,7 @@
     color: var(--accent-ink);
     box-shadow: inset 0 1px 0 color-mix(in srgb, white 30%, transparent);
   }
-  .btn--tinted:hover:not(:disabled) {
+  .btn--tinted:hover:not(:disabled, .btn--soft-disabled) {
     background: color-mix(in srgb, var(--tint) 22%, transparent);
   }
 
@@ -349,14 +375,14 @@
     color: var(--accent-ink);
     box-shadow: none;
   }
-  .btn--plain:hover:not(:disabled) {
+  .btn--plain:hover:not(:disabled, .btn--soft-disabled) {
     background: var(--accent-faint);
   }
 
   .btn--danger {
     color: var(--danger);
   }
-  .btn--danger:hover:not(:disabled) {
+  .btn--danger:hover:not(:disabled, .btn--soft-disabled) {
     background: var(--tint-danger);
     border-color: color-mix(in srgb, var(--danger) 45%, transparent);
   }
@@ -366,18 +392,18 @@
   }
   .btn--danger:focus-visible::before,
   .btn--danger-solid:focus-visible::before {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+    box-shadow: var(--focus-halo-danger);
   }
 
   .btn--danger-solid {
     background: var(--grad-danger);
     border-color: var(--border-on-accent);
-    color: var(--on-danger, #fff);
+    color: var(--on-danger);
     box-shadow:
       0 6px 16px color-mix(in srgb, var(--danger) 26%, transparent),
       var(--_highlight);
   }
-  .btn--danger-solid:hover:not(:disabled) {
+  .btn--danger-solid:hover:not(:disabled, .btn--soft-disabled) {
     filter: brightness(1.05);
     box-shadow:
       0 10px 24px color-mix(in srgb, var(--danger) 34%, transparent),
@@ -390,21 +416,18 @@
     color: var(--on-accent);
     box-shadow: var(--shadow-primary);
   }
-  .btn--primary:hover:not(:disabled) {
+  .btn--primary:hover:not(:disabled, .btn--soft-disabled) {
     filter: brightness(1.06) saturate(1.04);
     box-shadow: var(--shadow-primary-hover);
-  }
-  .btn--primary:disabled {
-    opacity: 0.5;
   }
 
   .btn--success {
     background: var(--grad-success);
     border-color: var(--border-on-accent);
-    color: var(--on-success, #fff);
+    color: var(--on-ok);
     box-shadow: var(--shadow-success);
   }
-  .btn--success:hover:not(:disabled) {
+  .btn--success:hover:not(:disabled, .btn--soft-disabled) {
     filter: brightness(1.05);
     box-shadow: var(--shadow-success-hover);
   }
@@ -426,8 +449,8 @@
   .btn--ghost {
     color: var(--text);
   }
-  .btn--glass:hover:not(:disabled),
-  .btn--ghost:hover:not(:disabled) {
+  .btn--glass:hover:not(:disabled, .btn--soft-disabled),
+  .btn--ghost:hover:not(:disabled, .btn--soft-disabled) {
     box-shadow: var(--shadow-frosted-hover);
   }
 
@@ -435,7 +458,7 @@
     animation: bb-spin 0.8s linear infinite;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 720px) {
     .btn.btn--collapse {
       padding: 0;
       aspect-ratio: 1;
@@ -458,8 +481,8 @@
   @media (prefers-reduced-motion: reduce) {
     .btn {
       transition:
-        background-color var(--motion-quick) ease,
-        color var(--motion-quick) ease;
+        background-color var(--motion-quick) var(--ease-out),
+        color var(--motion-quick) var(--ease-out);
     }
     .btn::after {
       animation: none !important;

@@ -19,6 +19,8 @@
 <script lang="ts">
   let comments = $state<ThreadComment[]>([...threadComments]);
   let resolved = $state(false);
+  let starting = $state(true);
+  let fresh = $state<ThreadComment[]>([]);
 
   async function reply(text: string) {
     await new Promise((resolve) => setTimeout(resolve, 600));
@@ -59,4 +61,24 @@ line and opens again on click. -->
       onresolve={() => {}}
     />
   </Stack>
+</Story>
+
+<!-- A new thread: no comments yet, so no empty list — the quote and a compact composer. "Discard"
+     (with `oncancel`) drops the draft and closes the thread where it was opened. -->
+<Story name="New thread" asChild>
+  <div style="max-width:26rem">
+    {#if starting}
+      <CommentThread
+        comments={fresh}
+        quote="Shared boards for every workspace"
+        now={NOW}
+        onreply={(text) => {
+          fresh = [{ id: 'first', author: 'alex.morgan@example.com', time: NOW, text }];
+        }}
+        oncancel={() => (starting = false)}
+      />
+    {:else}
+      <button type="button" onclick={() => (starting = true)}>Start a discussion</button>
+    {/if}
+  </div>
 </Story>

@@ -4,6 +4,16 @@ import { createRawSnippet, type Snippet } from 'svelte';
 
 const mounted: { app: Record<string, unknown>; host: HTMLElement }[] = [];
 
+// Browsers mark the rejection of a cancelled animation's `finished` as handled; happy-dom does
+// not, so unmounting a component mid-transition (Svelte cancels it) would be reported as an
+// unhandled rejection.
+const animate = Element.prototype.animate;
+Element.prototype.animate = function (...args: Parameters<Element['animate']>) {
+  const animation = animate.apply(this, args);
+  animation.finished?.catch(() => {});
+  return animation;
+};
+
 afterEach(() => {
   for (const { app, host } of mounted.splice(0)) {
     unmount(app);

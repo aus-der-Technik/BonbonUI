@@ -153,6 +153,7 @@
   const mirrored = $derived(mode === 'mirror' && !!lens);
   let mirror = $state.raw<Mirror | null>(null);
   let layer = $state<HTMLElement | undefined>();
+  let stillLayer = $state<HTMLElement | undefined>();
 
   $effect(() => {
     if (!mirrored || !box?.parentElement) return;
@@ -165,8 +166,11 @@
   });
 
   $effect(() => {
-    if (!mirror || !layer) return;
-    // The layer is rendered empty; its only child is the mirror's host, which Svelte never sees.
+    if (!mirror || !layer || !stillLayer) return;
+    // The layers are rendered empty; their only children are the mirror's hosts, which Svelte
+    // never sees.
+    // eslint-disable-next-line svelte/no-dom-manipulating
+    stillLayer.append(mirror.stillHost);
     // eslint-disable-next-line svelte/no-dom-manipulating
     layer.append(mirror.host);
     mirror.sync();
@@ -180,7 +184,13 @@
 
 <!-- The box clips the layer to the surface's radius; the layer rounds itself too, because
      Chromium does not clip a backdrop-filtered descendant to an ancestor's rounded corners. -->
-<span class="lens" bind:this={box} aria-hidden="true" {...{ [LENS_ATTR]: '' }}>
+<span
+  class="lens"
+  class:lens--mirror={mode === 'mirror'}
+  bind:this={box}
+  aria-hidden="true"
+  {...{ [LENS_ATTR]: '' }}
+>
   {#if lens}
     <!-- Keyed on the id: any change replaces filter and layer (see `filterId`). The filter comes
          first — WebKit leaves a reference to a not-yet-inserted filter dead. -->
@@ -249,12 +259,22 @@
       </svg>
     {/key}
     {#key mounted?.id}
-      {#if mounted}<span
+      {#if mounted}
+        <!-- In mirror mode the copy comes in two layers (see utils/mirror.ts): what stays put
+             while the page scrolls, and the content above it. -->
+        {#if mode === 'mirror'}<span
+            class="refract refract--mirror"
+            style={refractStyle}
+            bind:this={stillLayer}
+          ></span>{/if}
+        <span
           class="refract"
           class:refract--mirror={mode === 'mirror'}
+          class:refract--moving={mode === 'mirror'}
           style={refractStyle}
           bind:this={layer}
-        ></span>{/if}
+        ></span>
+      {/if}
     {/key}
     <!-- Over the opaque copy the surface's own body would be lost: it rides on top instead. -->
     {#if mode === 'mirror'}<span class="body"></span>{/if}
@@ -271,6 +291,14 @@
     border-radius: inherit;
     pointer-events: none;
   }
+  /* A lensed surface drops its own backdrop-filter and with it its compositing layer; the lens
+     would then paint into the scrolling page and WebKit repaint it — re-running the blurred
+     copy — on every scroll frame. A layer of its own lets it ride along instead. Its url()
+     filters live on children, which WebKit keeps (only a filtered element with layers inside
+     loses its filter). */
+  .lens--mirror {
+    will-change: transform;
+  }
   /* Must not take room, but must not be display: none either, or CSS cannot find the filter. */
   .defs {
     position: absolute;
@@ -284,6 +312,12 @@
   }
   .refract--mirror {
     overflow: hidden;
+  }
+  /* A compositing layer of its own: scrolling repaints the content, and leaves the still layer
+     below — with its blurred tint mesh, filtered in software — alone. Its own url() filter
+     survives that in Safari; only layers inside a filtered element break it. */
+  .refract--moving {
+    will-change: transform;
   }
   .body {
     position: absolute;

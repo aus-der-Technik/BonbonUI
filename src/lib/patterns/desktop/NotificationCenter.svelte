@@ -19,16 +19,17 @@
   /**
    * NotificationCenter — where NotificationBanners appear: a stack in the top right corner
    * that slides new ones in, announces them politely to screen readers and, with `duration`,
-   * dismisses them on its own (paused while the pointer is over the stack). Inside a Desktop
+   * dismisses them on its own (paused while the pointer or keyboard focus is on the stack, so
+   * nobody loses a banner they are reading or tabbing to). Inside a Desktop
    * it sits in the desktop's corner, elsewhere in the viewport's.
    *
    *   <NotificationCenter {notifications} duration={6000}
    *     onclose={(id) => (notifications = notifications.filter((n) => n.id !== id))} />
    */
   import { flip } from 'svelte/animate';
-  import { fly } from 'svelte/transition';
   import NotificationBanner from './NotificationBanner.svelte';
   import { getDesktop } from './shared.svelte';
+  import { glide, motion } from '../../utils/motion';
 
   interface Props {
     notifications: OsNotification[];
@@ -53,10 +54,11 @@
   }: Props = $props();
 
   const inDesktop = !!getDesktop();
-  const reduced =
-    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const flipMotion = motion('base');
   const shown = $derived(notifications.slice(0, max));
-  let paused = $state(false);
+  let hovered = $state(false);
+  let focused = $state(false);
+  const paused = $derived(hovered || focused);
   // Timer handles are bookkeeping, not state the markup reads.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -96,14 +98,22 @@
   class:in-desktop={inDesktop}
   aria-label={label}
   aria-live="polite"
-  onpointerenter={() => (paused = true)}
-  onpointerleave={() => (paused = false)}
+  onpointerenter={() => (hovered = true)}
+  onpointerleave={() => (hovered = false)}
+  onfocusin={() => (focused = true)}
+  onfocusout={(e) => {
+    const next = e.relatedTarget;
+    if (!(next instanceof Node && e.currentTarget.contains(next))) focused = false;
+  }}
 >
   {#each shown as n (n.id)}
     <div
       class="slot"
-      animate:flip={{ duration: reduced ? 0 : 220 }}
-      transition:fly={{ x: 40, duration: reduced ? 0 : 260 }}
+      animate:flip={{
+        duration: flipMotion.reduced ? 0 : flipMotion.duration,
+        easing: flipMotion.ease,
+      }}
+      transition:glide={{ x: 40 }}
     >
       <NotificationBanner
         app={n.app}

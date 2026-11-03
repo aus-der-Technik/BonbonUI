@@ -15,7 +15,7 @@
   const recipes = [
     {
       title: 'Dashboard',
-      text: 'KPIs, charts and a table on the standard page, a sidebar for sections. Full example: Pages / Operations / Overview.',
+      text: 'KPIs, charts and a table on the standard page, a sidebar for sections. Full example: Pages / Admin / Admin console (Overview).',
       code: recipeDashboard,
     },
     {
@@ -30,12 +30,12 @@
     },
     {
       title: 'Collaborative tool',
-      text: 'A fill page whose board takes all the room; presence in the header. Full example: Pages / Collaboration.',
+      text: 'A fill page whose board takes all the room; presence in the header. Full example: Pages / Collaboration / Team workspace.',
       code: recipeCollab,
     },
     {
       title: 'Desktop application',
-      text: 'Toolbar, source list, inspector and status bar around one content area. Full example: Pages / Desktop / Mail app.',
+      text: 'Toolbar, source list, inspector and status bar around one content area. Full example: the Mail window in Pages / Desktop / Desktop OS.',
       code: recipeDesktopApp,
     },
     {

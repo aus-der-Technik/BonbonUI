@@ -591,7 +591,8 @@ describe('Banner', () => {
       message: 'Tonight 22:00',
       ondismiss,
     });
-    expect(host.querySelector('[role="alert"]')).not.toBeNull();
+    // Only danger is announced as an alert.
+    expect(host.querySelector('[role="status"]')).not.toBeNull();
     expect(host.textContent).toContain('Maintenance');
     click(byLabel(host, 'Dismiss'));
     expect(ondismiss).toHaveBeenCalled();
@@ -624,16 +625,16 @@ describe('Stat', () => {
     });
     expect(host.textContent).toContain('12,840');
     expect(host.textContent).toContain('+12.5 %');
-    expect(host.querySelector('.change--good')).not.toBeNull();
+    expect(host.querySelector('.delta--good')).not.toBeNull();
     expect(host.querySelector('svg.spark')?.getAttribute('aria-label')).toBe('Trend: 1, 3, 2, 5');
     expect(host.querySelector('.end')).not.toBeNull();
   });
 
   it('colours a rise as bad when down is good, and handles flat', () => {
     const bad = render(Stat, { label: 'Open bugs', value: '42', delta: 4, goodWhen: 'down' });
-    expect(bad.querySelector('.change--bad')).not.toBeNull();
+    expect(bad.querySelector('.delta--bad')).not.toBeNull();
     const flat = render(Stat, { label: 'X', value: 1, delta: 0, trend: [2, 2] });
-    expect(flat.querySelector('.change--neutral')).not.toBeNull();
+    expect(flat.querySelector('.delta--neutral')).not.toBeNull();
     const custom = render(Stat, { label: 'X', value: 1, deltaText: '+3 new', size: 'lg' });
     expect(custom.textContent).toContain('+3 new');
   });

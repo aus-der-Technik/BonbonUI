@@ -1,5 +1,8 @@
 <script lang="ts">
-  /** Example page: sign-in, device activation and sign-out on the auth layout, mock (Storybook only). */
+  /**
+   * The Admin console's way out and back in (Storybook only): signing out, the sign-in form (or
+   * connecting a device instead) on the auth layout, and a short welcome before `onsignedin`.
+   */
   import AuthLayout from '../patterns/templates/AuthLayout.svelte';
   import Stack from '../patterns/layout/Stack.svelte';
   import Button from '../patterns/atoms/Button.svelte';
@@ -12,9 +15,11 @@
 
   interface Props {
     start?: 'login' | 'activate' | 'logout';
+    /** The welcome has been seen: back into the app. */
+    onsignedin?: (() => void) | undefined;
   }
 
-  let { start = 'login' }: Props = $props();
+  let { start = 'login', onsignedin }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   let view = $state<'login' | 'activate' | 'activated' | 'welcome' | 'logout'>(start);
@@ -36,8 +41,18 @@
         error = 'Wrong username or password. (Hint: the password is "demo".)';
         return;
       }
-      view = view === 'activate' ? 'activated' : 'welcome';
+      if (view === 'activate') view = 'activated';
+      else {
+        view = 'welcome';
+        setTimeout(() => onsignedin?.(), 1600);
+      }
     }, 700);
+  }
+
+  function switchTo(next: 'login' | 'activate') {
+    view = next;
+    error = '';
+    code = '';
   }
 
   const links = [
@@ -65,7 +80,15 @@
       message={view === 'activated'
         ? 'All set. You can close this window and go back to your device.'
         : `${hello.wink} Taking you to your dashboard…`}
-    />
+    >
+      {#if view === 'activated'}
+        <Button
+          variant="ghost"
+          label="Sign in on this browser too"
+          onclick={() => switchTo('login')}
+        />
+      {/if}
+    </StatusCard>
   </AuthLayout>
 {:else}
   <AuthLayout title="Sign in" clock shake={!!error} cardWidth="400px" {links}>
@@ -107,6 +130,15 @@
           busyLabel="Checking…"
           {busy}
           disabled={view === 'activate' && code.length < 8}
+        />
+        <Button
+          variant="plain"
+          size="sm"
+          icon={view === 'activate' ? 'sign-in' : 'monitor'}
+          label={view === 'activate'
+            ? 'Sign in on this browser instead'
+            : 'Connect a device instead'}
+          onclick={() => switchTo(view === 'activate' ? 'login' : 'activate')}
         />
       </Stack>
     {/key}

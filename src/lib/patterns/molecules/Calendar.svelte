@@ -9,6 +9,19 @@
     /** A candy colour name (`blue`, `pink`, …) or any CSS colour. */
     color?: string | undefined;
   }
+
+  /** What the `day` snippet receives for each cell. */
+  export interface CalendarDay {
+    date: Date;
+    selected: boolean;
+    today: boolean;
+    /** The day belongs to the month on screen (not a lead-in or trailing day). */
+    inMonth: boolean;
+    /** The day can be picked (inside `min` / `max`). */
+    allowed: boolean;
+    /** The day holds the grid's keyboard stop: give your controls `tabindex={focused ? 0 : -1}`. */
+    focused: boolean;
+  }
 </script>
 
 <script lang="ts">
@@ -17,6 +30,12 @@
    * screens and in the small size), today is marked in the accent, the chosen day is selected.
    * Arrow keys move by day and week, Page Up / Page Down by month, Home / End to the week's
    * edges; Enter picks. `size="sm"` is the compact picker used by DatePicker.
+   *
+   * `day` renders your own controls inside every day cell (e.g. an "add to this day" button), in
+   * the cell's top-right corner beside the day number, so actions sit on the day they act on.
+   * With `dayReveal="hover"` they show only in the hovered, focused or chosen day. The slot is
+   * left out where cells are too narrow to hold it beside the number (`size="sm"`, and month
+   * grids under 40rem): offer the action elsewhere there, e.g. in the chosen day's agenda.
    *
    *   <Calendar {events} bind:value onselect={(day) => …} onevent={(event) => open(event)} />
    */
@@ -58,6 +77,10 @@
     eventsLabel?: (count: number) => string;
     /** Buttons at the right of the month heading, e.g. "New event". */
     actions?: Snippet | undefined;
+    /** Your own controls in every day cell's top-right corner (`md` size, wide grids). */
+    day?: Snippet<[CalendarDay]> | undefined;
+    /** `hover` shows the `day` controls only in the hovered, focused or chosen day. */
+    dayReveal?: 'always' | 'hover';
     onselect?: ((date: Date) => void) | undefined;
     onevent?: ((event: CalendarEvent) => void) | undefined;
     onmonthchange?: ((month: Date) => void) | undefined;
@@ -81,6 +104,8 @@
     moreLabel = (count) => `+${count} more`,
     eventsLabel = (count) => `${count} ${count === 1 ? 'event' : 'events'}`,
     actions,
+    day: daySlot,
+    dayReveal = 'always',
     onselect,
     onevent,
     onmonthchange,
@@ -267,6 +292,18 @@
             role="gridcell"
             aria-selected={isSelected}
           >
+            {#if daySlot && size === 'md'}
+              <div class="slot" class:reveal={dayReveal === 'hover'}>
+                {@render daySlot({
+                  date: day,
+                  selected: isSelected,
+                  today: sameDay(day, today),
+                  inMonth,
+                  allowed: allowed(day),
+                  focused: isFocus,
+                })}
+              </div>
+            {/if}
             <button
               type="button"
               class="day"
@@ -428,6 +465,26 @@
     align-items: center;
     padding: 1px;
   }
+  /* Your controls share the top line with the day number, in the opposite corner. */
+  .slot {
+    position: absolute;
+    top: var(--space-1);
+    right: var(--space-1);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    max-width: calc(100% - 2.4rem);
+  }
+  .slot.reveal {
+    opacity: 0;
+    transition: opacity var(--motion-quick) var(--ease-out);
+  }
+  .cell:hover .slot.reveal,
+  .cell:focus-within .slot.reveal,
+  .selected .slot.reveal {
+    opacity: 1;
+  }
 
   .day {
     display: grid;
@@ -463,7 +520,7 @@
     outline-offset: 2px;
   }
   .day:disabled {
-    opacity: 0.3;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .outside .day {
@@ -582,6 +639,10 @@
       text-align: center;
       padding-inline: 0;
     }
+    /* The number is centred in a narrow cell: a corner control would cover it. */
+    .slot {
+      display: none;
+    }
     .nav :global(.btn:not(.btn--icon-only)) {
       display: none;
     }
@@ -589,7 +650,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .day,
-    .pill {
+    .pill,
+    .slot.reveal {
       transition: none;
     }
   }

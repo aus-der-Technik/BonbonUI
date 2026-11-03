@@ -197,7 +197,7 @@
   }
   .subtitle {
     margin: 0;
-    max-width: 70ch;
+    max-width: var(--measure);
     font-size: var(--fs-base);
     line-height: 1.5;
     color: var(--text-2);

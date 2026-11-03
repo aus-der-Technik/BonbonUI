@@ -1,14 +1,18 @@
 <script lang="ts">
   /**
-   * Price atom — an amount of money, formatted with `Intl.NumberFormat` (German formats by
-   * default, like every other figure in the library). `compareAt` shows the old price struck
-   * through next to it, and the current one turns into the sale colour; `unit` adds a muted
-   * suffix such as "/ month". Tabular figures, so prices in a column line up.
+   * Price atom — an amount of money, formatted with `Intl.NumberFormat` (English formats by
+   * default, like every other figure in the library; pass `locale` for the shop's own).
+   * `compareAt` shows the old price struck through next to it, and the current one turns into
+   * the sale colour; `unit` adds a muted suffix such as "/ month". Tabular figures, so prices in
+   * a column line up. A changed amount glows briefly (a cart total updating).
    *
-   *   <Price amount={49} />                         49,00 €
+   *   <Price amount={49} />                         €49.00
    *   <Price amount={39} compareAt={49} size="lg" />
-   *   <Price amount={12} currency="USD" locale="en-US" unit="/ month" />
+   *   <Price amount={12} currency="EUR" locale="de-DE" unit="/ Monat" />
    */
+  import VisuallyHidden from './VisuallyHidden.svelte';
+  import { changeCue } from './changed';
+
   interface Props {
     amount: number;
     /** ISO 4217 code. */
@@ -32,7 +36,7 @@
   let {
     amount,
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     compareAt,
     size = 'md',
     unit,
@@ -57,12 +61,12 @@
 
 <span class="price price--{size}" class:price--sale={onSale}>
   {#if onSale && compareAt !== undefined}
-    <span class="sr-only">{currentLabel}</span>
+    <VisuallyHidden>{currentLabel}</VisuallyHidden>
   {/if}
-  <span class="amount">{current}</span>
+  <span class="amount" use:changeCue={current}>{current}</span>
   {#if unit}<span class="unit">{unit}</span>{/if}
   {#if onSale && compareAt !== undefined}
-    <s class="compare"><span class="sr-only">{compareLabel}</span>{format.format(compareAt)}</s>
+    <s class="compare"><VisuallyHidden>{compareLabel}</VisuallyHidden>{format.format(compareAt)}</s>
   {/if}
 </span>
 
@@ -77,6 +81,7 @@
     white-space: nowrap;
   }
   .amount {
+    border-radius: var(--radius-xs);
     font-weight: var(--fw-bold);
     letter-spacing: var(--tracking-tight);
   }
@@ -111,13 +116,5 @@
   .price--lg .compare,
   .price--xl .compare {
     font-size: var(--fs-lg);
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
 </style>

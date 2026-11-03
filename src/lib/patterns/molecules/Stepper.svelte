@@ -19,6 +19,7 @@
    *   <Stepper steps={[{ label: 'Cart' }, { label: 'Address' }, { label: 'Pay' }]} current={1} />
    */
   import Icon from '../atoms/Icon.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
 
   interface Props {
     steps: Step[];
@@ -64,10 +65,10 @@
             {:else}{index + 1}{/if}
           </span>
           <span class="text">
-            <span class="sr-only">{stepLabel(index + 1, steps.length)}:</span>
+            <VisuallyHidden>{stepLabel(index + 1, steps.length)}:</VisuallyHidden>
             <span class="label">{step.label}</span>
             {#if step.description}<span class="description">{step.description}</span>{/if}
-            <span class="sr-only">({statusLabels[status]})</span>
+            <VisuallyHidden>({statusLabels[status]})</VisuallyHidden>
           </span>
         {/snippet}
         {#if clickable}
@@ -207,7 +208,7 @@
   .step--error .marker {
     border-color: transparent;
     background: var(--danger);
-    color: #fff;
+    color: var(--on-danger);
     box-shadow: 0 0 0 4px var(--tint-danger);
   }
 
@@ -268,14 +269,6 @@
     }
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
   @media (prefers-reduced-motion: reduce) {
     .marker {
       transition: none;

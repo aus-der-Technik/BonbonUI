@@ -67,7 +67,7 @@
   {#snippet template(args)}
     <div class="stage stage--page">
       <NavBar
-        brand="Larkspur"
+        brand="Example Planner"
         links={[
           { label: 'Product', href: '#product', active: true },
           { label: 'Pricing', href: '#pricing' },

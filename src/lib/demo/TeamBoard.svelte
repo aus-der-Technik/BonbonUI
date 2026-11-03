@@ -1,12 +1,17 @@
 <script lang="ts">
   /**
-   * Example page: a team's kanban project board, mock data (Storybook only). A filling Page: the
-   * board takes all the room and each column scrolls on its own; the sidebar and the activity
-   * aside appear when the window is wide enough, a menu button and a drawer replace them on
-   * smaller screens. Card details open in a Drawer.
+   * Example page: a team's kanban board, mock data (Storybook only). A filling Page: the board
+   * takes all the room and each column scrolls on its own; new cards are added at the foot of
+   * the column they belong to. A card opens in a Drawer with its details, who else is looking at
+   * it and its discussion. The week's numbers and the activity sit in the aside on wide screens
+   * and in a drawer from the "Activity" button otherwise. TeamWorkspace passes the shared
+   * navigation and header actions.
    */
+  import type { Snippet } from 'svelte';
+  import { tick } from 'svelte';
   import Button from '../patterns/atoms/Button.svelte';
   import Heading from '../patterns/atoms/Heading.svelte';
+  import Input from '../patterns/atoms/Input.svelte';
   import Text from '../patterns/atoms/Text.svelte';
   import Grid from '../patterns/layout/Grid.svelte';
   import Layer from '../patterns/layout/Layer.svelte';
@@ -15,7 +20,6 @@
   import Spacer from '../patterns/layout/Spacer.svelte';
   import Stack from '../patterns/layout/Stack.svelte';
   import AvatarStack from '../patterns/molecules/AvatarStack.svelte';
-  import Banner from '../patterns/molecules/Banner.svelte';
   import DatePicker from '../patterns/molecules/DatePicker.svelte';
   import Field from '../patterns/molecules/Field.svelte';
   import Popover from '../patterns/molecules/Popover.svelte';
@@ -23,25 +27,33 @@
   import SegmentedControl from '../patterns/molecules/SegmentedControl.svelte';
   import Stat from '../patterns/molecules/Stat.svelte';
   import TaskList from '../patterns/molecules/TaskList.svelte';
-  import ActivityLog from '../patterns/organisms/ActivityLog.svelte';
-  import CommentThread from '../patterns/organisms/CommentThread.svelte';
+  import ActivityLog, { type ActivityEntry } from '../patterns/organisms/ActivityLog.svelte';
+  import CommentThread, { type ThreadComment } from '../patterns/organisms/CommentThread.svelte';
   import Drawer from '../patterns/organisms/Drawer.svelte';
   import KanbanBoard, { type KanbanCard } from '../patterns/organisms/KanbanBoard.svelte';
-  import NotificationList from '../patterns/organisms/NotificationList.svelte';
-  import SideNav from '../patterns/organisms/SideNav.svelte';
   import Page from '../patterns/templates/Page.svelte';
   import { sameDay, startOfDay, toDate } from '../utils/collab';
+  import DesignNotes, { type DesignNote } from './DesignNotes.svelte';
   import {
     NOW,
     boardActivity,
     boardCards,
     boardColumns,
+    cardThreads,
     checklist,
-    collabNav,
-    notifications,
     team,
-    threadComments,
+    watching,
   } from './mock-collab';
+
+  interface Props {
+    /** The shared workspace navigation (left column on wide screens). */
+    sidebar?: Snippet | undefined;
+    /** Shared header actions: inbox, menu. */
+    actions?: Snippet | undefined;
+    width?: number;
+  }
+
+  let { sidebar, actions, width = 1440 }: Props = $props();
 
   // Labels stay neutral on this board: colour is saved for priority, due dates and the column
   // dots, so the urgent card is the one that stands out.
@@ -55,18 +67,21 @@
   let query = $state('');
   let person = $state<string | null>(null);
   let openId = $state<string | null>(null);
-  let navOpen = $state(false);
-  let width = $state(1440);
-  let inbox = $state(notifications());
+  let activityOpen = $state(false);
   let tasks = $state(checklist());
+  let threads = $state(cardThreads());
+  /** The card whose first comment is being written. */
+  let starting = $state<string | null>(null);
+  let activity = $state<ActivityEntry[]>([...boardActivity]);
   let serial = 0;
 
   const ME = 'Jonas Weber';
   const weekEnd = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate() + 7);
-  const unread = $derived(inbox.filter((n) => n.unread).length);
   const opened = $derived(cards.find((c) => c.id === openId));
-  const wide = $derived(width > 900);
   const roomy = $derived(width >= 1320);
+  const compact = $derived(width < 640);
+  const columnTitle = (id: string | undefined) =>
+    boardColumns.find((c) => c.id === id)?.title ?? '';
 
   const visible = $derived(
     cards.filter((card) => {
@@ -88,6 +103,18 @@
         !sameDay(toDate(c.due), NOW),
     ).length,
   );
+  const lookers = $derived(
+    (watching[openId ?? ''] ?? [])
+      .map((id) => team.find((p) => p.id === id))
+      .filter((p) => p !== undefined),
+  );
+
+  function log(action: string, target: string, detail?: string, tone?: ActivityEntry['tone']) {
+    const entry: ActivityEntry = { id: `log-${Date.now()}`, actor: ME, action, target, at: NOW };
+    if (detail) entry.detail = detail;
+    if (tone) entry.tone = tone;
+    activity = [entry, ...activity];
+  }
 
   // The board only sees the filtered cards; apply its move to the full list.
   function move(id: string, column: string, index: number) {
@@ -100,27 +127,107 @@
     const at = before ? rest.indexOf(before) : last ? rest.indexOf(last) + 1 : rest.length;
     rest.splice(at, 0, { ...card, column });
     cards = rest;
+    if (card.column !== column)
+      log('moved', card.title, `${columnTitle(card.column)} → ${columnTitle(column)}`, 'ok');
   }
 
-  function add(column: string) {
+  /** A new card appears at the foot of its column and opens, title ready to type. */
+  async function add(column: string) {
     serial += 1;
     const card: KanbanCard = { id: `new-${serial}`, column, title: 'Untitled card' };
     cards = [...cards, card];
+    log('added a card to', columnTitle(column), undefined, 'ok');
     openId = card.id;
+    await tick();
+    setTimeout(() => {
+      const input = document.querySelector<HTMLInputElement>('[data-card-title] input');
+      input?.focus();
+      input?.select();
+    }, 250);
   }
 
   function update(patch: Partial<KanbanCard>) {
     cards = cards.map((c) => (c.id === openId ? { ...c, ...patch } : c));
   }
+
+  function reply(text: string) {
+    if (!openId) return;
+    const list = threads[openId] ?? [];
+    const comment: ThreadComment = {
+      id: `${openId}-${list.length + 1}`,
+      author: ME,
+      time: NOW,
+      text,
+    };
+    threads[openId] = [...list, comment];
+    update({ comments: (opened?.comments ?? list.length) + 1 });
+  }
+
+  /** The composer of a new thread opens where the button was, ready to type. */
+  async function startThread(id: string) {
+    starting = id;
+    await tick();
+    document.querySelector<HTMLElement>('section[aria-label="Discussion"] textarea')?.focus();
+  }
+
+  /** After the drawer closes, the card it was about glows once on the board. */
+  async function close() {
+    const id = openId;
+    openId = null;
+    await tick();
+    const card = id && document.querySelector<HTMLElement>(`[data-card="${CSS.escape(id)}"]`);
+    if (!card || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    // A ring rather than the background glow: the card's own glass must stay opaque.
+    card.animate(
+      [
+        { outline: '3px solid var(--accent)', outlineOffset: '2px' },
+        { outline: '3px solid transparent', outlineOffset: '6px' },
+      ],
+      { duration: 900, easing: 'ease-out' },
+    );
+  }
+
+  const notes: DesignNote[] = [
+    {
+      principle: 'locality',
+      title: 'Add a card in the column it belongs to',
+      body: 'There is no global “New card” button that drops cards into some default column. “Add card” sits at the foot of every column; the card appears there and opens, ready for its title.',
+      target: '[data-note="board"]',
+    },
+    {
+      principle: 'cues',
+      title: 'Cards travel, they never jump',
+      body: 'Drag a card, use Alt + arrow keys or its menu — it glides to its new place, and the move shows up at the top of the activity log.',
+      target: '[data-note="board"]',
+    },
+    {
+      principle: 'locality',
+      title: 'Comments live on the card',
+      body: 'The discussion opens with the card and quotes what it is about. Who else is looking at the card right now is shown at the top of it, not in a separate presence panel.',
+      target: '[data-note="board"]',
+    },
+    {
+      principle: 'function',
+      title: 'Colour means something',
+      body: 'Labels stay neutral, so the colour left over goes to priority, overdue dates and the column dots — the urgent card is the one that stands out.',
+      target: '[data-note="board"]',
+    },
+    {
+      principle: 'locality',
+      title: 'Filters sit on the board they filter',
+      body: 'The sticky row above the board narrows it: all, mine, due soon, a search, or one person from the faces of who is here.',
+      target: '[data-note="filters"]',
+    },
+    {
+      principle: 'cues',
+      title: 'Drawers come from their trigger’s side',
+      body: 'Card details and activity slide in from the right, where the board and the Activity button are; the workspace menu on small screens comes from the right too, because its button is there.',
+      target: '[data-note="workspace-nav"]',
+    },
+  ];
 </script>
 
-<svelte:window bind:innerWidth={width} />
-
-{#snippet navigation()}
-  <SideNav groups={collabNav} label="Workspace" onnavigate={(_, event) => event.preventDefault()} />
-{/snippet}
-
-{#snippet activity()}
+{#snippet activityPanel()}
   <Section title="This week" heading={3} level="panel" gap="md">
     <Grid columns={2} min="7rem" gap="md">
       <Stat size="sm" label="Done" value={done} delta={25} trend={[1, 2, 2, 3, 5, 4, done]} />
@@ -129,130 +236,128 @@
     <TaskList title="Release checklist" bind:items={tasks} sinkDone />
   </Section>
   <Section title="Activity" heading={3} level="panel">
-    <ActivityLog entries={boardActivity} />
+    <ActivityLog entries={activity} />
   </Section>
 {/snippet}
 
 <Page
-  title="Shared boards"
-  subtitle="Product team"
+  title="Board"
+  subtitle="what the team is working on"
   fill
   gap="md"
-  sidebar={wide ? navigation : undefined}
-  aside={roomy ? activity : undefined}
+  {sidebar}
+  aside={roomy ? activityPanel : undefined}
   asideWidth="19rem"
+  {actions}
 >
-  {#snippet actions()}
-    {#if !wide}
-      <Button
-        variant="glass"
-        shape="pill"
-        icon="menu"
-        label="Menu"
-        iconOnly
-        onclick={() => (navOpen = true)}
-      />
-    {/if}
-    <Popover
-      label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-      icon="bell"
-      iconOnly
-      variant="glass"
-      size="lg"
-      placement="bottom-end"
-      width="22rem"
-      padding="sm"
-    >
-      <NotificationList bind:items={inbox} now={NOW} onopen={() => {}} />
-    </Popover>
-    <Button
-      variant="primary"
-      shape="pill"
-      size="lg"
-      icon="plus"
-      label="New card"
-      collapse
-      onclick={() => add('todo')}
-    />
-  {/snippet}
-
   {#snippet nav()}
-    <Layer level="front" direction="horizontal" gap="sm" wrap={false}>
-      <SegmentedControl
-        label="Show"
-        size="sm"
-        bind:value={filter}
-        options={[
-          { value: 'all', label: 'All' },
-          { value: 'mine', label: 'Mine' },
-          { value: 'due', label: 'Due soon' },
-        ]}
-      />
-      <SearchField
-        label="Search cards"
-        placeholder="Search cards"
-        shape="pill"
-        bind:value={query}
-      />
-      <Spacer />
-      {#if width > 520}
-        <AvatarStack
-          people={team}
-          max={5}
-          size={26}
-          label="Who's here — pick one to filter"
-          onselect={(p) => (person = person === p.name ? null : p.name)}
-        />
-      {/if}
-      {#if person}
-        <Button
+    <div data-note="filters">
+      <Layer level="front" direction="horizontal" gap="sm" wrap={false}>
+        <SegmentedControl
+          label="Show"
           size="sm"
-          variant="ghost"
-          shape="pill"
-          icon="close"
-          label={person}
-          onclick={() => (person = null)}
+          bind:value={filter}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'mine', label: 'Mine' },
+            { value: 'due', label: compact ? 'Due' : 'Due soon' },
+          ]}
         />
-      {/if}
-    </Layer>
+        <SearchField
+          label="Search cards"
+          placeholder="Search cards"
+          shape="pill"
+          bind:value={query}
+        />
+        <Spacer />
+        {#if width > 640}
+          <AvatarStack
+            people={team}
+            max={5}
+            size={26}
+            label="Who's here — pick one to filter"
+            onselect={(p) => (person = person === p.name ? null : p.name)}
+          />
+        {/if}
+        {#if person}
+          <Button
+            size="sm"
+            variant="ghost"
+            shape="pill"
+            icon="close"
+            label={person.split(' ')[0] ?? person}
+            onclick={() => (person = null)}
+          />
+        {/if}
+        {#if !roomy}
+          <Button
+            size="sm"
+            variant="glass"
+            shape="pill"
+            icon="activity"
+            label="Activity"
+            iconOnly={compact}
+            onclick={() => (activityOpen = true)}
+          />
+        {/if}
+      </Layer>
+    </div>
   {/snippet}
 
-  <Banner
-    tone="accent"
-    title="Tip: move cards from the keyboard"
-    message="Focus a card and press Alt with the arrow keys — or use its ⋯ menu on touch screens."
-  />
-
-  <KanbanBoard
-    columns={boardColumns}
-    cards={visible}
-    selected={openId ?? undefined}
-    now={NOW}
-    onmove={move}
-    onopen={(card) => (openId = card.id)}
-    onadd={add}
-  />
+  <div class="board" data-note="board">
+    <KanbanBoard
+      columns={boardColumns}
+      cards={visible}
+      selected={openId ?? undefined}
+      now={NOW}
+      onmove={move}
+      onopen={(card) => (openId = card.id)}
+      onadd={add}
+    />
+  </div>
 </Page>
 
+<!-- The Activity button sits at the right end of the filter row, so the drawer comes from there. -->
 <Drawer
-  open={navOpen}
-  title="Workspace"
-  side="start"
-  width="20rem"
-  onclose={() => (navOpen = false)}
+  open={activityOpen}
+  title="Activity"
+  side="end"
+  width="22rem"
+  onclose={() => (activityOpen = false)}
 >
-  {@render navigation()}
-  {@render activity()}
+  {@render activityPanel()}
 </Drawer>
 
 <Drawer
   open={!!opened}
   title={opened?.title ?? ''}
-  subtitle={boardColumns.find((c) => c.id === opened?.column)?.title}
-  onclose={() => (openId = null)}
+  subtitle={columnTitle(opened?.column)}
+  onclose={close}
 >
   {#if opened}
     <Stack gap="lg">
+      {#if lookers.length}
+        <div class="here" role="status">
+          <AvatarStack people={lookers} size={24} label="Also looking at this card" />
+          <span>
+            {lookers.map((p) => p.name.split(' ')[0]).join(' and ')}
+            {lookers.length === 1 ? 'is' : 'are'} looking at this card too
+          </span>
+          <span class="live" aria-hidden="true"></span>
+        </div>
+      {/if}
+      <div data-card-title>
+        <Field label="Title">
+          {#snippet children({ id })}
+            <Input
+              {id}
+              value={opened.title}
+              oninput={(event: Event) =>
+                update({ title: (event.currentTarget as HTMLInputElement).value })}
+            />
+          {/snippet}
+        </Field>
+      </div>
       {#if opened.description}<Text tone="muted">{opened.description}</Text>{/if}
       <Grid columns={2} min="10rem" gap="md">
         <Field label="Due date">
@@ -271,7 +376,15 @@
             {#if opened.assignees?.length}
               <AvatarStack people={opened.assignees} />
             {:else}
-              <Text tone="subtle">Nobody yet</Text>
+              <Button
+                size="sm"
+                variant="glass"
+                shape="pill"
+                icon="plus"
+                label="Assign me"
+                onclick={() =>
+                  update({ assignees: [{ id: 'jonas', name: ME, presence: 'online' }] })}
+              />
             {/if}
           </Row>
         </Stack>
@@ -279,14 +392,42 @@
       <TaskList title="Checklist" items={checklist().slice(0, 3)} />
       <Stack gap="sm">
         <Heading level={3} size="lg">Discussion</Heading>
-        <CommentThread comments={threadComments} now={NOW} onreply={() => {}} />
+        {#if threads[opened.id]?.length || starting === opened.id}
+          <!-- Without comments the thread is a new one: the card's title and a compact composer. -->
+          <CommentThread
+            label="Discussion"
+            comments={threads[opened.id] ?? []}
+            quote={threads[opened.id]?.length ? undefined : opened.title}
+            now={NOW}
+            replyPlaceholder="Reply…"
+            onreply={reply}
+            oncancel={threads[opened.id]?.length ? undefined : () => (starting = null)}
+          />
+        {:else}
+          <Row>
+            <Button
+              size="sm"
+              variant="glass"
+              shape="pill"
+              icon="chat"
+              label="Start a discussion"
+              onclick={() => startThread(opened.id)}
+            />
+          </Row>
+        {/if}
+        {#if lookers.length && threads[opened.id]?.length}
+          <p class="typing" aria-live="polite">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            {lookers[0]?.name.split(' ')[0]} is typing…
+          </p>
+        {/if}
       </Stack>
     </Stack>
   {/if}
   {#snippet footer()}
     <Row>
       <Popover label="Move to…" placement="top-start" padding="sm">
-        {#snippet children(close)}
+        {#snippet children(closePopover)}
           <Stack gap="xs">
             {#each boardColumns as column (column.id)}
               <Button
@@ -295,8 +436,15 @@
                 label={column.title}
                 disabled={column.id === opened?.column}
                 onclick={() => {
+                  if (opened && opened.column !== column.id)
+                    log(
+                      'moved',
+                      opened.title,
+                      `${columnTitle(opened.column)} → ${column.title}`,
+                      'ok',
+                    );
                   update({ column: column.id });
-                  close();
+                  closePopover();
                 }}
               />
             {/each}
@@ -304,7 +452,81 @@
         {/snippet}
       </Popover>
       <Spacer />
-      <Button label="Close" onclick={() => (openId = null)} />
+      <Button label="Done" variant="primary" shape="pill" onclick={close} />
     </Row>
   {/snippet}
 </Drawer>
+
+<DesignNotes title="Team workspace" {notes} corner="bottom-left" />
+
+<style>
+  .board {
+    display: grid;
+    min-height: 0;
+    height: 100%;
+  }
+  .here {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-pill);
+    background: var(--accent-faint);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .live {
+    width: 8px;
+    height: 8px;
+    margin-left: auto;
+    border-radius: var(--radius-pill);
+    background: var(--ok);
+    animation: pulse 1.6s var(--ease-in-out) infinite;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .typing {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+  .dots {
+    display: inline-flex;
+    gap: 3px;
+  }
+  .dots i {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-pill);
+    background: var(--text-3);
+    animation: bounce 1.2s var(--ease-in-out) infinite;
+  }
+  .dots i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .dots i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes bounce {
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
+    0%,
+    60%,
+    100% {
+      opacity: 0.5;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live,
+    .dots i {
+      animation: none;
+    }
+  }
+</style>

@@ -23,6 +23,7 @@
    */
   import Avatar from '../atoms/Avatar.svelte';
   import Tooltip from '../atoms/Tooltip.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
 
   interface Props {
     people: Participant[];
@@ -84,7 +85,7 @@
             {#if presence && person.presence}
               <span class="dot dot--{person.presence}" aria-hidden="true"></span>
             {/if}
-            <span class="sr-only">{tip(person)}</span>
+            <VisuallyHidden>{tip(person)}</VisuallyHidden>
           </span>
         {/if}
       </Tooltip>
@@ -180,14 +181,6 @@
   .dot--offline {
     --presence: var(--bg);
     box-shadow: inset 0 0 0 2px var(--text-3);
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
   @media (prefers-reduced-motion: reduce) {
     .item {

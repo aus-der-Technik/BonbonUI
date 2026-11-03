@@ -9,6 +9,7 @@
    *   </ContextMenu>
    *
    * `onopen` sees the event first; return items from it to build a menu for the clicked thing.
+   * `openBelow(button)` opens `items` under a button instead (a "More" button's menu).
    */
   import { flushSync, mount, onDestroy, unmount, type Snippet } from 'svelte';
   import MenuList from './MenuList.svelte';
@@ -45,10 +46,15 @@
    * (backdrop filters, transforms, overflow) can neither clip nor offset it there. It takes the
    * theme, tint and shape of the place it was opened from.
    */
-  function show(event: MouseEvent | KeyboardEvent, at: { x: number; y: number }) {
-    const shown = onopen?.(event) ?? items;
+  function show(
+    event: MouseEvent | KeyboardEvent | undefined,
+    at: { x: number; y: number },
+    /** Where the menu's right edge goes when it has to flip to the left. */
+    flipAt = at.x,
+  ) {
+    const shown = (event && onopen?.(event)) || items;
     if (!shown.length) return;
-    event.preventDefault();
+    event?.preventDefault();
     close(false);
     returnFocus = document.activeElement as HTMLElement | null;
 
@@ -85,12 +91,32 @@
     flushSync();
     (host as HTMLElement & { showPopover?: () => void }).showPopover?.();
 
-    // Keep the menu on screen: flip it to the other side of the pointer near an edge.
+    // Keep the menu on screen: flip it to the other side of the pointer near an edge, and let
+    // it grow from the corner that now touches the pointer.
     const { offsetWidth: w, offsetHeight: h } = host;
-    if (at.x + w > window.innerWidth - 8) host.style.left = `${Math.max(8, at.x - w)}px`;
-    if (at.y + h > window.innerHeight - 8)
-      host.style.top = `${Math.max(8, window.innerHeight - h - 8)}px`;
+    let left = at.x;
+    let top = at.y;
+    if (at.x + w > window.innerWidth - 8) left = Math.max(8, flipAt - w);
+    if (at.y + h > window.innerHeight - 8) top = Math.max(8, window.innerHeight - h - 8);
+    host.style.left = `${left}px`;
+    host.style.top = `${top}px`;
+    const ox = Math.min(Math.max(at.x - left, 0), w);
+    const oy = Math.min(Math.max(at.y - top, 0), h);
+    host.style.setProperty('--menu-origin', `${ox}px ${oy}px`);
     menu.focusFirst();
+  }
+
+  /** Opens `items` under `anchor`, aligned with its left edge (or its right one near the edge). */
+  export function openBelow(anchor: Element): void {
+    const r = anchor.getBoundingClientRect();
+    show(undefined, { x: r.left, y: r.bottom + 4 }, r.right);
+    // Escape and a pick hand focus back to the button that opened it.
+    returnFocus = anchor as HTMLElement;
+  }
+
+  /** Whether the menu is showing. */
+  export function isOpen(): boolean {
+    return !!layer;
   }
 
   function oncontextmenu(event: MouseEvent) {

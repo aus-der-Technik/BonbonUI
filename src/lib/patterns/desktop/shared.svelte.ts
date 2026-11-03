@@ -3,7 +3,7 @@
  *
  * `Desktop` creates a `WindowManager` and puts it in context; every `Window` inside registers
  * with it, so stacking order and focus are coordinated without the page tracking z-indexes.
- * Overlays (menus, launchpad, notifications) read the same context to position themselves
+ * Overlays (menus, the app jar, notifications) read the same context to position themselves
  * inside the desktop instead of the viewport.
  */
 import { getContext, setContext } from 'svelte';
@@ -34,7 +34,7 @@ export interface MenuBarMenu {
   items: ContextMenuItem[];
 }
 
-/** An app as the Dock, the Launchpad and desktop icons show it. */
+/** An app as the Dock, the AppJar and desktop icons show it. */
 export interface AppEntry {
   id: string;
   label: string;
@@ -46,7 +46,7 @@ export interface AppEntry {
   src?: string | undefined;
   /** A count or short text in a red bubble ("3", "!"). */
   badge?: string | number | undefined;
-  /** Group in the Launchpad ("Work", "Fun"); apps without one gather at the end. */
+  /** Group in the AppJar ("Work", "Fun"); apps without one gather at the end. */
   category?: string | undefined;
 }
 
@@ -63,6 +63,18 @@ export type DockEntry = DockApp | { separator: true };
 export interface DesktopIcon extends AppEntry {
   /** Grey line under the label, e.g. a size. */
   meta?: string | undefined;
+  /**
+   * Free placement: the icon's top-left corner in px inside the desktop area. Without both,
+   * the icon joins the grid along the right edge. Phones always use the grid.
+   */
+  x?: number | undefined;
+  y?: number | undefined;
+}
+
+/** A point inside the desktop area, in px from its top-left corner. */
+export interface DesktopPoint {
+  x: number;
+  y: number;
 }
 
 export const isSeparator = (entry: object): entry is { separator: true } => 'separator' in entry;
@@ -75,6 +87,10 @@ export class WindowManager {
   area = $state<HTMLElement | undefined>();
   /** The Dock, so windows can grow out of (and shrink into) their app's icon. */
   tray: HTMLElement | undefined;
+  // Where the next windows open from; bookkeeping, nothing renders from it.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  #openers = new Map<string, { rect: DOMRect; at: number }>();
+  #pending: { rect: DOMRect; at: number } | undefined;
 
   /** The front-most window. */
   get focused(): string | undefined {
@@ -104,6 +120,32 @@ export class WindowManager {
   anchor(id: string): DOMRect | undefined {
     const icon = this.tray?.querySelector(`[data-app="${CSS.escape(id)}"]`);
     return icon?.getBoundingClientRect();
+  }
+
+  /**
+   * Records what opened a window — a desktop icon, a tile in the app jar, a palette row — so it
+   * grows out of that place instead of the Dock. With `id`, for that window; without, for the
+   * next window that opens within a second.
+   *
+   *   manager.openFrom(event.currentTarget, 'notes'); open('notes');
+   */
+  openFrom(from: Element | DOMRect, id?: string): void {
+    const rect = from instanceof Element ? from.getBoundingClientRect() : from;
+    const entry = { rect, at: Date.now() };
+    if (id) this.#openers.set(id, entry);
+    else this.#pending = entry;
+  }
+
+  /** Where window `id` grows from: its recorded opener (used once), else its Dock icon. */
+  origin(id: string): DOMRect | undefined {
+    const fresh = (entry: { at: number } | undefined) => !!entry && Date.now() - entry.at < 1000;
+    const own = this.#openers.get(id);
+    this.#openers.delete(id);
+    if (fresh(own)) return own!.rect;
+    const pending = this.#pending;
+    this.#pending = undefined;
+    if (fresh(pending)) return pending!.rect;
+    return this.anchor(id);
   }
 }
 

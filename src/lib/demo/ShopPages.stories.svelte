@@ -1,51 +1,41 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import Application from '../patterns/templates/Application.svelte';
-  import ShopCheckout from './ShopCheckout.svelte';
-  import ShopStorefront from './ShopStorefront.svelte';
+  import ShopFlow from './ShopFlow.svelte';
+  import { products } from './mock-shop';
 
   const { Story } = defineMeta({
     title: 'Pages/Shop',
-    component: ShopStorefront,
+    component: ShopFlow,
+    tags: ['!autodocs'],
     parameters: { layout: 'fullscreen' },
+    argTypes: {
+      productId: {
+        control: 'select',
+        options: [undefined, ...products.map((p) => p.id)],
+        description: 'Start on this product’s detail view.',
+      },
+      cartOpen: { control: 'boolean', description: 'Start with the cart drawer open.' },
+    },
   });
 </script>
 
 <!--
-A shop: promo hero, then filters beside a "Fresh picks" `Section` whose eyebrow is the
-time-of-day `greeting()`, with category Tabs, sort and the ProductGrid. Below the grid's fold
-point the filters close into a Disclosure so products come first on a phone. Open a product for
-the detail view with gallery, variants and quantity; the cart opens as a drawer.
+The whole shop in one flow. The storefront: a promo hero, then the product list with its filters
+on top (category tabs, quick chips, brand, search, sort). "Shop the sale" and the nav links are
+ready-made filters that scroll the list into view and light up what they switched on. Add a
+product and it answers on its card, flies to the cart and bumps the count. Open a product for
+gallery, variants and quantity; open the cart drawer and "Go to checkout" for the steps
+cart → shipping → payment → done (leave fields empty to see the errors at the field). The
+confirmation celebrates once and leads back to the shop. `productId` and `cartOpen` choose where
+the flow starts.
 -->
-<Story name="Storefront" asChild>
-  <Application tint="#c0623f">
-    <ShopStorefront />
-  </Application>
-</Story>
-
-<!--
-The detail view: a gallery and the buying column side by side (stacked on phones). The tint
-shows up only on the price, the chosen variant and "Add to cart".
--->
-<Story name="Product detail" asChild>
-  <Application tint="#c0623f">
-    <ShopStorefront productId="linen-shirt" />
-  </Application>
-</Story>
-
-<!-- The cart as a Drawer over the shop: CartLines, a free-shipping meter and a discount code. -->
-<Story name="Cart drawer" asChild>
-  <Application tint="#c0623f">
-    <ShopStorefront cartOpen />
-  </Application>
-</Story>
-
-<!--
-Cart → shipping → payment → done; leave the address empty and continue to see validation. The
-confirmation is the one place with a success fill — and one burst of `celebrate()` sprinkles.
--->
-<Story name="Checkout" asChild>
-  <Application tint="#c0623f">
-    <ShopCheckout />
-  </Application>
+<Story name="Shop" args={{ productId: undefined, cartOpen: false }}>
+  {#snippet template(args)}
+    <Application tint="#c0623f">
+      {#key `${args.productId}-${args.cartOpen}`}
+        <ShopFlow productId={args.productId} cartOpen={args.cartOpen ?? false} />
+      {/key}
+    </Application>
+  {/snippet}
 </Story>

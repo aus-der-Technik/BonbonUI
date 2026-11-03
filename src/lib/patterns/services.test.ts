@@ -135,12 +135,16 @@ describe('service atoms', () => {
   it('Badge, Stars, Link, Card, Textarea extensions', () => {
     expect(
       render(Badge, { tone: 'brand', size: 'lg', label: 'venue' }).querySelector(
-        '.badge--brand.badge--lg',
+        '.badge--accent.badge--solid.badge--lg',
       ),
     ).not.toBeNull();
     const stars = render(Stars, { value: 4.5, showValue: true });
-    expect(stars.querySelector('.value')?.textContent).toBe('4,5/5');
-    expect(stars.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('4,5 of 5 stars');
+    expect(stars.querySelector('.value')?.textContent).toBe('4.5/5');
+    expect(stars.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('4.5 of 5 stars');
+    expect(
+      render(Stars, { value: 4.5, showValue: true, locale: 'de-DE' }).querySelector('.value')
+        ?.textContent,
+    ).toBe('4,5/5');
     expect(render(Stars, { value: 3, showValue: true }).querySelector('.value')?.textContent).toBe(
       '3/5',
     );
@@ -454,12 +458,12 @@ describe('service organisms and templates', () => {
       rows,
       rowKey: (r: unknown) => (r as { id: string }).id,
       onrowclick,
-      selected: 'b',
+      current: 'b',
       hideHeader: true,
       cell: html('<button class="in">x</button>'),
     });
     expect(clickable.querySelector('thead.sr-only')).not.toBeNull();
-    expect(clickable.querySelector('tr.selected')?.getAttribute('aria-current')).toBe('true');
+    expect(clickable.querySelector('tr.current')?.getAttribute('aria-current')).toBe('true');
     click(clickable.querySelector('tbody tr'));
     expect(onrowclick).toHaveBeenCalledOnce();
     click(clickable.querySelector('button.in'));
@@ -467,18 +471,14 @@ describe('service organisms and templates', () => {
     key(clickable.querySelector('tbody tr')!, 'Enter');
     expect(onrowclick).toHaveBeenCalledTimes(2);
 
-    const assign = vi.fn();
-    vi.stubGlobal('location', { ...window.location, assign });
     const linked = render(DataTable, {
       columns,
       rows,
       rowKey: (r: unknown) => (r as { id: string }).id,
       rowHref: (r: unknown) => `#${(r as { id: string }).id}`,
     });
-    expect(linked.querySelector('tbody tr')?.getAttribute('role')).toBe('link');
-    click(linked.querySelector('tbody tr'));
-    expect(assign).toHaveBeenCalledWith('#a');
-    vi.unstubAllGlobals();
+    expect(linked.querySelector('tbody tr')?.hasAttribute('role')).toBe(false);
+    expect(linked.querySelector('tbody tr a.row-link')?.getAttribute('href')).toBe('#a');
 
     const ontoggle = vi.fn();
     const single = render(DataTable, {

@@ -487,3 +487,102 @@ describe('EditableGrid struct cells', () => {
     expect(draft.querySelectorAll('.leaf')[0]?.textContent?.trim()).toBe('Neu');
   });
 });
+
+describe('EditableGrid new rows', () => {
+  const kinds = (host: HTMLElement) =>
+    [...host.querySelectorAll('tbody tr')].map(
+      (tr) => [...tr.classList].find((c) => !c.startsWith('svelte-')) ?? 'row',
+    );
+
+  it('opens the draft where the new row lands, after the last row, and saves in place', async () => {
+    const ondraftsubmit = vi.fn();
+    const host = render(EditableGrid, { columns, rows: rows(), oncommit: vi.fn(), ondraftsubmit });
+    expect(kinds(host)).toEqual(['row', 'row', 'add-row']);
+    const add = host.querySelector<HTMLButtonElement>('.add-row-btn')!;
+    expect(add.textContent?.trim()).toBe('New row');
+    click(add);
+    await settle();
+    expect(kinds(host)).toEqual(['row', 'row', 'draft', 'draft-bar']);
+    // The locked id is skipped: the cursor starts in the first field that takes input.
+    expect(document.activeElement).toBe(host.querySelector('tr.draft textarea'));
+    const buttons = [...host.querySelectorAll<HTMLButtonElement>('tr.draft-bar button')];
+    expect(buttons.map((b) => b.textContent?.trim())).toEqual(['Save row', 'Cancel']);
+    click(buttons[0]);
+    expect(ondraftsubmit).toHaveBeenCalledOnce();
+  });
+
+  it('cancels the draft from its own bar and returns focus to "New row"', async () => {
+    const host = render(EditableGrid, {
+      columns,
+      rows: rows(),
+      ondraftsubmit: vi.fn(),
+      addRowLabel: 'Neue Zeile',
+      cancelRowLabel: 'Abbrechen',
+    });
+    click(host.querySelector('.add-row-btn'));
+    await settle();
+    const cancel = [...host.querySelectorAll<HTMLButtonElement>('tr.draft-bar button')].find(
+      (b) => b.textContent?.trim() === 'Abbrechen',
+    );
+    click(cancel);
+    await settle();
+    expect(host.querySelector('tr.draft')).toBeNull();
+    expect(document.activeElement).toBe(host.querySelector('.add-row-btn'));
+    expect(host.querySelector('.add-row-btn')?.textContent?.trim()).toBe('Neue Zeile');
+  });
+
+  it('renders a draft opened from outside at the bottom too, without its own add row', () => {
+    const host = render(EditableGrid, { columns, rows: rows(), draft: {}, addRow: false });
+    expect(kinds(host)).toEqual(['row', 'row', 'draft', 'draft-bar']);
+    const without = render(EditableGrid, {
+      columns,
+      rows: rows(),
+      ondraftsubmit: vi.fn(),
+      addRow: false,
+    });
+    expect(without.querySelector('.add-row')).toBeNull();
+  });
+
+  it('offers the first row from the empty state', async () => {
+    const host = render(EditableGrid, {
+      columns,
+      rows: [],
+      ondraftsubmit: vi.fn(),
+      emptyTitle: 'No venues',
+      emptyMessage: 'Add the first one.',
+    });
+    expect(host.querySelector('.empty h3')?.textContent).toBe('No venues');
+    expect(host.querySelector('.add-row')).toBeNull();
+    const action = [...host.querySelectorAll<HTMLButtonElement>('.empty button')][0]!;
+    expect(action.textContent?.trim()).toBe('New row');
+    click(action);
+    await settle();
+    expect(host.querySelector('tr.draft')).not.toBeNull();
+    expect(host.querySelector('.empty')).toBeNull();
+  });
+
+  it('takes its own texts for headers, cells, the draft and resizing', () => {
+    const host = render(EditableGrid, {
+      columns,
+      rows: rows(),
+      oncommit: vi.fn(),
+      draft: {},
+      resizable: true,
+      rowHeaderLabel: 'Zeile',
+      readOnlyLabel: 'schreibgeschützt',
+      draftRowLabel: 'neu',
+      draftCellLabel: (c) => `Neue Zeile, ${c}`,
+      cellLabel: (c, r) => `${c}, Zeile ${r}`,
+      resizeHint: 'Ziehen',
+      resizeLabel: (c) => `Breite ${c}`,
+    });
+    expect(host.querySelector('thead .sr-only')?.textContent).toBe('Zeile');
+    expect(host.querySelector('thead .col-type')?.textContent).toContain('schreibgeschützt');
+    expect(host.querySelector('tr.draft .rownum')?.textContent).toBe('neu');
+    expect(host.querySelector('[aria-label="Neue Zeile, name"]')).not.toBeNull();
+    expect(host.querySelector('[aria-label="open, Zeile 1"]')).not.toBeNull();
+    const handle = host.querySelector('.col-resize')!;
+    expect(handle.getAttribute('title')).toBe('Ziehen');
+    expect(handle.getAttribute('aria-label')).toBe('Breite id');
+  });
+});

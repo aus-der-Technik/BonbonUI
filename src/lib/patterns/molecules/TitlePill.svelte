@@ -167,7 +167,7 @@
     color: var(--text-3);
     font-weight: var(--fw-regular);
   }
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     .light {
       display: none;
     }

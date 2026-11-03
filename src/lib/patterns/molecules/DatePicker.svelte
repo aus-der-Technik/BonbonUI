@@ -150,7 +150,7 @@
     border-color: var(--danger);
   }
   .field:disabled {
-    opacity: 0.55;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .value {

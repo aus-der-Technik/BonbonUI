@@ -6,6 +6,8 @@
    * `fillActions` lets the actions take the room right of the title pill (a list switch beside
    * the title, a toolbar stretching to the right) and aligns the pills at the top when they wrap.
    * The title pill brings its own one-shot sugar-glass sheen on hover (as on the NavBar).
+   * When room runs short (a phone, a narrow pane) the title gives way first and ends in "…";
+   * the actions drop onto their own line only when they do not fit beside a short title.
    * Page renders one for you from `title` / `actions`; use it directly in your own frames.
    *
    *   <AppHeader title="Orders" subtitle="today">
@@ -61,20 +63,27 @@
     margin-top: var(--sticky-gap);
     flex-shrink: 0;
   }
+  /* Sized by its own room, not the viewport: the title starts from a short basis and shrinks
+     (with an ellipsis) before the actions wrap. Once wrapped, the actions take the whole line,
+     right-aligned. Both grow into the spare room, which moves nothing visible: the pill keeps
+     its width and the actions sit at the end. */
   .inner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2) var(--space-3);
   }
   .title {
     position: relative;
     display: flex;
+    flex: 1 1 8rem;
     min-width: 0;
     border-radius: var(--radius-pill);
   }
   .actions {
     display: flex;
+    flex: 1 1 auto;
+    justify-content: flex-end;
     gap: var(--space-2);
     align-items: center;
     min-width: 0;
@@ -82,18 +91,14 @@
   .fill {
     align-items: flex-start;
   }
+  .fill .title {
+    flex: 0 1 auto;
+  }
   .fill .actions {
-    flex: 1;
+    flex: 1 1 12rem;
     justify-content: flex-start;
   }
   @media (max-width: 560px) {
-    .inner {
-      flex-wrap: wrap;
-    }
-    .actions {
-      width: 100%;
-      justify-content: flex-end;
-    }
     /* Only a field (search, picker) stretches across the phone row; buttons keep their size,
        so a refresh button never turns into a long candy blob. */
     .actions > :global(:first-child:has(input, select, [role='combobox'])) {

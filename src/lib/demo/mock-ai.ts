@@ -244,3 +244,39 @@ export function toolUsage(allowed: string[]): ToolUsage[] {
   ];
   return plan.filter((u) => allowed.includes(u.tool));
 }
+
+// ---------------------------------------------------------------- translator
+
+export type TranslatorLanguage = 'en' | 'de' | 'fr' | 'it';
+
+export const TRANSLATOR_LANGUAGES: { value: TranslatorLanguage; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'de', label: 'German' },
+  { value: 'fr', label: 'French' },
+  { value: 'it', label: 'Italian' },
+];
+
+/** The same sentence in every language — what the mock "translates" between. */
+export const TRANSLATOR_SAMPLES: Record<TranslatorLanguage, string> = {
+  en: 'We are looking for a conference hotel in Leipzig for 300 people, ideally close to the main station.',
+  de: 'Wir suchen ein Tagungshotel in Leipzig für 300 Personen, idealerweise nahe dem Hauptbahnhof.',
+  fr: 'Nous cherchons un hôtel de congrès à Leipzig pour 300 personnes, idéalement près de la gare centrale.',
+  it: 'Cerchiamo un hotel congressuale a Lipsia per 300 persone, idealmente vicino alla stazione centrale.',
+};
+
+const LANGUAGE_HINTS: [TranslatorLanguage, RegExp][] = [
+  ['de', /\b(wir|und|für|der|die|das|ein|nicht|nahe)\b|[äöüß]/i],
+  ['fr', /\b(nous|pour|une?|près|les|des|est)\b|[éèêàç]/i],
+  ['it', /\b(cerchiamo|per|vicino|della|alla|il|una?)\b/i],
+];
+
+/** A rough guess at the language of a text (English when nothing else matches). */
+export function detectLanguage(text: string): TranslatorLanguage {
+  return LANGUAGE_HINTS.find(([, test]) => test.test(text))?.[0] ?? 'en';
+}
+
+/** The mock translation: a known sample comes back in the target language. */
+export function translate(text: string, to: TranslatorLanguage): string {
+  const known = Object.values(TRANSLATOR_SAMPLES).includes(text.trim());
+  return known ? TRANSLATOR_SAMPLES[to] : text;
+}

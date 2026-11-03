@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * ThumbsInput molecule — pick 👍 or 👎 on two big glass buttons; the chosen one takes its chart
-   * colour and pops.
+   * colour and pops. A radio group: one tab stop, arrow keys move and pick.
    *
    *   <ThumbsInput label="Was this helpful?" bind:value={vote} />
    */
@@ -23,20 +23,39 @@
     onchange,
   }: Props = $props();
 
+  const options = ['up', 'down'] as const;
+  const buttons: HTMLButtonElement[] = $state([]);
+
   function pick(next: 'up' | 'down') {
+    if (next === value) return;
     value = next;
     onchange?.(next);
+  }
+
+  function onkeydown(event: KeyboardEvent, current: 'up' | 'down') {
+    let target: 'up' | 'down';
+    if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(event.key))
+      target = current === 'up' ? 'down' : 'up';
+    else if (event.key === 'Home') target = 'up';
+    else if (event.key === 'End') target = 'down';
+    else return;
+    event.preventDefault();
+    pick(target);
+    buttons[options.indexOf(target)]?.focus();
   }
 </script>
 
 <div class="choices" role="radiogroup" aria-label={label}>
-  {#each ['up', 'down'] as const as option (option)}
+  {#each options as option, i (option)}
     <button
+      bind:this={buttons[i]}
       type="button"
       role="radio"
       aria-checked={value === option}
+      tabindex={(value ?? 'up') === option ? 0 : -1}
       class="thumb {option}"
       onclick={() => pick(option)}
+      onkeydown={(e) => onkeydown(e, option)}
     >
       <Icon name={option === 'up' ? 'thumbs-up' : 'thumbs-down'} size={20} />
       {option === 'up' ? upLabel : downLabel}

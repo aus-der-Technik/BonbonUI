@@ -81,7 +81,7 @@ describe('DataTable', () => {
       rowKey: () => '',
       emptyText: 'Nothing here',
     });
-    expect(host.querySelector('.empty')?.textContent).toBe('Nothing here');
+    expect(host.querySelector('.empty')?.textContent?.trim()).toBe('Nothing here');
   });
 });
 

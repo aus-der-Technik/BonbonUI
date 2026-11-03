@@ -270,14 +270,14 @@ describe('UserMenu', () => {
     click(host.querySelector('button'));
     await tick();
     expect(host.querySelector('[role="menu"]')?.textContent).toContain('jane.doe@example.com');
-    key(host.querySelector('.usermenu')!, 'ArrowDown');
-    key(host.querySelector('.usermenu')!, 'ArrowUp');
+    key(host.querySelector('.dropdown')!, 'ArrowDown');
+    key(host.querySelector('.dropdown')!, 'ArrowUp');
     click(host.querySelector('[role="menuitem"]'));
     expect(onsignout).toHaveBeenCalledOnce();
     expect(host.querySelector('[role="menu"]')).toBeNull();
 
     click(host.querySelector('button'));
-    key(host.querySelector('.usermenu')!, 'Escape');
+    key(host.querySelector('.dropdown')!, 'Escape');
     expect(host.querySelector('[role="menu"]')).toBeNull();
   });
 });
@@ -321,7 +321,7 @@ describe('Pager', () => {
     expect(onpage.mock.calls).toEqual([[0], [50]]);
 
     const last = render(Pager, { offset: 50, limit: 25, total: 60, onpage: () => {} });
-    expect(byText(last, 'Next')?.disabled).toBe(true);
+    expect(byText(last, 'Next')?.getAttribute('aria-disabled')).toBe('true');
     expect(
       render(Pager, { offset: 0, limit: 25, total: 0, onpage: () => {} }).textContent,
     ).not.toContain('of');
@@ -438,7 +438,11 @@ describe('display molecules', () => {
 
   it('RefreshButton switches to live', () => {
     const live = render(RefreshButton, { live: true, loading: true });
-    expect(live.querySelector('.live.spinning')).not.toBeNull();
+    expect(live.querySelector('button.btn--ghost')?.getAttribute('aria-busy')).toBe('true');
+    expect(live.querySelector('.fast .dot--pulse')).not.toBeNull();
+    expect(live.querySelector('button')?.getAttribute('aria-label')).toBe(
+      'Auto refreshing — refresh now',
+    );
     expect(live.textContent).toContain('Auto refreshing');
     expect(render(RefreshButton, {}).querySelector('button')?.getAttribute('aria-label')).toBe(
       'Refresh',
@@ -781,14 +785,14 @@ describe('convenience props', () => {
 
   it('KpiTile reads the trend from its delta and can invert it', () => {
     const up = render(KpiTile, { label: 'Orders', value: 12, delta: '+12 %', icon: 'cart' });
-    expect(up.querySelector('.delta.good')?.textContent).toBe('+12 %');
+    expect(up.querySelector('.delta--good')?.textContent?.trim()).toBe('+12 %');
     expect(up.querySelector('.icon-tile svg')).not.toBeNull();
     const down = render(KpiTile, { label: 'x', value: 1, delta: '−3' });
-    expect(down.querySelector('.delta.bad')).not.toBeNull();
+    expect(down.querySelector('.delta--bad')).not.toBeNull();
     const inverted = render(KpiTile, { label: 'Errors', value: 3, delta: '-2', invert: true });
-    expect(inverted.querySelector('.delta.good')?.getAttribute('data-trend')).toBe('down');
+    expect(inverted.querySelector('.delta--good')?.getAttribute('data-trend')).toBe('down');
     const flat = render(KpiTile, { label: 'x', value: 1, delta: '0', trend: 'flat' });
-    expect(flat.querySelector('.delta:not(.good):not(.bad)')).not.toBeNull();
+    expect(flat.querySelector('.delta--neutral')).not.toBeNull();
   });
 
   it('Tabs render icons and the pill variant', () => {
@@ -1009,7 +1013,7 @@ describe('design polish behaviours', () => {
     expect(host.querySelector<HTMLElement>('.list')!.dataset.indicator).toBeUndefined();
   });
 
-  it('DropdownMenu opens to the other side when it would leave the screen', async () => {
+  it('DropdownMenu is placed at its trigger and kept inside the screen', async () => {
     const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
       left: -40,
       right: 160,
@@ -1028,7 +1032,10 @@ describe('design polish behaviours', () => {
     click(host.querySelector('button'));
     await tick();
     flushSync();
-    expect(host.querySelector('.pop--start')).not.toBeNull();
+    const pop = host.querySelector<HTMLElement>('.pop')!;
+    expect(pop.style.position).toBe('fixed');
+    expect(parseFloat(pop.style.left)).toBeGreaterThanOrEqual(8);
+    expect(pop.style.transformOrigin).toContain('top');
     rect.mockRestore();
   });
 });

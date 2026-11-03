@@ -3,11 +3,14 @@
    * QuantityStepper molecule — − value + in one pill, for a cart line or a product page. The
    * value is a spin button: arrow keys step, Page Up/Down step by ten, Home/End jump to the
    * limits, and a typed number is clamped when the field loses focus or Enter is pressed. The
-   * figure rolls up or down with each step; pushing past a limit gets a polite head-shake.
+   * figure rolls up or down with each step; pushing past a limit gets a polite head-shake. At a
+   * limit the − / + button is only marked unavailable (`aria-disabled`), so it keeps the focus
+   * and a further press answers with the head-shake instead of doing nothing.
    *
    *   <QuantityStepper bind:value={qty} max={10} onchange={(n) => cart.set(id, n)} />
    */
   import Icon from '../atoms/Icon.svelte';
+  import { motion } from '../../utils/motion';
 
   interface Props {
     value?: number;
@@ -41,24 +44,25 @@
   let field = $state<HTMLInputElement>();
 
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
-  const still = () =>
-    typeof matchMedia !== 'function' || matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   /** Small physical feedback: the figure rolls in the direction of the step, a limit says "nope". */
   function feel(direction: number, blocked: boolean) {
-    if (still()) return;
     if (blocked && pill?.animate) {
+      const m = motion('slow', 'out', pill);
+      if (m.reduced) return;
       pill.animate(
         [0, -3, 3, -1.5, 0].map((x) => ({ transform: `translateX(${x}px)` })),
-        { duration: 320, easing: 'ease-out' },
+        { duration: m.duration, easing: m.easing },
       );
     } else if (!blocked && field?.animate) {
+      // The figure is small (≤ 48px), so it may spring.
+      const m = motion('base', 'spring', field);
+      if (m.reduced) return;
       field.animate(
         [
           { transform: `translateY(${direction > 0 ? 6 : -6}px)`, opacity: 0.3 },
           { transform: 'none', opacity: 1 },
         ],
-        { duration: 220, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' },
+        { duration: m.duration, easing: m.easing },
       );
     }
   }
@@ -103,7 +107,8 @@
     type="button"
     class="step"
     aria-label={decreaseLabel}
-    disabled={disabled || value <= min}
+    {disabled}
+    aria-disabled={!disabled && value <= min ? 'true' : undefined}
     onclick={() => set(value - step)}
   >
     <Icon name="minus" size={size === 'sm' ? 13 : 15} />
@@ -127,7 +132,8 @@
     type="button"
     class="step"
     aria-label={increaseLabel}
-    disabled={disabled || value >= max}
+    {disabled}
+    aria-disabled={!disabled && value >= max ? 'true' : undefined}
     onclick={() => set(value + step)}
   >
     <Icon name="plus" size={size === 'sm' ? 13 : 15} />
@@ -160,7 +166,7 @@
     box-shadow: var(--focus-halo);
   }
   .disabled {
-    opacity: 0.55;
+    opacity: var(--disabled-opacity);
   }
   .step {
     display: grid;
@@ -177,15 +183,16 @@
       background var(--motion-quick) var(--ease-out),
       transform var(--motion-quick) var(--ease-jelly);
   }
-  .step:hover:not(:disabled) {
+  .step:hover:not(:disabled, [aria-disabled='true']) {
     background: var(--fill-hover);
   }
-  .step:active:not(:disabled) {
+  .step:active:not(:disabled, [aria-disabled='true']) {
     transform: var(--press-squish);
     background: var(--accent-soft);
     color: var(--accent-ink);
   }
-  .step:disabled {
+  .step:disabled,
+  .step[aria-disabled='true'] {
     color: var(--text-3);
     cursor: default;
   }

@@ -77,12 +77,22 @@
    * the value committed is the whole record.
    *
    * Hovering a row number turns it into a delete control that asks once (and disarms itself).
-   * `draft` (bindable) opens a sticky green row for a new record: Enter submits, Escape cancels.
+   * New rows are made where they will land: with `ondraftsubmit`, a "+ New row" row after the
+   * last row opens `draft` (bindable) in place — a green row at the bottom with Save and Cancel
+   * right under it; Enter submits, Escape cancels. A draft opened from outside shows in the same
+   * place, sticky to the bottom of the scroll area so it stays in view.
    * `resizable` adds drag handles to the headers (double-click resets); `onnearend` asks for the
    * next page while scrolling. `numbersAsText` keeps numbers exactly as typed (wide decimals).
+   *
+   * Feedback stays at the cell: `lockedHint` explains a cell that cannot be edited in a bubble
+   * anchored to it when it is clicked, and `errorMessage` turns a rejected save into a reason in
+   * the same bubble under the failed cell (red, announced) instead of a bare red ring.
    */
-  import { onDestroy } from 'svelte';
+  import { onDestroy, tick } from 'svelte';
+  import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import type { IconName } from '../atoms/icons';
+  import EmptyState from '../molecules/EmptyState.svelte';
   import StructTree, { structFields } from '../molecules/StructTree.svelte';
   import TagInput from '../molecules/TagInput.svelte';
   import TagList from '../molecules/TagList.svelte';
@@ -93,9 +103,31 @@
     editable?: boolean;
     /** Long values break onto several lines instead of being cut off. */
     wrap?: boolean;
-    /** A new row being entered; `null` hides the draft row. */
+    /** A new row being entered at the bottom; `null` hides the draft row. */
     draft?: GridRow | null;
-    emptyText?: string;
+    /** Shows the "+ New row" row after the last row. Default: when `ondraftsubmit` is set. */
+    addRow?: boolean | undefined;
+    addRowLabel?: string;
+    saveRowLabel?: string;
+    cancelRowLabel?: string;
+    /** Row number cell of the draft row. */
+    draftRowLabel?: string;
+    /** Accessible name of a draft cell. */
+    draftCellLabel?: (column: string) => string;
+    /** Accessible name of a cell's editor. */
+    cellLabel?: (column: string, row: string | number) => string;
+    /** Accessible name of the row-number column. */
+    rowHeaderLabel?: string;
+    /** Added to the type of a locked column. */
+    readOnlyLabel?: string;
+    /** Tooltip of a column resize handle. */
+    resizeHint?: string;
+    resizeLabel?: (column: string) => string;
+    emptyTitle?: string | undefined;
+    emptyMessage?: string | undefined;
+    emptyIcon?: IconName | undefined;
+    /** @deprecated Use `emptyMessage`. */
+    emptyText?: string | undefined;
     nullLabel?: string;
     label?: string | undefined;
     /** What Enter does after saving: move to the cell below, or stay. */
@@ -134,6 +166,16 @@
     ondraftcancel?: (() => void) | undefined;
     /** A click on a cell that cannot be edited, e.g. to explain why. */
     onlockedclick?: ((column: GridColumn, rowIndex: number) => void) | undefined;
+    /** Why a cell cannot be edited, shown in a bubble at that cell when it is clicked. */
+    lockedHint?:
+      | string
+      | ((column: GridColumn, row: GridRow, rowIndex: number) => string | undefined)
+      | undefined;
+    /** The reason shown at the cell when `oncommit` rejects; nothing returned = ring only. */
+    errorMessage?:
+      ((error: unknown, column: GridColumn, rowIndex: number) => string | undefined) | undefined;
+    /** Milliseconds a locked hint stays; a save error stays twice as long. */
+    hintDuration?: number;
     /** A number editor held something that is not a number; nothing was saved. */
     oninvalid?: ((column: GridColumn, rowIndex: number) => void) | undefined;
     /** Scrolled near the last row (or the rows do not fill the view): load more. */
@@ -147,7 +189,21 @@
     editable = true,
     wrap = false,
     draft = $bindable(null),
-    emptyText = 'No rows yet.',
+    addRow,
+    addRowLabel = 'New row',
+    saveRowLabel = 'Save row',
+    cancelRowLabel = 'Cancel',
+    draftRowLabel = 'new',
+    draftCellLabel = (column) => `New row, ${column}`,
+    cellLabel = (column, row) => `${column}, row ${row}`,
+    rowHeaderLabel = 'Row',
+    readOnlyLabel = 'read-only',
+    resizeHint = 'Drag to resize · double-click to reset all widths',
+    resizeLabel = (column) => `Resize ${column}`,
+    emptyTitle,
+    emptyMessage,
+    emptyIcon,
+    emptyText,
     nullLabel = 'NULL',
     label,
     enterMoves = 'down',
@@ -170,6 +226,9 @@
     ondraftsubmit,
     ondraftcancel,
     onlockedclick,
+    lockedHint,
+    errorMessage,
+    hintDuration = 3200,
     oninvalid,
     onnearend,
     onresize,
@@ -185,7 +244,20 @@
   let headHeight = $state(52);
   let headRow = $state<HTMLTableRowElement>();
   let resizing = $state<string | null>(null);
+  let barHeight = $state(0);
+  let draftRow = $state<HTMLTableRowElement>();
+  let addButton = $state<HTMLButtonElement>();
   let armTimer: ReturnType<typeof setTimeout> | undefined;
+  /** The bubble at one cell: why it is locked, or why its save failed. */
+  let bubble = $state<{
+    row: number;
+    col: number;
+    text: string;
+    error: boolean;
+    above: boolean;
+  } | null>(null);
+  let bubbleTimer: ReturnType<typeof setTimeout> | undefined;
+  const uid = $props.id();
 
   const kinds = $derived(columns.map((column) => cellKind(column.type)));
   const structs = $derived(columns.map((column) => structFields(column.type)));
@@ -237,12 +309,66 @@
     box?.focus();
   }
 
+  function showBubble(row: number, col: number, text: string, error: boolean) {
+    clearTimeout(bubbleTimer);
+    // Enter has already moved the editor to the cell below: the reason goes above instead.
+    const above = editing?.col === col && editing.row === row + 1;
+    bubble = { row, col, text, error, above };
+    bubbleTimer = setTimeout(hideBubble, error ? hintDuration * 2 : hintDuration);
+  }
+
+  function hideBubble() {
+    clearTimeout(bubbleTimer);
+    bubble = null;
+  }
+
+  function explainLocked(row: number, col: number) {
+    const column = columns[col];
+    const record = rows[row];
+    if (!column || !record || lockedHint == null) return;
+    const text = typeof lockedHint === 'string' ? lockedHint : lockedHint(column, record, row);
+    if (text) showBubble(row, col, text, false);
+  }
+
+  /**
+   * Puts the bubble under its cell (above when there is no room below), inside the scroll area
+   * so it scrolls with the cell, and shifted left when it would run out on the right.
+   */
+  function placeBubble(node: HTMLElement, at: { row: number; col: number; above: boolean }) {
+    const place = ({ row, col, above }: { row: number; col: number; above: boolean }) => {
+      const cell = viewport?.querySelector<HTMLElement>(`td[data-row="${row}"][data-col="${col}"]`);
+      if (!cell || !viewport) return;
+      const box = viewport.getBoundingClientRect();
+      const r = cell.getBoundingClientRect();
+      const gap = 6;
+      // Above means under the sticky header row, which covers the top of the scroll area.
+      const roomAbove = r.top - box.top - headHeight >= node.offsetHeight + gap;
+      const roomBelow = r.bottom + gap + node.offsetHeight <= box.bottom;
+      const below = above ? !roomAbove : roomBelow || !roomAbove;
+      const top =
+        (below ? r.bottom + gap : r.top - gap - node.offsetHeight) - box.top + viewport.scrollTop;
+      const room = viewport.scrollLeft + viewport.clientWidth - node.offsetWidth - gap;
+      const left = Math.max(
+        viewport.scrollLeft + gap,
+        Math.min(r.left - box.left + viewport.scrollLeft, room),
+      );
+      node.style.top = `${top}px`;
+      node.style.left = `${left}px`;
+      node.classList.toggle('above', !below);
+    };
+    place(at);
+    return { update: place };
+  }
+  onDestroy(() => clearTimeout(bubbleTimer));
+
   function startEdit(row: number, col: number) {
     if (!canEdit(col)) {
       const column = columns[col];
       if (column) onlockedclick?.(column, row);
+      explainLocked(row, col);
       return;
     }
+    if (bubble) hideBubble();
     // A struct is edited inside its own tree.
     if (kinds[col] === 'struct') return;
     // A checkbox is its own editor: arriving on one only focuses it.
@@ -271,8 +397,10 @@
     try {
       await oncommit(row, column.name, value);
       flash(key, 'saved');
-    } catch {
-      flash(key, 'failed', 2400);
+    } catch (error) {
+      const text = errorMessage?.(error, column, row);
+      flash(key, 'failed', text ? hintDuration * 2 : 2400);
+      if (text) showBubble(row, col, text, true);
     }
   }
 
@@ -413,13 +541,41 @@
     draft = next;
   }
 
+  const showAddRow = $derived(editable && (addRow ?? !!ondraftsubmit));
+
+  /** Opens the draft row where the new row will land, and puts the cursor in it. */
+  async function openDraft() {
+    finishEdit(true);
+    draft = {};
+    await tick();
+    draftRow?.scrollIntoView?.({ block: 'nearest' });
+    draftRow?.querySelector<HTMLElement>('input:not(:disabled), textarea:not(:disabled)')?.focus();
+  }
+
+  /** Once the draft is gone (saved or cancelled), focus returns to "+ New row". */
+  async function afterDraft() {
+    await tick();
+    if (!draft) addButton?.focus();
+  }
+
+  function submitDraft() {
+    ondraftsubmit?.();
+    void afterDraft();
+  }
+
+  function cancelDraft() {
+    if (ondraftcancel) ondraftcancel();
+    else draft = null;
+    void afterDraft();
+  }
+
   function onDraftKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      ondraftsubmit?.();
+      submitDraft();
     } else if (event.key === 'Escape') {
       event.preventDefault();
-      ondraftcancel?.();
+      cancelDraft();
     }
   }
 
@@ -497,18 +653,21 @@
   style:--head-h="{headHeight}px"
   bind:this={viewport}
   onscroll={() => onnearend && nearEnd() && onnearend()}
+  onkeydown={(event) => event.key === 'Escape' && bubble && !editing && hideBubble()}
+  role="presentation"
 >
   <table
     class="grid"
     class:wrap
     class:fixed
     class:editable={editable && !!ondelete}
+    class:spaced={editable && !!ondelete && rows.length > 0}
     style:width={tableWidth != null ? `${tableWidth}px` : undefined}
     aria-label={label}
   >
     <thead bind:clientHeight={headHeight}>
       <tr bind:this={headRow}>
-        <th class="rownum" scope="col"><span class="sr-only">Row</span></th>
+        <th class="rownum" scope="col"><span class="sr-only">{rowHeaderLabel}</span></th>
         {#each columns as column, col (column.name)}
           <th
             scope="col"
@@ -517,15 +676,15 @@
             style:width={fixed ? `${widths[column.name] ?? minColumnWidth}px` : undefined}
           >
             <span class="col-name">{column.name}</span>
-            <span class="col-type">{column.type}{column.locked ? ' · read-only' : ''}</span>
+            <span class="col-type">{column.type}{column.locked ? ` · ${readOnlyLabel}` : ''}</span>
             {#if resizable}
               <span
                 class="col-resize"
                 class:active={resizing === column.name}
-                title="Drag to resize · double-click to reset all widths"
+                title={resizeHint}
                 role="separator"
                 aria-orientation="vertical"
-                aria-label="Resize {column.name}"
+                aria-label={resizeLabel(column.name)}
                 onpointerdown={(event) => startResize(event, column.name)}
                 ondblclick={resetWidths}
               ></span>
@@ -535,88 +694,6 @@
       </tr>
     </thead>
     <tbody>
-      {#if draft}
-        <tr class="draft">
-          <th class="rownum" scope="row">new</th>
-          {#each columns as column, col (column.name)}
-            {@const kind = kinds[col]}
-            {@const value = draft[column.name]}
-            <td>
-              {#if kind === 'bool'}
-                <!-- Starts indeterminate — "left out" — since an unchecked box would mean false. -->
-                <label class="draft-check">
-                  <input
-                    type="checkbox"
-                    aria-label="New row, {column.name}"
-                    disabled={column.locked}
-                    checked={value === true}
-                    indeterminate={value == null}
-                    onchange={(event) => setDraft(column.name, event.currentTarget.checked)}
-                    onkeydown={onDraftKeydown}
-                  />
-                </label>
-              {:else if kind === 'struct'}
-                <div class="draft-struct">
-                  <StructTree
-                    value={value as Record<string, unknown> | null | undefined}
-                    fields={structs[col]}
-                    editable={!column.locked}
-                    {nullLabel}
-                    label="New row, {column.name}"
-                    onchange={(next) => setDraft(column.name, next)}
-                  />
-                </div>
-              {:else if kind === 'list'}
-                <div class="draft-tags">
-                  <TagInput
-                    label="New row, {column.name}"
-                    placeholder={column.locked ? lockedLabel : column.type}
-                    disabled={column.locked}
-                    value={listItems(value)}
-                    onchange={(items) => setDraft(column.name, items.length ? items : undefined)}
-                    onkeydown={onDraftKeydown}
-                  />
-                </div>
-              {:else if kind === 'number'}
-                <input
-                  class="draft-input"
-                  type="number"
-                  step={stepFor(column.type)}
-                  aria-label="New row, {column.name}"
-                  placeholder={column.locked ? lockedLabel : column.type}
-                  disabled={column.locked}
-                  value={cellText(value)}
-                  oninput={(event) =>
-                    setDraft(
-                      column.name,
-                      event.currentTarget.value === '' && !event.currentTarget.validity.badInput
-                        ? undefined
-                        : toValue(col, event.currentTarget.value),
-                    )}
-                  onkeydown={onDraftKeydown}
-                  use:noWheel
-                />
-              {:else}
-                <textarea
-                  class="draft-input"
-                  rows="1"
-                  aria-label="New row, {column.name}"
-                  placeholder={column.locked ? lockedLabel : column.type}
-                  disabled={column.locked}
-                  value={cellText(value)}
-                  oninput={(event) =>
-                    setDraft(
-                      column.name,
-                      event.currentTarget.value === ''
-                        ? undefined
-                        : toValue(col, event.currentTarget.value),
-                    )}
-                  onkeydown={onDraftKeydown}></textarea>
-              {/if}
-            </td>
-          {/each}
-        </tr>
-      {/if}
       {#each rows as record, row (row)}
         {@const number = rowLabel ? rowLabel(record, row) : row + 1}
         <tr class:deleting={deleting === row} class:added={highlight === row} data-index={row}>
@@ -655,6 +732,9 @@
               class:editing={isEditing}
               data-row={row}
               data-col={col}
+              aria-describedby={bubble?.row === row && bubble.col === col
+                ? `${uid}-bubble`
+                : undefined}
               title={kind === 'bool'
                 ? value == null
                   ? nullLabel
@@ -679,7 +759,7 @@
                 <input
                   type="checkbox"
                   class="bool-input"
-                  aria-label="{column.name}, row {number}"
+                  aria-label={cellLabel(column.name, number)}
                   checked={value === true}
                   indeterminate={value == null}
                   disabled={!canEdit(col) || state === 'saving'}
@@ -690,7 +770,7 @@
                 {#if editing.items}
                   <div class="editor tags">
                     <TagInput
-                      label="{column.name}, row {number}"
+                      label={cellLabel(column.name, number)}
                       placeholder={addTagLabel}
                       bind:value={editing.items}
                       autofocus
@@ -705,7 +785,7 @@
                     class="editor num"
                     type="number"
                     step={stepFor(column.type)}
-                    aria-label="{column.name}, row {number}"
+                    aria-label={cellLabel(column.name, number)}
                     value={editing?.text ?? ''}
                     oninput={(event) => editing && (editing.text = event.currentTarget.value)}
                     onkeydown={onEditorKeydown}
@@ -716,7 +796,7 @@
                 {:else}
                   <textarea
                     class="editor"
-                    aria-label="{column.name}, row {number}"
+                    aria-label={cellLabel(column.name, number)}
                     spellcheck={/^(text|varchar|string)/i.test(column.type)}
                     value={editing?.text ?? ''}
                     oninput={(event) => editing && (editing.text = event.currentTarget.value)}
@@ -732,7 +812,7 @@
                   fields={structs[col]}
                   editable={canEdit(col) && state !== 'saving'}
                   nullLabel={structs[col] ? '—' : nullLabel}
-                  label="{column.name}, row {number}"
+                  label={cellLabel(column.name, number)}
                   onchange={(next) => commit(row, col, next)}
                 />
               {:else if kind === 'list'}
@@ -749,9 +829,142 @@
           {/each}
         </tr>
       {/each}
+      {#if draft}
+        <tr class="draft" bind:this={draftRow} style:--bar-h="{barHeight}px">
+          <th class="rownum" scope="row">{draftRowLabel}</th>
+          {#each columns as column, col (column.name)}
+            {@const kind = kinds[col]}
+            {@const value = draft[column.name]}
+            <td>
+              {#if kind === 'bool'}
+                <!-- Starts indeterminate — "left out" — since an unchecked box would mean false. -->
+                <label class="draft-check">
+                  <input
+                    type="checkbox"
+                    aria-label={draftCellLabel(column.name)}
+                    disabled={column.locked}
+                    checked={value === true}
+                    indeterminate={value == null}
+                    onchange={(event) => setDraft(column.name, event.currentTarget.checked)}
+                    onkeydown={onDraftKeydown}
+                  />
+                </label>
+              {:else if kind === 'struct'}
+                <div class="draft-struct">
+                  <StructTree
+                    value={value as Record<string, unknown> | null | undefined}
+                    fields={structs[col]}
+                    editable={!column.locked}
+                    {nullLabel}
+                    label={draftCellLabel(column.name)}
+                    onchange={(next) => setDraft(column.name, next)}
+                  />
+                </div>
+              {:else if kind === 'list'}
+                <div class="draft-tags">
+                  <TagInput
+                    label={draftCellLabel(column.name)}
+                    placeholder={column.locked ? lockedLabel : column.type}
+                    disabled={column.locked}
+                    value={listItems(value)}
+                    onchange={(items) => setDraft(column.name, items.length ? items : undefined)}
+                    onkeydown={onDraftKeydown}
+                  />
+                </div>
+              {:else if kind === 'number'}
+                <input
+                  class="draft-input"
+                  type="number"
+                  step={stepFor(column.type)}
+                  aria-label={draftCellLabel(column.name)}
+                  placeholder={column.locked ? lockedLabel : column.type}
+                  disabled={column.locked}
+                  value={cellText(value)}
+                  oninput={(event) =>
+                    setDraft(
+                      column.name,
+                      event.currentTarget.value === '' && !event.currentTarget.validity.badInput
+                        ? undefined
+                        : toValue(col, event.currentTarget.value),
+                    )}
+                  onkeydown={onDraftKeydown}
+                  use:noWheel
+                />
+              {:else}
+                <textarea
+                  class="draft-input"
+                  rows="1"
+                  aria-label={draftCellLabel(column.name)}
+                  placeholder={column.locked ? lockedLabel : column.type}
+                  disabled={column.locked}
+                  value={cellText(value)}
+                  oninput={(event) =>
+                    setDraft(
+                      column.name,
+                      event.currentTarget.value === ''
+                        ? undefined
+                        : toValue(col, event.currentTarget.value),
+                    )}
+                  onkeydown={onDraftKeydown}></textarea>
+              {/if}
+            </td>
+          {/each}
+        </tr>
+        <tr class="draft-bar">
+          <td colspan={columns.length + 1} bind:offsetHeight={barHeight}>
+            <div class="draft-actions">
+              <Button
+                size="sm"
+                variant="success"
+                shape="pill"
+                icon="check"
+                label={saveRowLabel}
+                onclick={submitDraft}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                shape="pill"
+                label={cancelRowLabel}
+                onclick={cancelDraft}
+              />
+            </div>
+          </td>
+        </tr>
+      {:else if showAddRow && rows.length}
+        <tr class="add-row">
+          <td colspan={columns.length + 1}>
+            <button type="button" class="add-row-btn" bind:this={addButton} onclick={openDraft}>
+              <Icon name="plus" size={14} />{addRowLabel}
+            </button>
+          </td>
+        </tr>
+      {/if}
     </tbody>
   </table>
-  {#if !rows.length && !draft}<div class="empty">{emptyText}</div>{/if}
+  {#if bubble}
+    <div
+      class="bubble"
+      class:error={bubble.error}
+      id="{uid}-bubble"
+      role={bubble.error ? 'alert' : 'status'}
+      use:placeBubble={bubble}
+    >
+      {bubble.text}
+    </div>
+  {/if}
+  {#if !rows.length && !draft}
+    <div class="empty">
+      <EmptyState
+        title={emptyTitle}
+        message={emptyMessage ?? emptyText ?? 'No rows yet.'}
+        icon={emptyIcon}
+        actionLabel={showAddRow ? addRowLabel : undefined}
+        actionIcon="plus"
+        onaction={showAddRow ? openDraft : undefined}
+      />
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -768,7 +981,8 @@
     font-size: var(--fs-sm);
     min-width: 100%;
   }
-  .grid.editable {
+  /* Room under the last row for actions floating over the page. */
+  .grid.spaced {
     margin-bottom: 5rem;
   }
   th,
@@ -984,6 +1198,7 @@
 
   /* Row delete: the number turns into a trash control on hover; armed, it floats over the row. */
   .row-del {
+    position: relative;
     display: none;
     align-items: center;
     justify-content: center;
@@ -1000,6 +1215,12 @@
     font-size: var(--fs-2xs);
     font-weight: var(--fw-semibold);
   }
+  /* A 32px hit area around the 24px control. */
+  .row-del::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
   .row-del:hover {
     color: var(--danger);
     background: var(--tint-danger);
@@ -1012,7 +1233,7 @@
     transform: translateY(-50%);
     z-index: 6;
     white-space: nowrap;
-    color: white;
+    color: var(--on-danger);
     background: var(--grad-danger);
     padding: 0 0.55rem;
     border-radius: var(--radius-pill);
@@ -1040,13 +1261,62 @@
     text-decoration: line-through;
   }
 
-  /* The draft row, pinned under the header. */
+  /* The draft row sits where the new row will land, after the last row; when the rows are
+     longer than the view it sticks to the bottom edge, its Save / Cancel bar under it. */
   tr.draft th,
   tr.draft td {
     position: sticky;
-    top: var(--head-h);
+    bottom: var(--bar-h);
     z-index: 2;
     background: var(--editor-bg);
+  }
+  tr.draft-bar td {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 0;
+    background: var(--head-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .draft-actions {
+    position: sticky;
+    left: var(--space-3);
+    display: inline-flex;
+    gap: var(--space-2);
+  }
+  .add-row td {
+    padding: 0;
+    border-right: 0;
+  }
+  .add-row-btn {
+    position: sticky;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--control-sm);
+    padding: 0 var(--space-3) 0 1.1rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-3);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    transition:
+      color var(--motion-quick) var(--ease-out),
+      background-color var(--motion-quick) var(--ease-out);
+  }
+  .add-row-btn:hover {
+    color: var(--ok);
+    background: color-mix(in srgb, var(--ok) 8%, transparent);
+  }
+  .add-row-btn:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: -2px;
   }
   tr.draft td {
     padding: 0;
@@ -1096,11 +1366,8 @@
   }
 
   .empty {
-    position: absolute;
-    inset: 3rem 1rem auto;
-    text-align: center;
-    color: var(--text-3);
-    font-size: var(--fs-md);
+    position: sticky;
+    left: 0;
   }
   .sr-only {
     position: absolute;
@@ -1112,7 +1379,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .cell.saving,
-    .row-del.confirm {
+    .row-del.confirm,
+    .bubble {
       animation: none;
     }
   }
@@ -1162,6 +1430,36 @@
   .wrap.resizing * {
     cursor: col-resize !important;
     user-select: none;
+  }
+  /* The bubble at a cell: why it is locked (glass), or why its save failed (danger). */
+  .bubble {
+    position: absolute;
+    z-index: 7;
+    max-width: min(18rem, calc(100% - var(--space-4)));
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    border: 0.75px solid var(--pill-border);
+    background: var(--tooltip-bg);
+    backdrop-filter: var(--blur-pill);
+    -webkit-backdrop-filter: var(--blur-pill);
+    box-shadow: var(--shadow-pop);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    white-space: normal;
+    pointer-events: none;
+    transform-origin: 1rem 0;
+    animation: bb-pop var(--motion-base) var(--ease-out);
+  }
+  .bubble:global(.above) {
+    transform-origin: 1rem 100%;
+  }
+  .bubble.error {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 8%, var(--tooltip-bg));
+    box-shadow:
+      inset 3px 0 0 var(--danger),
+      var(--shadow-pop);
   }
   tr.added td {
     background-color: color-mix(in srgb, var(--ok) 14%, transparent);

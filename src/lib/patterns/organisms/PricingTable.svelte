@@ -69,7 +69,7 @@
     onselect,
     onbilling,
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     monthlyLabel = 'Monthly',
     yearlyLabel = 'Yearly',
     billingLabel = 'Billing period',

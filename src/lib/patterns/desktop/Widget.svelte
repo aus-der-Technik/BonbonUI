@@ -97,6 +97,9 @@
   .widget {
     --unit: var(--widget-unit, 10.5rem);
     --c: var(--widget-color, var(--accent));
+    /* Ink on a solid candy fill: white on deep colours, near-black on light ones (yellow, mint,
+       cyan) — the same lightness clamp as the --on-ok / --on-warn tokens. */
+    --on-c: oklch(from var(--c) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -133,7 +136,7 @@
     height: calc(var(--unit) * 2 + var(--space-4));
   }
   .filled {
-    border-color: color-mix(in srgb, white 30%, transparent);
+    border-color: var(--border-on-accent);
     background-image:
       linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 50%),
       linear-gradient(
@@ -144,8 +147,8 @@
       );
     box-shadow:
       0 14px 34px color-mix(in srgb, var(--c) 32%, transparent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.45);
-    color: #fff;
+      inset 0 1px 0 var(--pill-edge);
+    color: var(--on-c);
   }
   .has-image {
     color: #fff;
@@ -185,11 +188,12 @@
     height: 22px;
     border-radius: 50%;
     background: var(--c);
-    color: #fff;
+    color: var(--on-c);
   }
   .filled .icon,
   .has-image .icon {
-    background: rgba(255, 255, 255, 0.25);
+    background: color-mix(in srgb, currentColor 22%, transparent);
+    color: inherit;
   }
   .title {
     flex: 1;
@@ -212,7 +216,7 @@
   }
   .filled .meta,
   .has-image .meta {
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in srgb, currentColor 80%, transparent);
   }
   .content {
     display: flex;

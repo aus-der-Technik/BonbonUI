@@ -15,13 +15,17 @@
   /**
    * MultiSelect molecule — a dropdown of checkboxes (e.g. source and rating
    * filters). A group heading toggles its whole group; `onchange` receives the selection in
-   * option order. Closes on Escape, outside click and focus leaving. The list opens as a frosted
-   * glass popover; the trigger glows in the accent while open.
+   * option order. Closes on Escape, outside click and focus leaving. The list grows out of the
+   * trigger as a frosted glass popover (in the top layer, flipping above when there is no room
+   * below); the trigger glows in the accent while open.
    *
    *   <MultiSelect label="Status" groups={[{ options }]} {value} {onchange} />
    */
+  import { tick } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import Stars from '../atoms/Stars.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
+  import { anchorTo } from './anchor';
 
   interface Props {
     label: string;
@@ -92,10 +96,15 @@
   async function setOpen(next: boolean) {
     open = next;
     if (next) {
-      await Promise.resolve();
+      await tick();
       pop?.querySelector<HTMLElement>('input, button')?.focus();
     }
   }
+
+  $effect(() => {
+    if (!open || !pop) return;
+    return anchorTo(pop, button, { placement: 'bottom-start' });
+  });
 
   function onDocumentPointerDown(event: PointerEvent) {
     if (open && !root.contains(event.target as Node)) open = false;
@@ -114,7 +123,13 @@
   }
 </script>
 
-<svelte:document onpointerdown={onDocumentPointerDown} />
+<svelte:document
+  onpointerdown={onDocumentPointerDown}
+  onfocusin={(event) => {
+    // Focus that left the window (relatedTarget null) and came back elsewhere.
+    if (open && !root.contains(event.target as Node)) open = false;
+  }}
+/>
 
 <div class="field">
   <span class="label" id="{id}-label">{label}</span>
@@ -139,7 +154,7 @@
       <Icon name="chevron-down" size={12} class="chev" />
     </button>
     {#if open}
-      <div class="pop" role="group" aria-labelledby="{id}-label" bind:this={pop}>
+      <div class="pop" role="group" aria-labelledby="{id}-label" popover="manual" bind:this={pop}>
         {#if !options.length}
           <div class="empty">{emptyLabel}</div>
         {:else}
@@ -160,7 +175,7 @@
                   />
                   {#if option.stars}
                     <Stars value={option.stars} label="" />
-                    <span class="sr-only">{option.label}</span>
+                    <VisuallyHidden>{option.label}</VisuallyHidden>
                   {:else}
                     {option.label}
                   {/if}
@@ -254,23 +269,25 @@
     outline-offset: 2px;
   }
   .pop {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    left: 0;
-    z-index: var(--z-dropdown);
-    min-width: 100%;
+    /* Placed by anchorTo (fixed, in the top layer), which also sets the transform-origin. */
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    z-index: var(--z-popover);
+    min-width: var(--anchor-width, 11rem);
     width: max-content;
     max-width: min(22rem, calc(100vw - 2rem));
-    max-height: 22rem;
+    max-height: min(22rem, var(--anchor-room, 22rem));
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: var(--space-1);
+    color: var(--text);
     background: var(--pill-tint), var(--glass-strong);
     border: 0.75px solid var(--pill-border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-pop);
     box-shadow: var(--shadow-pop);
     backdrop-filter: var(--blur-pill);
     -webkit-backdrop-filter: var(--blur-pill);
-    transform-origin: top left;
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
   .group + .group {
@@ -286,7 +303,7 @@
     text-align: left;
     cursor: pointer;
     padding: var(--space-2) var(--space-2) var(--space-1);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     font: inherit;
     font-size: var(--fs-2xs);
     font-weight: var(--fw-semibold);
@@ -295,7 +312,7 @@
     color: var(--text-3);
   }
   .group-head:hover {
-    color: var(--accent-ink);
+    color: var(--text);
   }
   .group-head:focus-visible {
     outline: var(--focus-ring);
@@ -307,15 +324,16 @@
     gap: var(--space-2);
     min-height: var(--control-sm);
     padding: 0 var(--space-2);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     font-size: var(--fs-md);
     color: var(--text);
     white-space: nowrap;
     transition: background-color var(--motion-quick) var(--ease-out);
   }
+  /* Pointing is neutral; the accent marks what is chosen. */
   .option:hover {
-    background: var(--accent-faint);
+    background: var(--fill-hover);
   }
   .option.checked {
     background: var(--accent-soft);
@@ -346,10 +364,10 @@
     border-radius: var(--radius-pill);
   }
   .foot button:hover:not(:disabled) {
-    background: var(--accent-faint);
+    background: var(--fill-hover);
   }
   .foot button:disabled {
-    color: var(--text-3);
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .foot button:focus-visible {
@@ -359,14 +377,6 @@
     padding: var(--space-2) var(--space-3);
     color: var(--text-3);
     font-size: var(--fs-sm);
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
   }
   @media (prefers-reduced-transparency: reduce) {
     .pop {

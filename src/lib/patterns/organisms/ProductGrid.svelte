@@ -20,9 +20,10 @@
   /**
    * ProductGrid organism — a shop's product listing: ProductCards in as many columns as fit
    * (two on a phone), with add-to-cart and wishlist wired per product, and an empty state when
-   * a filter leaves nothing. `card` replaces the default card for every product.
+   * a filter leaves nothing. `card` replaces the default card for every product. `onadd` also
+   * gets the pressed card's element, so the item can fly from there into the cart.
    *
-   *   <ProductGrid products={items} bind:wishlist onadd={(p) => cart.add(p.id)} onopen={(p) => …} />
+   *   <ProductGrid products={items} bind:wishlist onadd={(p, card) => cart.add(p.id)} onopen={(p) => …} />
    */
   import type { Snippet } from 'svelte';
   import ProductCard from '../molecules/ProductCard.svelte';
@@ -34,7 +35,8 @@
     products: Product[];
     /** Ids of wishlisted products; the heart shows when `onwishlist` is set or this is bound. */
     wishlist?: string[] | undefined;
-    onadd?: ((product: Product) => void | Promise<void>) | undefined;
+    /** Add to cart; `card` is the product card that was pressed (to animate from it). */
+    onadd?: ((product: Product, card: HTMLElement) => void | Promise<void>) | undefined;
     onwishlist?: ((product: Product, wishlisted: boolean) => void) | undefined;
     onopen?: ((product: Product) => void) | undefined;
     /** Minimum card width. */
@@ -63,7 +65,7 @@
     gap = 'md',
     aspect = '4 / 5',
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     emptyTitle = 'Nothing found',
     emptyMessage = 'Nothing here — try fewer words or another category.',
     card,
@@ -71,6 +73,12 @@
   }: Props = $props();
 
   const hearts = $derived(!!onwishlist || wishlist !== undefined);
+  // The list items by product id, so `onadd` can hand over the card that was pressed.
+  const cells: Record<string, HTMLLIElement> = {};
+  const cardOf = (id: string) => {
+    const cell = cells[id];
+    return (cell?.firstElementChild as HTMLElement | null) ?? cell;
+  };
 
   function wish(product: Product, on: boolean) {
     const list = wishlist ?? [];
@@ -84,7 +92,7 @@
   <div class="products" style:--card-min={min}>
     <Grid min="var(--_min)" {columns} {gap} as="ul" role="list">
       {#each products as product (product.id)}
-        <li class="cell">
+        <li class="cell" bind:this={cells[product.id]}>
           {#if card}
             {@render card(product)}
           {:else}
@@ -105,7 +113,7 @@
               {currency}
               {locale}
               onopen={onopen ? () => onopen(product) : undefined}
-              onadd={onadd ? () => onadd(product) : undefined}
+              onadd={onadd ? () => onadd(product, cardOf(product.id)!) : undefined}
               wishlisted={wishlist?.includes(product.id) ?? false}
               onwishlist={hearts ? (on) => wish(product, on) : undefined}
             />

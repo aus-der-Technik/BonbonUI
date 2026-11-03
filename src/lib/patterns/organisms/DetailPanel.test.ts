@@ -1,7 +1,7 @@
 import { html, key, render, tick } from '../../test/render';
 import DetailPanel from './DetailPanel.svelte';
 
-// happy-dom cannot run the panel's animations; reduced motion makes them instant, as for users who ask for it.
+// Reduced motion, as some users ask for: the panel only fades, quickly.
 beforeAll(() => {
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: query.includes('reduce'),
@@ -49,7 +49,9 @@ describe('DetailPanel', () => {
     expect(onprevious).toHaveBeenCalledOnce();
     expect(onnext).toHaveBeenCalledOnce();
     expect(onclose).toHaveBeenCalledOnce();
-    (host.querySelector('.backdrop') as HTMLElement).click();
+    const backdrop = host.querySelector('.backdrop') as HTMLElement;
+    backdrop.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    backdrop.click();
     expect(onbackdrop).toHaveBeenCalledOnce();
     (host.querySelector('button[aria-label="Close"]') as HTMLElement).click();
     expect(onclose).toHaveBeenCalledTimes(2);
@@ -111,5 +113,62 @@ describe('DetailPanel', () => {
     expect(document.activeElement).toBe(first);
     key(first, 'Tab', { shiftKey: true });
     expect(document.activeElement).toBe(last);
+  });
+
+  it('leaves keys pressed inside a dialog opened from the panel to that dialog', () => {
+    const onclose = vi.fn();
+    const onnext = vi.fn();
+    const host = render(DetailPanel, {
+      ...base,
+      itemKey: 1,
+      onclose,
+      onnext,
+      children: html('<div><dialog open><button class="inner">ok</button></dialog></div>'),
+    });
+    const inner = host.querySelector('.inner')!;
+    key(inner, 'Escape');
+    key(inner, 'ArrowRight');
+    expect(onclose).not.toHaveBeenCalled();
+    expect(onnext).not.toHaveBeenCalled();
+    // A modal elsewhere on the page (e.g. a ConfirmDialog in the top layer) as well.
+    const other = document.createElement('div');
+    other.setAttribute('aria-modal', 'true');
+    other.innerHTML = '<input />';
+    document.body.append(other);
+    key(other.querySelector('input')!, 'Escape');
+    expect(onclose).not.toHaveBeenCalled();
+    other.remove();
+    key(document.body, 'Escape');
+    expect(onclose).toHaveBeenCalledOnce();
+  });
+
+  it('traps Tab across every kind of control and ignores a drag onto the backdrop', () => {
+    const onclose = vi.fn();
+    const host = render(DetailPanel, {
+      ...base,
+      itemKey: 1,
+      onclose,
+      children: html('<div><input class="first-field" /><textarea class="last"></textarea></div>'),
+    });
+    const last = host.querySelector<HTMLElement>('.last')!;
+    last.focus();
+    key(last, 'Tab');
+    // The first stop is the panel's own Previous / Next / Close row.
+    expect(document.activeElement).toBe(host.querySelector('header button:not([disabled])'));
+    key(document.activeElement!, 'Tab', { shiftKey: true });
+    expect(document.activeElement).toBe(last);
+    host.querySelector('.panel')!.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    (host.querySelector('.backdrop') as HTMLElement).click();
+    expect(onclose).not.toHaveBeenCalled();
+    const fixed = render(DetailPanel, { ...base, itemKey: 1, onclose, closeOnBackdrop: false });
+    const backdrop = fixed.querySelector('.backdrop') as HTMLElement;
+    backdrop.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    backdrop.click();
+    expect(onclose).not.toHaveBeenCalled();
+  });
+
+  it('shows its error as an Alert', () => {
+    const host = render(DetailPanel, { ...base, itemKey: 1, error: 'Gone', onclose: () => {} });
+    expect(host.querySelector('.error .alert--danger')).not.toBeNull();
   });
 });

@@ -4,7 +4,8 @@
    * there is a former price), wishlist heart, title, rating, colour dots, price and an add-to-cart
    * button. With `href` (or `onopen`) the whole card opens the product and lifts on hover; the
    * buttons stay separately clickable. `onadd` may return a promise: the button spins, then
-   * ticks with a small burst of sprinkles.
+   * ticks with a small burst of sprinkles — or, when it rejects, turns red and says
+   * `addFailedLabel` for a few seconds.
    *
    *   <ProductCard title="Linen shirt" price={59} compareAt={79} image={url} href="/p/linen"
    *     rating={4.6} reviews={128} colors={['#9bb59a', '#e7dcc8']} onadd={() => cart.add(id)} />
@@ -15,6 +16,7 @@
   import Image from '../atoms/Image.svelte';
   import Price from '../atoms/Price.svelte';
   import Stars from '../atoms/Stars.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
   import { discountPercent } from './web';
   import { celebrate } from '../../utils/delight';
 
@@ -45,6 +47,8 @@
     onadd?: (() => void | Promise<void>) | undefined;
     addLabel?: string;
     addedLabel?: string;
+    /** Said by the add button when `onadd` failed. */
+    addFailedLabel?: string;
     wishlisted?: boolean;
     onwishlist?: ((wishlisted: boolean) => void) | undefined;
     wishlistLabel?: string;
@@ -80,6 +84,7 @@
     onadd,
     addLabel = 'Add to cart',
     addedLabel = 'Added to cart',
+    addFailedLabel = "Couldn't add to cart",
     wishlisted = $bindable(false),
     onwishlist,
     wishlistLabel = 'Add to wishlist',
@@ -87,7 +92,7 @@
     aspect = '4 / 5',
     interactive,
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     reviewsLabel = (n) => `${n} reviews`,
   }: Props = $props();
 
@@ -101,18 +106,25 @@
   let card = $state<HTMLElement>();
   let adding = $state(false);
   let added = $state(false);
+  let failed = $state(false);
   let timer: ReturnType<typeof setTimeout> | undefined;
   onDestroy(() => clearTimeout(timer));
 
   async function add() {
     if (!onadd || adding) return;
     adding = true;
+    failed = false;
+    clearTimeout(timer);
     try {
       await onadd();
       if (!added && card) celebrate(card.querySelector('.add') ?? card, 8);
       added = true;
-      clearTimeout(timer);
       timer = setTimeout(() => (added = false), 1600);
+    } catch {
+      // Feedback at the button the user pressed, not somewhere else on the page.
+      added = false;
+      failed = true;
+      timer = setTimeout(() => (failed = false), 4000);
     } finally {
       adding = false;
     }
@@ -185,17 +197,20 @@
       </p>
       {#if onadd}
         <Button
-          variant="primary"
+          variant={failed ? 'danger-solid' : 'primary'}
           shape="pill"
           size="md"
           iconOnly
-          icon={added ? 'check' : 'plus'}
-          label={added ? addedLabel : addLabel}
+          icon={failed ? 'alert' : added ? 'check' : 'plus'}
+          label={failed ? addFailedLabel : added ? addedLabel : addLabel}
           busy={adding}
           disabled={soldOut}
           onclick={add}
           class="add"
         />
+        <span class="live" role="status">
+          {#if failed}<VisuallyHidden>{addFailedLabel}</VisuallyHidden>{/if}
+        </span>
       {/if}
     </div>
   </div>
@@ -279,7 +294,7 @@
     box-shadow: var(--shadow-primary);
   }
   .badge--danger {
-    color: #fff;
+    color: var(--on-danger);
     background: var(--grad-danger);
     box-shadow: 0 6px 16px color-mix(in srgb, var(--danger) 30%, transparent);
   }
@@ -402,6 +417,10 @@
   }
   .price {
     min-width: 0;
+  }
+  /* Out of the flex flow, so the empty live region does not push the button. */
+  .live {
+    position: absolute;
   }
   .buy :global(.add) {
     position: relative;

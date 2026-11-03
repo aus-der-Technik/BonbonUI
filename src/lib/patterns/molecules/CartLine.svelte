@@ -43,7 +43,7 @@
     href,
     max = 99,
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     onquantity,
     onremove,
     removeLabel = 'Remove',

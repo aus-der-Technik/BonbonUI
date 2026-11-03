@@ -1,15 +1,20 @@
 <script lang="ts">
   /**
-   * Badge atom — a small status pill.
+   * Badge atom — a small status label.
    *
    * Semantic tones: `live` (green, with a dot: "Editable"), `ok`, `locked` (neutral grey:
    * "Read-only"), `draft` (amber), `warn`, `danger` (red: "Failed"), `info` (blue), `accent`
-   * (soft tint) and `brand` (solid tint, e.g. a classification result). Any candy palette name
+   * (soft tint; `variant="solid"` for a filled tint, e.g. a classification result; `brand` is the
+   * deprecated name of that). Any candy palette name
    * (`blue`, `pink`, `purple`, …) works as a tone too, for categories. `color` takes any CSS
    * colour instead.
    *
    * `variant="solid"` fills the pill; `size="sm"` is the inline meta pill next to a label (a
    * version tag), `size="lg"` a headline badge.
+   *
+   * Shape: a badge states something, it is not pressed, so it is a rounded tag — pills are
+   * reserved for things you act on (Tag with a handler, ToggleChip, Button). `shape="pill"` opts
+   * back in where a pill is wanted anyway.
    *
    *   <Badge tone="live" label="Online" />   <Badge tone="purple" variant="solid" label="Pro" />
    */
@@ -17,27 +22,27 @@
   import Icon from './Icon.svelte';
   import type { IconName } from './icons';
   import { colorValue, isPaletteColor, type PaletteColor } from './palette';
+  import type { Tone } from '../tone';
 
-  type Tone =
-    | 'neutral'
+  /** The shared tones plus the badge's own states and the candy palette. */
+  type BadgeTone =
+    | Tone
     | 'live'
-    | 'ok'
     | 'locked'
     | 'draft'
-    | 'warn'
-    | 'danger'
-    | 'info'
-    | 'accent'
+    /** @deprecated Use `tone="accent" variant="solid"`. */
     | 'brand'
     | PaletteColor;
 
   interface Props {
-    tone?: Tone;
+    tone?: BadgeTone;
     /** `soft` (tinted background, coloured text) or `solid` (filled). */
     variant?: 'soft' | 'solid';
     /** Any CSS colour or palette name; overrides the tone's colour. */
     color?: string | undefined;
     size?: 'sm' | 'md' | 'lg';
+    /** `rounded` (default: a status) or `pill`. */
+    shape?: 'rounded' | 'pill';
     /** Leading dot; on by default for `live`. */
     dot?: boolean | undefined;
     icon?: IconName | undefined;
@@ -51,6 +56,7 @@
     variant = 'soft',
     color,
     size = 'md',
+    shape = 'rounded',
     dot,
     icon,
     label,
@@ -63,10 +69,13 @@
     colorValue(color) ?? (isPaletteColor(tone) ? colorValue(tone) : undefined),
   );
   const solid = $derived(variant === 'solid' || tone === 'brand');
+  // `brand` is the deprecated name of a solid accent badge.
+  const toneClass = $derived(tone === 'brand' ? 'accent' : tone);
 </script>
 
 <span
-  class="badge badge--{tone} badge--{size}"
+  class="badge badge--{toneClass} badge--{size}"
+  class:badge--pill={shape === 'pill'}
   class:badge--custom={custom !== undefined}
   class:badge--solid={solid}
   class:badge--dot={showDot}
@@ -86,7 +95,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
     font-weight: var(--fw-semibold);
     letter-spacing: 0.005em;
     line-height: 1;
@@ -102,6 +111,7 @@
     font-size: var(--fs-xs);
   }
   .badge--sm {
+    border-radius: var(--radius-xs);
     padding: 0 0.45rem;
     font-size: var(--fs-2xs);
     font-weight: var(--fw-medium);
@@ -111,6 +121,9 @@
     height: var(--control-sm);
     padding: 0 var(--space-3);
     font-size: var(--fs-md);
+  }
+  .badge--pill {
+    border-radius: var(--radius-pill);
   }
   .badge--dot::before {
     content: '';
@@ -149,8 +162,7 @@
     --_ink: color-mix(in oklab, var(--info) var(--ink-share), var(--ink-mix));
     --_bg: var(--tint-info);
   }
-  .badge--accent,
-  .badge--brand {
+  .badge--accent {
     --_c: var(--accent);
     --_ink: var(--accent-ink);
     --_bg: var(--accent-soft);
@@ -176,7 +188,7 @@
       0 1px 3px color-mix(in srgb, var(--_c) 30%, transparent),
       inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
-  .badge--brand.badge--solid {
+  .badge--accent.badge--solid {
     color: var(--on-accent);
     background: var(--grad-primary);
   }

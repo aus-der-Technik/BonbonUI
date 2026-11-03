@@ -1,11 +1,13 @@
 <script lang="ts" module>
-  export type PopoverPlacement =
-    'bottom-start' | 'bottom' | 'bottom-end' | 'top-start' | 'top' | 'top-end';
+  import type { AnchorPlacement } from './anchor';
+
+  export type PopoverPlacement = AnchorPlacement;
 
   /** Spread these on your own trigger element (the `trigger` snippet's argument). */
   export interface PopoverTriggerProps {
     'aria-expanded': boolean;
-    'aria-controls': string;
+    /** Only while the panel is rendered, so it never points at a missing id. */
+    'aria-controls': string | undefined;
     'aria-haspopup': 'dialog';
     onclick: (event: MouseEvent) => void;
   }
@@ -17,8 +19,10 @@
    * picker, a reaction picker, a short form. A click on the trigger toggles it; Escape, a click
    * outside or `close()` from inside shuts it and returns focus to the trigger. It renders in the
    * top layer (popover API) where supported, so scrolling containers never clip it, and flips
-   * above the trigger when there is no room below. Focus moves to the first control inside, or
-   * to an element marked `data-autofocus`.
+   * above the trigger when there is no room below. `placement="right-start"` (or `left…`) opens
+   * it beside the trigger — from a vertical rail or a sidebar — and flips to the other side when
+   * the room runs out; `center` lays it over the trigger. Focus moves to the first control
+   * inside, or to an element marked `data-autofocus`.
    *
    *   <Popover label="Filters" icon="filter">…form…</Popover>
    *   <Popover title="Share">{#snippet trigger(props)}<button {...props}>Share</button>{/snippet}…</Popover>
@@ -27,6 +31,7 @@
   import { tick } from 'svelte';
   import Button from '../atoms/Button.svelte';
   import type { IconName } from '../atoms/icons';
+  import { anchorTo } from './anchor';
 
   interface Props {
     open?: boolean;
@@ -73,7 +78,6 @@
   const id = $props.id();
   let anchor: HTMLSpanElement;
   let panel = $state<HTMLDivElement>();
-  let pos = $state({ top: 0, left: 0, flipped: false, origin: 'top center' });
 
   const FOCUSABLE =
     'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -96,50 +100,15 @@
 
   const triggerProps = $derived<PopoverTriggerProps>({
     'aria-expanded': open,
-    'aria-controls': `${id}-panel`,
+    'aria-controls': open ? `${id}-panel` : undefined,
     'aria-haspopup': 'dialog',
     onclick: toggle,
   });
 
-  function place() {
-    if (!panel || !anchor) return;
-    const box = anchor.getBoundingClientRect();
-    const own = panel.getBoundingClientRect();
-    const margin = 8;
-    const gap = 8;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const wantsTop = placement.startsWith('top');
-    const roomBelow = vh - box.bottom - gap;
-    const roomAbove = box.top - gap;
-    const flipped = wantsTop
-      ? roomAbove < own.height && roomBelow > roomAbove
-      : roomBelow < own.height && roomAbove > roomBelow;
-    const top = wantsTop !== flipped ? box.top - gap - own.height : box.bottom + gap;
-    const align = placement.split('-')[1] ?? 'center';
-    let left =
-      align === 'start'
-        ? box.left
-        : align === 'end'
-          ? box.right - own.width
-          : box.left + box.width / 2 - own.width / 2;
-    left = Math.max(margin, Math.min(left, vw - own.width - margin));
-    // Grow out of the trigger: the origin sits on the edge facing it, at its centre.
-    const ox = Math.round(Math.max(0, Math.min(own.width, box.left + box.width / 2 - left)));
-    const origin = `${ox}px ${wantsTop !== flipped ? 'bottom' : 'top'}`;
-    pos = { top: Math.max(margin, top), left, flipped, origin };
-  }
-
   $effect(() => {
     if (!open || !panel) return;
     const el = panel;
-    // Top layer where available: escapes overflow clipping and transformed ancestors.
-    try {
-      if (typeof el.showPopover === 'function' && !el.matches(':popover-open')) el.showPopover();
-    } catch {
-      /* already shown, or the popover API is unsupported */
-    }
-    place();
+    const release = anchorTo(el, anchor, { placement });
     if (autofocus) {
       void tick().then(() => {
         const first =
@@ -159,16 +128,12 @@
         setOpen(false, true);
       }
     };
-    const reposition = () => place();
     document.addEventListener('pointerdown', outside, true);
     document.addEventListener('keydown', escape);
-    window.addEventListener('resize', reposition);
-    window.addEventListener('scroll', reposition, true);
     return () => {
+      release();
       document.removeEventListener('pointerdown', outside, true);
       document.removeEventListener('keydown', escape);
-      window.removeEventListener('resize', reposition);
-      window.removeEventListener('scroll', reposition, true);
     };
   });
 </script>
@@ -184,7 +149,7 @@
       {label}
       {iconOnly}
       aria-expanded={open}
-      aria-controls="{id}-panel"
+      aria-controls={open ? `${id}-panel` : undefined}
       aria-haspopup="dialog"
       onclick={toggle}
     />
@@ -200,9 +165,6 @@
     role="dialog"
     aria-label={title ?? label}
     tabindex="-1"
-    style:top="{pos.top}px"
-    style:left="{pos.left}px"
-    style:transform-origin={pos.origin}
     style:width
   >
     {#if title}<p class="title">{title}</p>{/if}
@@ -221,7 +183,7 @@
     margin: 0;
     z-index: var(--z-popover);
     max-width: min(28rem, calc(100vw - 16px));
-    max-height: min(32rem, calc(100dvh - 16px));
+    max-height: min(32rem, var(--anchor-room, calc(100dvh - 16px)));
     overflow: auto;
     overscroll-behavior: contain;
     color: var(--text);
@@ -234,7 +196,7 @@
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
     outline: none;
-    /* transform-origin is set inline, at the trigger. */
+    /* Position and transform-origin are set inline by anchorTo, at the trigger. */
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
   .panel--pad-none {

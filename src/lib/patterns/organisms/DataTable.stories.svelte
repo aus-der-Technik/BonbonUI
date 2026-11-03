@@ -2,6 +2,7 @@
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import DataTable, { type Column, type SortOrder } from './DataTable.svelte';
   import Badge from '../atoms/Badge.svelte';
+  import Button from '../atoms/Button.svelte';
   import Card from '../atoms/Card.svelte';
   import ConfirmButton from '../molecules/ConfirmButton.svelte';
   import DetailList from '../molecules/DetailList.svelte';
@@ -72,6 +73,30 @@
   let offset = $state(0);
   let current = $state('u2');
   const limit = 10;
+  let picked = $state<string[]>(['u2', 'u3']);
+  let roster = $state<Member[]>([...members]);
+  let fresh = $state<string | undefined>();
+  let invited = 0;
+
+  function remind(keys: string[]) {
+    roster = roster.map((m) => (keys.includes(m.id) ? { ...m, status: 'Invited' } : m));
+  }
+
+  function invite() {
+    invited += 1;
+    const id = `n${invited}`;
+    roster = [
+      ...roster,
+      {
+        id,
+        name: `New Example ${invited}`,
+        email: `new${invited}@example.com`,
+        role: 'Viewer',
+        status: 'Invited',
+      },
+    ];
+    fresh = id;
+  }
 
   const rank = (item: FeedbackItem) =>
     Number(item.ratingValue === 'up' ? 6 : item.ratingValue === 'down' ? 0 : item.ratingValue);
@@ -160,7 +185,7 @@
   </Card>
 </Story>
 
-<!-- `onrowclick` makes every row a target; `selected` lifts one row onto the selected layer (the
+<!-- `onrowclick` makes every row a target; `current` lifts one row onto the selected layer (the
      record on screen): tinted glass with a tint rim, the same look as a selected card or nav item.
      Hovering paints the faint accent. Click a member. -->
 <Story name="Selected row" asChild>
@@ -171,26 +196,96 @@
         rows={members}
         rowKey={(m) => m.id}
         cell={memberCell}
-        selected={current}
+        {current}
         onrowclick={(m) => (current = m.id)}
       />
     </Section>
   </Card>
 </Story>
 
-<!-- No rows: the table says so in `emptyText` (default "Nothing here — try fewer filters."). -->
-<Story name="Empty" asChild>
+<!-- `selectable`: a checkbox column; the header box picks or clears the rows on screen (a dash when
+     some are picked), Shift+click picks a range, Space toggles the focused row, and a plain row
+     click toggles too when the row has no action of its own. `bind:selected` holds the keys.
+     `selectionActions` puts the bulk tools in a bar right on top of the table, with the count
+     and Clear. `highlight` glows the row a change landed on: invite someone. -->
+<Story name="Selection" asChild>
   <Card padding="lg">
-    <DataTable
-      columns={[
-        { key: 'name', label: 'Name' },
-        { key: 'value', label: 'Value', align: 'end' },
-      ]}
-      rows={[]}
-      rowKey={() => ''}
-      emptyText="No settings have been changed yet."
-    />
+    <Section title="Members" description="Pick members to act on them together">
+      {#snippet actions()}
+        <Button size="sm" icon="plus" label="Invite" onclick={invite} />
+      {/snippet}
+      <DataTable
+        columns={memberColumns}
+        rows={roster}
+        rowKey={(m) => m.id}
+        cell={memberCell}
+        selectable
+        bind:selected={picked}
+        selectRowLabel={(m) => `Select ${m.name}`}
+        highlight={fresh}
+      >
+        {#snippet selectionActions({ keys })}
+          <Button
+            size="sm"
+            variant="primary"
+            icon="send"
+            label="Send reminder"
+            onclick={() => remind(keys)}
+          />
+          <ConfirmButton
+            size="sm"
+            icon="trash"
+            label="Remove"
+            confirmLabel="Remove {keys.length}?"
+            onconfirm={() => {
+              roster = roster.filter((m) => !keys.includes(m.id));
+              picked = [];
+            }}
+          />
+        {/snippet}
+      </DataTable>
+    </Section>
   </Card>
+</Story>
+
+<!-- `rowHref` makes each row a real link: the anchor sits in the first cell and stretches over the
+     row, so middle-click, "open in new tab" and client-side routers all work. Add `onrowclick` too
+     to handle plain clicks yourself (a router) while modified clicks still open the link. -->
+<Story name="Linked rows" asChild>
+  <Card padding="lg">
+    <Section title="Members" description="Each row opens that member">
+      <DataTable
+        columns={memberColumns}
+        rows={members}
+        rowKey={(m) => m.id}
+        cell={memberCell}
+        rowHref={(m) => `#member-${m.id}`}
+      />
+    </Section>
+  </Card>
+</Story>
+
+<!-- No rows: an EmptyState with `emptyTitle`, `emptyMessage` and `emptyIcon`. The default message
+     ("Nothing here yet.") only mentions filters when `filtered` says the rows are narrowed. -->
+<Story name="Empty" asChild>
+  <Stack gap="lg">
+    <Card padding="lg">
+      <DataTable
+        columns={[
+          { key: 'name', label: 'Name' },
+          { key: 'value', label: 'Value', align: 'end' },
+        ]}
+        rows={[]}
+        rowKey={() => ''}
+        emptyIcon="settings"
+        emptyTitle="All defaults"
+        emptyMessage="No settings have been changed yet."
+      />
+    </Card>
+    <Card padding="lg">
+      <DataTable {columns} rows={[]} rowKey={() => ''} filtered />
+    </Card>
+  </Stack>
 </Story>
 
 <style>

@@ -85,7 +85,7 @@
      is front-layer liquid glass and catches a one-shot sheen when the pointer arrives. -->
 <Story name="NavBar" asChild>
   <Stack gap="xl">
-    <NavBar brand="Larkspur" {logo} links={siteLinks}>
+    <NavBar brand="Example Planner" {logo} links={siteLinks}>
       {#snippet actions()}
         <Button variant="ghost" shape="pill" label="Sign in" collapse icon="sign-in" />
         <Button variant="primary" shape="pill" label="Get started" />
@@ -95,7 +95,7 @@
       {/snippet}
     </NavBar>
     <div style="max-width:24rem">
-      <NavBar brand="Larkspur" {logo} links={siteLinks}>
+      <NavBar brand="Example Planner" {logo} links={siteLinks}>
         {#snippet actions()}
           <Button variant="primary" shape="pill" label="Get started" />
         {/snippet}
@@ -162,13 +162,13 @@
 
 <Story name="SiteFooter" asChild>
   <SiteFooter
-    brand="Larkspur"
+    brand="Example Planner"
     {logo}
     tagline="Calm software for small teams, made with care in Europe."
     columns={footerColumns}
     social={socialLinks}
     legal={legalLinks}
-    finePrint="© 2026 Larkspur Studio"
+    finePrint="© 2026 Example Studio"
   />
 </Story>
 

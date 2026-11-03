@@ -1,6 +1,6 @@
 // Mock data for the desktop & OS stories and example pages (Storybook only).
 import type { CommandGroup } from '../patterns/desktop/CommandPalette.svelte';
-import type { ControlToggle } from '../patterns/desktop/ControlCenter.svelte';
+import type { ControlToggle } from '../patterns/desktop/QuickSettings.svelte';
 import type { OsNotification } from '../patterns/desktop/NotificationCenter.svelte';
 import type {
   AppEntry,
@@ -72,6 +72,7 @@ export const apps: (AppEntry & { id: AppId | string })[] = [
   { id: 'stats', label: 'Stats', icon: 'activity', color: 'red', category: WORK },
   { id: 'podcasts', label: 'Podcasts', icon: 'mic', color: 'purple', category: CREATE },
   { id: 'settings', label: 'Settings', icon: 'settings', color: 'gray', category: SYSTEM },
+  { id: 'preview', label: 'Preview', icon: 'eye', color: 'indigo', category: SYSTEM },
 ];
 
 const app = (id: string) => apps.find((a) => a.id === id) as AppEntry;
@@ -86,16 +87,33 @@ export const dockOrder: string[] = [
   'settings',
 ];
 
-/** The tray: apps, a separator, then the trash (the candy jar comes from `Dock.onjar`). */
-export function dock(running: string[], active?: string): DockEntry[] {
+/**
+ * The tray: the favourites, then running apps that are not favourites (so a minimised window
+ * always has a way home), a separator and the trash (the candy jar comes from `Dock.onjar`).
+ * `badges` overrides the apps' badges (live unread counts); `trashFull` paints the trash.
+ */
+export function dock(
+  running: string[],
+  active?: string,
+  options: { badges?: Record<string, number | undefined>; trashFull?: boolean } = {},
+): DockEntry[] {
+  const entry = (id: string) => ({
+    ...app(id),
+    ...(options.badges && id in options.badges ? { badge: options.badges[id] } : {}),
+    running: running.includes(id),
+    active: id === active,
+  });
+  const guests = running.filter((id) => !dockOrder.includes(id) && apps.some((a) => a.id === id));
   return [
-    ...dockOrder.map((id) => ({
-      ...app(id),
-      running: running.includes(id),
-      active: id === active,
-    })),
+    ...dockOrder.map(entry),
+    ...(guests.length ? [{ separator: true } as const, ...guests.map(entry)] : []),
     { separator: true },
-    { id: 'trash', label: 'Trash', icon: 'trash', color: 'glass' },
+    {
+      id: 'trash',
+      label: 'Trash',
+      icon: 'trash',
+      color: options.trashFull ? 'gray' : 'glass',
+    },
   ];
 }
 
@@ -129,10 +147,58 @@ export interface FileEntry {
   modified: string;
   icon: AppEntry['icon'];
   color: string;
+  /** The place it lives in: `desktop`, `documents`, …, `trash`, or the id of a folder. */
   folder: string;
+  /** In the trash: where it came from (Put back returns it there). */
+  was?: string | undefined;
+  /** On the desktop: dropped at this spot (px inside the desktop) instead of the icon grid. */
+  at?: { x: number; y: number } | undefined;
+  /** A folder that shows another place's content when opened. */
+  opens?: string | undefined;
 }
 
 export const files: FileEntry[] = [
+  {
+    id: 'report',
+    name: 'Report Q3.pdf',
+    kind: 'PDF document',
+    size: '2.4 MB',
+    modified: 'Today 08:30',
+    icon: 'file-text',
+    color: 'red',
+    folder: 'desktop',
+  },
+  {
+    id: 'holiday',
+    name: 'Holidays',
+    kind: 'Folder',
+    size: '3 items',
+    modified: 'Sat',
+    icon: 'folder',
+    color: 'blue',
+    folder: 'desktop',
+    opens: 'pictures',
+  },
+  {
+    id: 'plan',
+    name: 'Launch plan',
+    kind: 'Board',
+    size: '1.2 MB',
+    modified: 'Yesterday',
+    icon: 'kanban',
+    color: 'mint',
+    folder: 'desktop',
+  },
+  {
+    id: 'shot',
+    name: 'Screenshot 09.41',
+    kind: 'PNG image',
+    size: '840 KB',
+    modified: 'Today 09:41',
+    icon: 'image',
+    color: 'orange',
+    folder: 'desktop',
+  },
   {
     id: 'f1',
     name: 'Brand guide',
@@ -273,6 +339,7 @@ export const places: SourceSection[] = [
       { id: 'documents', label: 'Documents', icon: 'file-text', count: 8 },
       { id: 'downloads', label: 'Downloads', icon: 'download', count: 2 },
       { id: 'pictures', label: 'Pictures', icon: 'image', count: 3 },
+      { id: 'trash', label: 'Trash', icon: 'trash' },
     ],
   },
   {
@@ -410,6 +477,38 @@ export const seedNotifications: OsNotification[] = [
   },
 ];
 
+/**
+ * What happens in the background of the Desktop OS while you work — the only things that may
+ * raise a banner there: nobody clicked anything, so there is no place to answer at.
+ */
+export const backgroundMail: Mail = {
+  id: 'm0',
+  from: 'Ana Example',
+  email: 'ana@example.com',
+  subject: 'Lunch at the lake on Friday?',
+  preview: 'The weather looks perfect. 12:30 at the jetty? I will bring the good bread…',
+  body: 'Hi!\n\nThe weather looks perfect for Friday. 12:30 at the jetty? I will bring the good bread, you bring the lemonade.\n\nAna',
+  date: 'Today',
+  time: 'now',
+  unread: true,
+  flagged: false,
+  mailbox: 'inbox',
+  labels: ['family'],
+  attachments: [],
+};
+
+/** A download that was already running when the desktop started; it finishes on its own. */
+export const backgroundDownload: FileEntry = {
+  id: 'd3',
+  name: 'Design kit.zip',
+  kind: 'Archive',
+  size: '48 MB',
+  modified: 'Now',
+  icon: 'package',
+  color: 'purple',
+  folder: 'downloads',
+};
+
 export const laterNotifications: OsNotification[] = [
   {
     id: 'meeting',
@@ -431,7 +530,12 @@ export const laterNotifications: OsNotification[] = [
   },
 ];
 
-export function appMenus(name: string, actions: Record<string, () => void> = {}): MenuBarMenu[] {
+export function appMenus(
+  name: string,
+  actions: Record<string, () => void> = {},
+  /** What Edit → Undo would undo ("Move to trash"); without it Undo is disabled. */
+  undo?: string,
+): MenuBarMenu[] {
   const run = (key: string) => actions[key];
   return [
     {
@@ -457,7 +561,13 @@ export function appMenus(name: string, actions: Record<string, () => void> = {})
     {
       label: 'Edit',
       items: [
-        { label: 'Undo', shortcut: '⌘Z' },
+        {
+          label: undo ? `Undo ${undo}` : 'Undo',
+          icon: 'undo',
+          shortcut: '⌘Z',
+          disabled: !!actions['undo'] && !undo,
+          onselect: run('undo'),
+        },
         { label: 'Redo', shortcut: '⇧⌘Z', disabled: true },
         { separator: true },
         { label: 'Cut', shortcut: '⌘X' },

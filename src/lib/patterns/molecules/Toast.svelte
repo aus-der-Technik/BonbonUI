@@ -9,11 +9,11 @@
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import type { IconName } from '../atoms/icons';
-
-  type Tone = 'ok' | 'warn' | 'error' | 'info';
+  import { noticeRole, toneOf, type Tone } from '../tone';
 
   interface Props {
-    tone?: Tone;
+    /** Announced as an alert only for `danger`. */
+    tone?: Tone | /** @deprecated Use `danger`. */ 'error';
     title?: string | undefined;
     message?: string | undefined;
     /** The tone's icon by default; another icon, or `false` for none. */
@@ -37,19 +37,22 @@
   }: Props = $props();
 
   const ICONS: Record<Tone, IconName> = {
+    neutral: 'info',
+    accent: 'sparkles',
     ok: 'check-circle',
     warn: 'alert',
-    error: 'x-circle',
+    danger: 'x-circle',
     info: 'info',
   };
-  const shownIcon = $derived(icon === false ? undefined : (icon ?? ICONS[tone]));
+  const shownTone = $derived(toneOf(tone));
+  const shownIcon = $derived(icon === false ? undefined : (icon ?? ICONS[shownTone]));
 </script>
 
-<div class="toast toast--{tone}">
+<div class="toast toast--{shownTone}">
   {#if shownIcon}<span class="icon-disc" aria-hidden="true"
       ><Icon name={shownIcon} size={15} /></span
     >{/if}
-  <div class="body" role={tone === 'error' ? 'alert' : 'status'}>
+  <div class="body" role={noticeRole(shownTone)}>
     {#if title}<strong class="title">{title}</strong>{/if}
     {#if children}{@render children()}{:else}{message}{/if}
   </div>
@@ -84,8 +87,14 @@
   .toast--warn {
     --tone: var(--warn);
   }
-  .toast--error {
+  .toast--danger {
     --tone: var(--danger);
+  }
+  .toast--neutral {
+    --tone: var(--text-3);
+  }
+  .toast--accent {
+    --tone: var(--accent);
   }
   .toast--info {
     --tone: var(--info);
@@ -123,6 +132,7 @@
     flex-shrink: 0;
   }
   .dismiss {
+    position: relative;
     flex: none;
     display: grid;
     place-items: center;
@@ -135,6 +145,12 @@
     color: var(--text-3);
     cursor: pointer;
     transition: background-color var(--motion-quick) var(--ease-out);
+  }
+  /* Looks xs, but a finger or pointer gets at least --target-min. */
+  .dismiss::before {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - var(--target-min)) / 2));
   }
   .dismiss:hover {
     background: var(--fill-hover);

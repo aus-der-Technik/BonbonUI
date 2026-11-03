@@ -123,7 +123,7 @@ describe('new atoms', () => {
     });
     const wrap = host.querySelector('.wrap')!;
     const tip = host.querySelector('[role="tooltip"]')!;
-    expect(wrap.getAttribute('aria-describedby')).toBe(tip.id);
+    expect(host.querySelector('button')?.getAttribute('aria-describedby')).toBe(tip.id);
     wrap.dispatchEvent(new PointerEvent('pointerenter'));
     flushSync();
     expect(tip.classList.contains('open')).toBe(true);
@@ -320,6 +320,7 @@ describe('new organisms', () => {
     const dialog = host.querySelector('dialog')!;
     expect(dialog.hasAttribute('open')).toBe(true);
     click(host.querySelector('button[aria-label="Close"]'));
+    dialog.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     host.querySelector('.body')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     dialog.dispatchEvent(new Event('close'));

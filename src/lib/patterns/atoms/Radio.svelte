@@ -83,7 +83,7 @@
   input:disabled,
   input:disabled + .text {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--disabled-opacity);
   }
   .text {
     display: grid;
@@ -105,8 +105,8 @@
   @media (prefers-reduced-motion: reduce) {
     input {
       transition:
-        background-color var(--motion-quick) ease,
-        border-color var(--motion-quick) ease;
+        background-color var(--motion-quick) var(--ease-out),
+        border-color var(--motion-quick) var(--ease-out);
     }
   }
 </style>

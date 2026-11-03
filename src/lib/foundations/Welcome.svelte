@@ -39,6 +39,11 @@
       text: 'This chapter: getting started, the layers, colour & tint, layout, recipes, tokens.',
     },
     {
+      icon: 'compass',
+      title: 'Design study',
+      text: 'Why it looks like this: four principles, the research behind them, every element explained, the corrections made.',
+    },
+    {
       icon: 'window',
       title: 'Pages',
       text: 'Complete screens — dashboards, tools, websites, shops, collaboration, a desktop OS.',
@@ -105,6 +110,17 @@
     {/each}
   </Section>
 
+  <Section
+    title="New here, and not a designer?"
+    description="Read the design study: nine short chapters that explain every decision in plain words, with the principles and research behind it and live experiments to try."
+  >
+    <Row>
+      <a class="study" href="./?path=/story/design-study-overview--overview" target="_top"
+        >Start the design study <Icon name="arrow-right" size={16} /></a
+      >
+    </Row>
+  </Section>
+
   <Section title="Use the toolbar">
     <p>
       Every story reacts to the Storybook toolbar: <strong>Theme</strong> (light, dark, follow the
@@ -119,6 +135,22 @@
 </DocPage>
 
 <style>
+  .study {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    box-shadow: var(--shadow-primary);
+  }
+  .study:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
   .badge {
     display: inline-grid;
     place-items: center;

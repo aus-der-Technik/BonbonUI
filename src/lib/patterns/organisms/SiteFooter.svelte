@@ -23,8 +23,8 @@
    * icons, and a fine-print row (copyright, legal links). Columns reflow from a row on desktop
    * to two-up on phones. Put it in a Page's `footer` snippet.
    *
-   *   <SiteFooter brand="Larkspur" tagline="Tools for small teams." columns={columns}
-   *     finePrint="© 2026 Larkspur Studio" />
+   *   <SiteFooter brand="Example Planner" tagline="Tools for small teams." columns={columns}
+   *     finePrint="© 2026 Example Studio" />
    */
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';

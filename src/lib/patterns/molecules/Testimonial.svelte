@@ -11,7 +11,7 @@
   interface Props {
     quote: string;
     name: string;
-    /** Job title and company, e.g. "Head of Design, Larkspur Studio". */
+    /** Job title and company, e.g. "Head of Design, Example Studio". */
     role?: string | undefined;
     avatar?: string | undefined;
     /** 1…5 stars above the quote. */

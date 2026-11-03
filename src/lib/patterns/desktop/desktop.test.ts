@@ -1,23 +1,24 @@
 import { flushSync } from 'svelte';
 import { click, html, input, key, render, tick } from '../../test/render';
+import AppJar from './AppJar.svelte';
 import CommandPalette from './CommandPalette.svelte';
 import ContextMenu from './ContextMenu.svelte';
-import ControlCenter from './ControlCenter.svelte';
 import DesktopFixture from './DesktopFixture.test.svelte';
 import Dock from './Dock.svelte';
 import Inspector from './Inspector.svelte';
 import InspectorRow from './InspectorRow.svelte';
 import InspectorSection from './InspectorSection.svelte';
-import Launchpad from './Launchpad.svelte';
 import MenuBar from './MenuBar.svelte';
 import NotificationBanner from './NotificationBanner.svelte';
 import NotificationCenter from './NotificationCenter.svelte';
+import QuickSettings from './QuickSettings.svelte';
 import SourceList from './SourceList.svelte';
 import StatusBar from './StatusBar.svelte';
 import Toolbar from './Toolbar.svelte';
 import TreeView from './TreeView.svelte';
 import Widget from './Widget.svelte';
 import Window from './Window.svelte';
+import windowSource from './Window.svelte?raw';
 import { WindowManager, isSeparator, rove } from './shared.svelte';
 
 const q = <T extends Element = HTMLElement>(root: ParentNode, selector: string) =>
@@ -154,6 +155,110 @@ describe('Desktop', () => {
     expect(onselect).toHaveBeenCalled();
     expect(document.querySelector('[role="menu"]')).toBeNull();
   });
+
+  it('places icons at x/y and keeps the rest in the grid', () => {
+    const host = render(DesktopFixture, {
+      icons: [...icons, { id: 'n', label: 'New', icon: 'folder' as const, x: 30, y: 40 }],
+    });
+    const [report, , placed] = qa(host, '[role="option"]');
+    expect(report?.classList.contains('placed')).toBe(false);
+    expect(report?.style.getPropertyValue('--icon-x')).toBe('');
+    expect(placed?.classList.contains('placed')).toBe(true);
+    expect(placed?.style.getPropertyValue('--icon-x')).toBe('30px');
+    expect(placed?.style.getPropertyValue('--icon-y')).toBe('40px');
+  });
+
+  it('hands the wallpaper menu the spot under the pointer', async () => {
+    const at = vi.fn();
+    const onselect = vi.fn();
+    const host = render(DesktopFixture, {
+      contextmenu: (p) => {
+        at(p);
+        return [{ label: 'New folder', onselect: () => onselect(p) }];
+      },
+    });
+    const area = q(host, '.area')!;
+    Object.defineProperty(area, 'clientWidth', { value: 1000 });
+    Object.defineProperty(area, 'clientHeight', { value: 600 });
+    const rem = parseFloat(getComputedStyle(area).fontSize) || 16;
+    area.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 300,
+        clientY: 200,
+      }),
+    );
+    await tick();
+    flushSync();
+    // The tile's centre lands on the pointer: half a cell to the left, half a tile up.
+    const spot = { x: Math.round(300 - 3.25 * rem), y: 200 - 36 };
+    expect(at).toHaveBeenCalledWith(spot);
+    click(document.querySelector('.bb-context-menu [role="menuitem"]'));
+    expect(onselect).toHaveBeenCalledWith(spot);
+    // Never off the desktop's edge.
+    area.dispatchEvent(
+      new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 5, clientY: 9999 }),
+    );
+    await tick();
+    expect(at).toHaveBeenLastCalledWith({ x: 0, y: Math.round(600 - 8.25 * rem) });
+  });
+
+  it('renames an icon in place: Enter commits, Escape cancels, blur commits', async () => {
+    const onrename = vi.fn();
+    const host = render(DesktopFixture, { icons, renaming: 'r', onrename });
+    let field = q<HTMLInputElement>(host, 'input.rename')!;
+    expect(field.getAttribute('aria-label')).toBe('Name');
+    expect(field.value).toBe('Report');
+    await tick();
+    expect(document.activeElement).toBe(field);
+    // Keys typed in the field stay in it (Enter does not open the icon).
+    field.value = '  Annual report ';
+    key(field, 'Enter');
+    await tick();
+    expect(onrename).toHaveBeenCalledWith('r', 'Annual report');
+    expect(q(host, 'input.rename')).toBeNull();
+    expect(q(host, '.renaming')?.textContent).toBe('');
+    // Focus goes back to the icon.
+    expect(document.activeElement?.getAttribute('data-id')).toBe('r');
+
+    // F2 starts renaming the focused icon; Escape keeps the old name.
+    const option = q(host, '[data-id="p"]')!;
+    option.focus();
+    key(option, 'F2');
+    field = q<HTMLInputElement>(host, 'input.rename')!;
+    expect(q(host, '.renaming')?.textContent).toBe('p');
+    field.value = 'Nope';
+    key(field, 'Escape');
+    await tick();
+    expect(onrename).toHaveBeenCalledTimes(1);
+    expect(q(host, 'input.rename')).toBeNull();
+
+    // Leaving the field keeps what was typed; an unchanged or empty name is no rename.
+    key(option, 'F2');
+    field = q<HTMLInputElement>(host, 'input.rename')!;
+    field.value = 'Pictures';
+    field.dispatchEvent(new FocusEvent('blur'));
+    await tick();
+    expect(onrename).toHaveBeenLastCalledWith('p', 'Pictures');
+    key(option, 'F2');
+    field = q<HTMLInputElement>(host, 'input.rename')!;
+    field.value = '   ';
+    key(field, 'Enter');
+    await tick();
+    expect(onrename).toHaveBeenCalledTimes(2);
+  });
+
+  it('hands its window manager to the page with bind:manager', async () => {
+    let manager: WindowManager | undefined;
+    render(DesktopFixture, { onmanager: (m) => (manager = m) });
+    await tick();
+    expect(manager).toBeInstanceOf(WindowManager);
+    expect(manager?.focused).toBe('b');
+    manager?.focus('a');
+    flushSync();
+    expect(manager?.order).toEqual(['b', 'a']);
+  });
 });
 
 describe('Window', () => {
@@ -178,10 +283,59 @@ describe('Window', () => {
     expect(q(host, '[role="group"]')?.getAttribute('aria-label')).toBe('Files window controls');
     expect(q(host, '.title-text p')?.textContent).toBe('12 items');
     for (const sel of ['.tb', '.sb', '.ft', '.content']) expect(q(host, sel)).not.toBeNull();
-    // Without handlers the lights of a static window do nothing.
+    // Without handlers the controls of a static window do nothing.
     expect(byLabel(host, 'Close')?.disabled).toBe(true);
     expect(byLabel(host, 'Zoom')?.disabled).toBe(true);
     expect(q(host, '.grip')).toBeNull();
+  });
+
+  it('shows its controls as named glyph buttons, close last and set apart', () => {
+    const onclose = vi.fn();
+    const host = render(Window, {
+      title: 'Notes',
+      onclose,
+      closeLabel: 'Close window',
+      minimizeLabel: 'Hide',
+      zoomLabel: 'Fill screen',
+      controlsLabel: 'Controls of {title}',
+    });
+    const group = q(host, '[role="group"]')!;
+    expect(group.getAttribute('aria-label')).toBe('Controls of Notes');
+    const buttons = qa(group, 'button');
+    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Hide',
+      'Fill screen',
+      'Close window',
+    ]);
+    // A glyph in every button at rest — no colour code to learn.
+    for (const b of buttons) expect(b.querySelector('svg')).not.toBeNull();
+    // Each names its action in a tooltip linked to the button.
+    const tips = qa(group, '[role="tooltip"]');
+    expect(tips.map((t) => t.textContent?.trim())).toEqual(['Hide', 'Fill screen', 'Close window']);
+    expect(buttons[2]?.getAttribute('aria-describedby')).toBe(tips[2]?.id);
+    // A hairline keeps close one step apart from zoom.
+    expect(q(group, '.rule')?.getAttribute('aria-hidden')).toBe('true');
+    expect(buttons[1]?.getAttribute('aria-pressed')).toBe('false');
+    click(buttons[2]);
+    expect(onclose).toHaveBeenCalled();
+  });
+
+  it('gives every control a hit area of at least 32px and danger only to close', () => {
+    const rule = (selector: string) =>
+      windowSource.match(
+        new RegExp(`\\n  ${selector.replace(/[.*]/g, '\\$&')} \\{([^}]*)\\}`),
+      )?.[1] ?? '';
+    const ctl = rule('.ctl');
+    expect(ctl).toMatch(/min-width: 32px/);
+    expect(ctl).toMatch(/min-height: 32px/);
+    expect(windowSource).toMatch(/--btn: var\(--control-sm\)/);
+    // At rest the controls are neutral; only close, pointed at or focused, turns to danger.
+    expect(ctl).not.toMatch(/--danger|--tint/);
+    const dangerRules = [...windowSource.matchAll(/([^{}]+)\{[^}]*var\(--danger\)[^}]*\}/g)].map(
+      (m) => m[1]!.trim(),
+    );
+    expect(dangerRules).toHaveLength(1);
+    expect(dangerRules[0]).toMatch(/^\.close:hover:not\(:disabled\),\s*\.close:focus-visible/);
   });
 
   it('names the app on the sidebar and shows focus as a rim or a step back', () => {
@@ -339,14 +493,15 @@ describe('MenuBar', () => {
   });
 
   it('shows status items, as buttons when they act', () => {
-    const onclick = vi.fn();
+    let seen: EventTarget | null = null;
+    const onclick = vi.fn((e: MouseEvent) => (seen = e.currentTarget));
     const host = render(MenuBar, {
       clock: false,
       floating: true,
       status: [
         { icon: 'wifi', label: 'Wi-Fi' },
         { icon: 'battery', label: 'Battery', text: '82%' },
-        { icon: 'settings', label: 'Control Center', onclick, active: true },
+        { id: 'quick', icon: 'settings', label: 'Control Center', onclick, active: true },
       ],
       trailing: html('<span class="extra">x</span>'),
     });
@@ -356,11 +511,13 @@ describe('MenuBar', () => {
     expect(host.textContent).toContain('82%');
     const cc = byLabel(host, 'Control Center')!;
     expect(cc.getAttribute('aria-pressed')).toBe('true');
+    expect(cc.dataset['status']).toBe('quick');
     click(cc);
-    expect(onclick).toHaveBeenCalled();
+    // The item is handed over, so a panel can pop out of it.
+    expect(seen).toBe(cc);
   });
 
-  it('shows the candy system menu, the app pill and a clickable day pill', () => {
+  it('shows the bonbon system menu, the app pill and a clickable day pill', () => {
     const onday = vi.fn();
     const host = render(MenuBar, {
       logoMenu: [{ label: 'About' }],
@@ -373,7 +530,7 @@ describe('MenuBar', () => {
     });
     const [system, app] = qa(host, '.trigger');
     expect(system?.getAttribute('aria-label')).toBe('System');
-    expect(q(system!, '.candy')).not.toBeNull();
+    expect(q(system!, '.bonbon')).not.toBeNull();
     expect(app?.classList.contains('app')).toBe(true);
     expect(q(app!, '.app-icon')).not.toBeNull();
     expect(q(host, '.hello')).toBeNull();
@@ -453,9 +610,9 @@ describe('Dock', () => {
   });
 });
 
-describe('Launchpad', () => {
+describe('AppJar', () => {
   it('groups apps by category and searches across them', async () => {
-    const host = render(Launchpad, {
+    const host = render(AppJar, {
       open: true,
       apps: [
         { id: 'a', label: 'Mail', category: 'Everyday' },
@@ -480,7 +637,7 @@ describe('Launchpad', () => {
   it('filters, opens the first match on Enter and closes', async () => {
     const onselect = vi.fn();
     const onclose = vi.fn();
-    const host = render(Launchpad, { open: true, apps, onselect, onclose });
+    const host = render(AppJar, { open: true, apps, onselect, onclose });
     await tick();
     const search = q<HTMLInputElement>(host, 'input')!;
     expect(document.activeElement).toBe(search);
@@ -495,7 +652,7 @@ describe('Launchpad', () => {
 
   it('navigates the grid with arrows and closes on Escape or a background click', async () => {
     const onclose = vi.fn();
-    const host = render(Launchpad, { open: true, apps, onclose });
+    const host = render(AppJar, { open: true, apps, onclose });
     await tick();
     const search = q<HTMLInputElement>(host, 'input')!;
     key(search, 'ArrowDown');
@@ -514,15 +671,19 @@ describe('Launchpad', () => {
   });
 
   it('shows the empty text and closes on a background click', async () => {
-    const host = render(Launchpad, { open: true, apps, query: 'zzz', emptyText: 'Nothing' });
+    const host = render(AppJar, { open: true, apps, query: 'zzz', emptyText: 'Nothing' });
     await tick();
     expect(q(host, '.empty')?.textContent).toBe('Nothing');
+    pointer(q(host, '.jar')!, 'pointerdown');
+    click(q(host, '[role="dialog"]'));
+    expect(q(host, '[role="dialog"]')).not.toBeNull();
+    pointer(q(host, '[role="dialog"]')!, 'pointerdown');
     click(q(host, '[role="dialog"]'));
     expect(q(host, '[role="dialog"]')).toBeNull();
   });
 });
 
-describe('ControlCenter', () => {
+describe('QuickSettings', () => {
   const toggles = [
     { id: 'wifi', label: 'Wi-Fi', icon: 'wifi' as const, on: true, detail: 'Home' },
     { id: 'bt', label: 'Bluetooth', icon: 'bluetooth' as const, on: false },
@@ -533,7 +694,7 @@ describe('ControlCenter', () => {
     const onplaypause = vi.fn();
     const onnext = vi.fn();
     const onprevious = vi.fn();
-    const host = render(ControlCenter, {
+    const host = render(QuickSettings, {
       toggles,
       ontoggle,
       brightness: 40,
@@ -566,13 +727,13 @@ describe('ControlCenter', () => {
 
   it('closes a floating panel on Escape and on an outside click', () => {
     const onclose = vi.fn();
-    const host = render(ControlCenter, { toggles, floating: true, onclose, volume: 10 });
+    const host = render(QuickSettings, { toggles, floating: true, onclose, volume: 10 });
     expect(q(host, '[role="dialog"]')).not.toBeNull();
     key(q(host, '.cc')!, 'Escape');
     expect(onclose).toHaveBeenCalledTimes(1);
     expect(q(host, '.cc')).toBeNull();
 
-    const other = render(ControlCenter, { toggles, floating: true, onclose });
+    const other = render(QuickSettings, { toggles, floating: true, onclose });
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     flushSync();
     expect(q(other, '.cc')).toBeNull();
@@ -757,6 +918,11 @@ describe('CommandPalette', () => {
     expect(q(host, '[role="combobox"]')).toBeNull();
     const other = render(CommandPalette, { open: true, groups: groups() });
     await tick();
+    // Released on the backdrop after a press inside: a drag, not a click beside it.
+    pointer(q(other, 'input')!, 'pointerdown');
+    click(q(other, 'dialog'));
+    expect(q(other, '[role="combobox"]')).not.toBeNull();
+    pointer(q(other, 'dialog')!, 'pointerdown');
     click(q(other, 'dialog'));
     expect(q(other, '[role="combobox"]')).toBeNull();
   });
@@ -816,6 +982,97 @@ describe('Toolbar', () => {
     expect(tools[2]?.tabIndex).toBe(0);
     key(tools[2]!, 'Enter');
     key(q(host, '[role="toolbar"]')!, 'ArrowLeft');
+  });
+
+  describe('folding into More', () => {
+    let width = 1000;
+    beforeEach(() => {
+      // happy-dom has no layout: every visible tool is 50px wide, the toolbar `width`.
+      Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {
+        configurable: true,
+        get(this: HTMLElement) {
+          if (!this.matches('[role="toolbar"]')) return 0;
+          return qa(this, '.tool').filter((t) => !t.hidden).length * 50;
+        },
+      });
+      Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
+        configurable: true,
+        get(this: HTMLElement) {
+          return this.matches('[role="toolbar"]') ? width : 0;
+        },
+      });
+    });
+    afterEach(() => {
+      delete (HTMLElement.prototype as { scrollWidth?: number }).scrollWidth;
+      delete (HTMLElement.prototype as { clientWidth?: number }).clientWidth;
+    });
+    const frame = () => new Promise((resolve) => setTimeout(resolve, 40));
+    const entries = (onclick = vi.fn()) => [
+      { icon: 'edit' as const, label: 'Compose', primary: true },
+      { separator: true as const },
+      { icon: 'bookmark' as const, label: 'Archive' },
+      { icon: 'trash' as const, label: 'Delete', onclick },
+      { icon: 'flag' as const, label: 'Flag', active: true },
+    ];
+
+    it('folds from the end into a labelled More with a count and a menu', async () => {
+      width = 170;
+      const onclick = vi.fn();
+      const host = render(Toolbar, { items: entries(onclick), moreLabel: 'More tools' });
+      await frame();
+      flushSync();
+      const shown = qa(host, '.tool').filter((t) => !t.hidden);
+      expect(shown.map((t) => t.getAttribute('aria-label'))).toEqual([
+        'Compose',
+        'Archive',
+        'More tools',
+      ]);
+      const more = q(host, '.more')!;
+      expect(more.getAttribute('aria-haspopup')).toBe('menu');
+      expect(more.getAttribute('aria-expanded')).toBe('false');
+      expect(more.title).toBe('More tools');
+      expect(q(more, '.count')?.textContent).toBe('2');
+      click(more);
+      expect(more.getAttribute('aria-expanded')).toBe('true');
+      const menu = document.querySelector('[role="menu"]')!;
+      expect(menu.getAttribute('aria-label')).toBe('More tools');
+      const picks = [...menu.querySelectorAll<HTMLElement>('[role^="menuitem"]')];
+      expect(picks.map((p) => p.textContent?.trim())).toEqual(['Delete', 'Flag']);
+      // A toggled tool keeps its state as a check mark.
+      expect(picks[1]?.getAttribute('aria-checked')).toBe('true');
+      click(picks[0]);
+      expect(onclick).toHaveBeenCalled();
+      expect(document.querySelector('[role="menu"]')).toBeNull();
+      expect(more.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('keeps the primary tool, hides separators with nothing beside them', async () => {
+      width = 60;
+      const host = render(Toolbar, { items: entries() });
+      await frame();
+      flushSync();
+      const shown = qa(host, '.tool').filter((t) => !t.hidden);
+      expect(shown.map((t) => t.getAttribute('aria-label'))).toEqual(['Compose', 'More']);
+      expect(q(host, '.count')?.textContent).toBe('3');
+      expect(q(host, '[role="separator"]')).toBeNull();
+      // Roving skips folded tools: More is the next stop.
+      shown[0]?.focus();
+      key(shown[0]!, 'ArrowRight');
+      expect(document.activeElement).toBe(shown[1]);
+    });
+
+    it('shows everything when it fits, or when folding is off', async () => {
+      width = 1000;
+      const host = render(Toolbar, { items: entries() });
+      await frame();
+      expect(q(host, '.more')).toBeNull();
+      expect(q(host, '[role="separator"]')).not.toBeNull();
+      width = 60;
+      const off = render(Toolbar, { items: entries(), collapse: false });
+      await frame();
+      expect(q(off, '.more')).toBeNull();
+      expect(qa(off, '.tool').every((t) => !t.hidden)).toBe(true);
+    });
   });
 });
 

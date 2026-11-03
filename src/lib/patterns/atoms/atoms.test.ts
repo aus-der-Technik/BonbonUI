@@ -151,7 +151,10 @@ describe('form atoms', () => {
 
   it('Checkbox wraps a label only when there is one', () => {
     expect(render(Checkbox, { label: 'With comment only' }).querySelector('label')).not.toBeNull();
-    expect(render(Checkbox, { 'aria-label': 'x', tone: 'ok' }).querySelector('label')).toBeNull();
+    // Bare, the box itself is the label (for its hit area): no text label around it.
+    expect(
+      render(Checkbox, { 'aria-label': 'x', tone: 'ok' }).querySelector('label.check'),
+    ).toBeNull();
     expect(render(Checkbox, { children: html('<span>Kids</span>') }).textContent).toContain('Kids');
   });
 });

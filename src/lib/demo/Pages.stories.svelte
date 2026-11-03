@@ -1,110 +1,88 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import Application from '../patterns/templates/Application.svelte';
-  import AnalyticsDashboard from './AnalyticsDashboard.svelte';
-  import DataEditor from './DataEditor.svelte';
-  import LocationSearch from './LocationSearch.svelte';
-  import SignInFlow from './SignInFlow.svelte';
-  import UserManagement from './UserManagement.svelte';
-  import WorkspaceSettings from './WorkspaceSettings.svelte';
+  import AdminConsole from './AdminConsole.svelte';
+  import { SECTION_KEYS } from './admin';
 
-  // Full example pages of an admin suite. Each is a single file in src/lib/demo, built only from
-  // library components, meant to be copied as a starting point.
+  // The admin suite as one working app: every section of src/lib/demo/Admin*.svelte in one
+  // shell, built only from library components and meant to be copied as a starting point.
   const { Story } = defineMeta({
     title: 'Pages/Admin',
+    component: AdminConsole,
     tags: ['!autodocs'],
     parameters: { layout: 'fullscreen' },
+    args: {
+      section: 'overview',
+      auth: 'signed-in',
+      usersEmpty: false,
+      documentsView: 'documents',
+      ratingRun: false,
+      exportState: 'none',
+      crawl: 'idle',
+      aiTab: 'playground',
+      autoask: false,
+      streamFails: false,
+      probed: false,
+      dataView: 'sheet',
+      lookupFails: false,
+      settingsTab: 'general',
+    },
+    // `type: 'string'` lets Storybook read these from the URL (`&args=section:users`); the
+    // inferred union type would be dropped.
+    argTypes: {
+      section: { type: 'string', control: 'select', options: SECTION_KEYS },
+      auth: {
+        type: 'string',
+        control: 'inline-radio',
+        options: ['signed-in', 'signed-out', 'signing-out', 'connect-device'],
+      },
+      documentsView: {
+        type: 'string',
+        control: 'inline-radio',
+        options: ['collections', 'documents', 'detail'],
+      },
+      exportState: {
+        type: 'string',
+        control: 'select',
+        options: ['none', 'processing', 'completed', 'failed', 'expired'],
+      },
+      crawl: {
+        type: 'string',
+        control: 'select',
+        options: ['idle', 'running', 'retrying', 'failed', 'cached'],
+      },
+      aiTab: {
+        type: 'string',
+        control: 'inline-radio',
+        options: ['playground', 'classifier', 'translator'],
+      },
+      dataView: {
+        type: 'string',
+        control: 'inline-radio',
+        options: ['sheet', 'chooser', 'locations'],
+      },
+      settingsTab: {
+        type: 'string',
+        control: 'select',
+        options: ['general', 'notifications', 'api', 'workspaces', 'advanced'],
+      },
+    },
   });
 </script>
 
 <!--
-An analytics dashboard over user feedback: a FilterBar with SegmentedControl, MultiSelect and
-Checkbox, three KpiTiles in a `Grid columns={3}` (they share the row instead of leaving a hole),
-a chart row (DivergingBarChart, LineChart, HorizontalBarChart in ChartCards) and a sortable,
-paged DataTable with expandable rows in a panel `Section`. Header actions: a "Create feedback"
-pill opening FeedbackDialog and a live RefreshButton.
+An admin console in one shell: a Page with a SideNav in its `sidebar` (a horizontal strip on
+phones) that switches sections in place — Overview, Documents, Jobs, AI lab, Data, Users and
+Settings. Each section starts with the same header (title, one line, only section-wide controls)
+and stays alive once visited, so a crawl keeps running while you invite someone; when it finishes
+off-screen, the one Toaster says so and takes you back. Every other answer appears at the
+control or on the thing acted on: busy and done states in the button, new and changed rows glow
+once (`changeCue`), "create" sits on the collection it adds to. "Sign out" in the UserMenu leads
+through the sign-in flow (the password is "demo") and back to the section you left. Every area
+is deep-linkable through the args: `section`, `auth` and one or two states per section.
 -->
-<Story name="Insights dashboard" asChild>
-  <Application><AnalyticsDashboard /></Application>
-</Story>
-
-<!--
-User management with a SideNav in the Page `sidebar`: Breadcrumbs, a panel `Section` with a
-search / status / role toolbar, removable filter Tags, Skeleton rows while loading, a DataTable
-with IdentityCell and per-row DropdownMenu, a Pager. Drawer with Tabs for details, a Dialog to
-invite (Field validation) and a ConfirmDialog to deactivate; Toaster for feedback.
--->
-<Story name="Users" asChild>
-  <Application><UserManagement /></Application>
-</Story>
-
-<!--
-The first-run state of the same page: an EmptyState with a call to action inside the panel. Empty
-states are where the copy may smile ("It's quiet in here") — errors never do.
--->
-<Story name="Users — empty" asChild>
-  <Application><UserManagement empty /></Application>
-</Story>
-
-<!--
-Workspace settings: Tabs inside a panel `Section`, each tab a stack of FormSections with Field,
-Input, Textarea, Select, RadioGroup and Switch; a two-column `Grid` that folds on phones; an API
-tab with ProgressBar, a secret CodeBlock and a token DataTable with ConfirmButtons; Disclosures
-for advanced options and a danger zone with a ConfirmDialog. The theme option switches the real
-theme. Saving shows a busy button, then "Saved. Nice." and a few sprinkles.
--->
-<Story name="Settings" asChild>
-  <Application><WorkspaceSettings /></Application>
-</Story>
-
-<!--
-A spreadsheet-style editor in a `fill` Page: Sheet with EditableGrid (inline editing, locked
-columns, draft row, resizable columns), a data-set Picker and UserMenu in the header, ToggleChip
-and SearchField as sheet tools, and "Add row" in the Page `floating` slot. Toaster reports saves.
--->
-<Story name="Data editor" asChild>
-  <Application><DataEditor /></Application>
-</Story>
-
-<!-- The data-set chooser: ChoiceCards in an auto-filling `Grid` inside the Sheet. -->
-<Story name="Data editor — choose a data set" asChild>
-  <Application><DataEditor start="chooser" /></Application>
-</Story>
-
-<!-- Signed out: no sheet to show, so the SignInCard floats alone on the backdrop, centred. -->
-<Story name="Data editor — signed out" asChild>
-  <Application><DataEditor start="signed-out" /></Application>
-</Story>
-
-<!--
-A location search in a `fill` Page: an Autocomplete with suggestions, ToggleChips per result type
-with counts and a `Spacer`-aligned status line on a panel `Layer`, and a MapView that takes the
-remaining height.
--->
-<Story name="Locations" asChild>
-  <Application><LocationSearch /></Application>
-</Story>
-
-<!-- One lookup fails: the results of the others show, the failure is a card Alert. -->
-<Story name="Locations — partial failure" asChild>
-  <Application><LocationSearch failing /></Application>
-</Story>
-
-<!--
-Sign-in on AuthLayout: a time-of-day `greeting()` as the heading, Field, Input and a full-width
-primary Button in a vertical `Stack` form. A wrong password shakes the card and shows a plain
-Alert (the password is "demo"); the right one ends in a "Welcome back" StatusCard.
--->
-<Story name="Sign in" asChild>
-  <Application><SignInFlow /></Application>
-</Story>
-
-<!-- Connecting a device: a grouped CodeInput above the credentials. -->
-<Story name="Sign in — connect a device" asChild>
-  <Application><SignInFlow start="activate" /></Application>
-</Story>
-
-<!-- Signing out: a StatusCard with a redirect countdown, no card around it. -->
-<Story name="Sign in — signing out" asChild>
-  <Application><SignInFlow start="logout" /></Application>
+<Story name="Admin console">
+  {#snippet template(args)}
+    <Application><AdminConsole {...args} /></Application>
+  {/snippet}
 </Story>

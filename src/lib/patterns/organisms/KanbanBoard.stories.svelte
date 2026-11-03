@@ -52,6 +52,26 @@ cards openable and addable. -->
   </Stack>
 </Story>
 
+<!-- `onmove` may return a promise. Here every save into "Done" fails: the card travels back to
+where it was and says so on the card itself, not in a far corner. Moves elsewhere save. -->
+<Story name="Failed save" asChild>
+  <div style="height:36rem">
+    <KanbanBoard
+      columns={boardColumns}
+      cards={boardCards()}
+      now={NOW}
+      sprinkle={false}
+      onmove={(_id, column) =>
+        new Promise<void>((resolve, reject) =>
+          setTimeout(
+            () => (column === boardColumns.at(-1)?.id ? reject(new Error('conflict')) : resolve()),
+            700,
+          ),
+        )}
+    />
+  </div>
+</Story>
+
 <!-- Narrow columns for a small number of short cards. -->
 <Story
   name="Compact"

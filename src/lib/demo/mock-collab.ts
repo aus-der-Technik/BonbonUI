@@ -1,5 +1,5 @@
 // Mock data for the collaboration components and pages: a fictional product team, its board,
-// a shared document with comment threads, a calendar and notifications. Fixed dates keep
+// comment threads on its cards, a calendar and notifications. Fixed dates keep
 // stories and screenshots stable.
 import type { Participant } from '../patterns/molecules/AvatarStack.svelte';
 import type { CalendarEvent } from '../patterns/molecules/Calendar.svelte';
@@ -195,46 +195,6 @@ export const secondThread: ThreadComment[] = [
   },
 ];
 
-export interface DocBlock {
-  id: string;
-  kind: 'heading' | 'paragraph' | 'quote';
-  text: string;
-  /** Id of the comment thread anchored to this block. */
-  thread?: string;
-}
-
-export const docBlocks: DocBlock[] = [
-  { id: 'b1', kind: 'heading', text: 'Shared boards — launch plan' },
-  {
-    id: 'b2',
-    kind: 'paragraph',
-    text: 'Shared boards let a whole team plan in one place. Anyone with an invite link can join, move cards and comment; owners decide who may edit.',
-  },
-  {
-    id: 'b3',
-    kind: 'paragraph',
-    text: 'We will open shared boards to every workspace early next year, after a four-week beta with twenty teams.',
-    thread: 'launch',
-  },
-  { id: 'b4', kind: 'heading', text: 'What we measure' },
-  {
-    id: 'b5',
-    kind: 'paragraph',
-    text: 'Weekly active boards, invites accepted within a day, and the share of cards that reach “Done”. The beta is a success when half of the invited people come back in the second week.',
-  },
-  {
-    id: 'b6',
-    kind: 'quote',
-    text: 'The best plan is the one the whole team can see.',
-  },
-  {
-    id: 'b7',
-    kind: 'paragraph',
-    text: 'Questions go into the comments next to the paragraph they are about. Resolve a thread once it is answered, so the open ones stay easy to find.',
-    thread: 'links',
-  },
-];
-
 export function notifications(): NotificationItem[] {
   return [
     {
@@ -334,47 +294,28 @@ export const boardActivity: ActivityEntry[] = [
   },
 ];
 
+/** The team workspace's navigation: the two views of the shared plan. */
 export const collabNav: NavGroup[] = [
   {
+    label: 'Product team',
     items: [
-      { label: 'Home', href: '#', icon: 'home' },
-      { label: 'Inbox', href: '#', icon: 'inbox', count: 3 },
-      { label: 'My tasks', href: '#', icon: 'check-square', count: 7 },
-    ],
-  },
-  {
-    label: 'Projects',
-    items: [
-      { label: 'Shared boards', href: '#', icon: 'kanban', active: true },
-      { label: 'Mobile app', href: '#', icon: 'tablet' },
-      { label: 'Website', href: '#', icon: 'globe' },
-    ],
-  },
-  {
-    label: 'Team',
-    items: [
-      { label: 'Docs', href: '#', icon: 'file-text' },
-      { label: 'Calendar', href: '#', icon: 'calendar' },
-      { label: 'Members', href: '#', icon: 'users' },
+      { label: 'Board', href: '#board', icon: 'kanban' },
+      { label: 'Calendar', href: '#calendar', icon: 'calendar' },
     ],
   },
 ];
 
-export const docsNav: NavGroup[] = [
-  {
-    label: 'Docs',
-    items: [
-      { label: 'Launch plan', href: '#', icon: 'file-text', active: true },
-      { label: 'Meeting notes', href: '#', icon: 'file-text', count: 12 },
-      { label: 'Roadmap', href: '#', icon: 'flag' },
-      { label: 'Team handbook', href: '#', icon: 'bookmark' },
-    ],
-  },
-  {
-    label: 'Shared with me',
-    items: [
-      { label: 'Research notes', href: '#', icon: 'folder' },
-      { label: 'Brand guide', href: '#', icon: 'palette' },
-    ],
-  },
-];
+/** Who is looking at which card right now (card id → people), for the card drawer. */
+export const watching: Record<string, string[]> = {
+  c4: ['mara'],
+  c6: ['mara', 'yuki'],
+  c8: ['sofia'],
+};
+
+/** A second discussion for the card drawer, by card id; other cards start without one. */
+export function cardThreads(): Record<string, ThreadComment[]> {
+  return {
+    c6: [...threadComments],
+    c8: [...secondThread],
+  };
+}

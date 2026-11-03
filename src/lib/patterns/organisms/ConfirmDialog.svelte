@@ -1,11 +1,12 @@
 <script lang="ts">
   /**
    * ConfirmDialog organism — "Are you sure?" for actions that cannot be undone or affect many
-   * records. `onconfirm` may return a promise: the confirm button shows `busyLabel` while it
-   * runs and a rejection appears inside the dialog; success closes it. `tone="danger"` (the
-   * default) gives the confirm button the red destructive fill.
+   * records. `onconfirm` may return a promise: the confirm button turns busy (`busyLabel`) while
+   * it runs, the dialog cannot be dismissed meanwhile, a rejection appears inside the dialog and
+   * success closes it. `tone="danger"` (the default) gives the confirm button the red
+   * destructive fill. Pass the button that asked as `origin` and the question grows out of it.
    *
-   *   <ConfirmDialog open={asking} title="Delete 12 records?" confirmLabel="Delete"
+   *   <ConfirmDialog open={asking} origin={deleteButton} title="Delete 12 records?" confirmLabel="Delete"
    *     onconfirm={() => api.delete(ids)} onclose={() => (asking = false)} />
    */
   import Button from '../atoms/Button.svelte';
@@ -20,6 +21,9 @@
     cancelLabel?: string;
     busyLabel?: string;
     tone?: 'danger' | 'primary';
+    /** What opened it (e.g. the Delete button): the dialog grows out of it. */
+    origin?: Element | DOMRect | undefined;
+    closeLabel?: string;
     onconfirm: () => unknown;
     onclose: () => void;
   }
@@ -32,6 +36,8 @@
     cancelLabel = 'Cancel',
     busyLabel = 'Working…',
     tone = 'danger',
+    origin,
+    closeLabel = 'Close',
     onconfirm,
     onclose,
   }: Props = $props();
@@ -57,15 +63,16 @@
   }
 </script>
 
-<Dialog {open} {title} width="26rem" {onclose}>
+<Dialog {open} {title} {origin} {closeLabel} width="26rem" dismissible={!busy} {onclose}>
   {#if message}<p class="message">{message}</p>{/if}
   {#if error}<div class="error"><Alert message={error} /></div>{/if}
   {#snippet actions()}
     <Button label={cancelLabel} disabled={busy} onclick={onclose} />
     <Button
       variant={tone === 'danger' ? 'danger-solid' : 'primary'}
-      label={busy ? busyLabel : confirmLabel}
-      disabled={busy}
+      label={confirmLabel}
+      {busy}
+      {busyLabel}
       onclick={confirm}
     />
   {/snippet}

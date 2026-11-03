@@ -14,7 +14,7 @@
       message: 'Invite your whole team to plan in one place.',
     },
     argTypes: {
-      tone: { control: 'select', options: ['accent', 'info', 'ok', 'warn', 'danger'] },
+      tone: { control: 'select', options: ['neutral', 'accent', 'info', 'ok', 'warn', 'danger'] },
       variant: { control: 'inline-radio', options: ['soft', 'solid'] },
     },
   });
@@ -22,7 +22,7 @@
 
 <Story name="Playground" />
 
-<!-- Every tone, soft. Warn and danger are announced as alerts, the others as status. -->
+<!-- Every tone, soft. Only danger is announced as an alert, the others as status. -->
 <Story name="Tones" asChild>
   <Stack gap="sm">
     <Banner tone="accent" title="New: shared boards" message="Invite your team with a link." />
@@ -37,7 +37,8 @@
   </Stack>
 </Story>
 
-<!-- A vibrant solid announcement with actions. -->
+<!-- A vibrant solid announcement with actions. Text on a solid fill follows the fill's lightness
+(`--on-warn`, `--on-danger`, …): white on red, near-black on amber. -->
 <Story name="Solid with actions" asChild>
   <Stack gap="sm">
     <Banner
@@ -56,5 +57,12 @@
       message="You are offline. Changes are saved locally."
       dismissible={false}
     />
+    <Banner
+      tone="warn"
+      variant="solid"
+      title="Planned maintenance"
+      message="Sunday 02:00–03:00, editing is paused."
+    />
+    <Banner tone="ok" variant="solid" message="All systems are running." />
   </Stack>
 </Story>

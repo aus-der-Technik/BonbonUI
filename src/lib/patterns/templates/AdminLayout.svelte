@@ -16,6 +16,8 @@
     /** A plain click on the title pill. */
     onhome?: ((event: MouseEvent) => void) | undefined;
     fill?: boolean;
+    /** Keeps the `fill` shell on phones too (see Page). */
+    fillOnPhone?: boolean;
     footer?: string | Snippet | undefined;
     actions?: Snippet | undefined;
     /** The header's actions fill the width beside the title pill (see AppHeader). */
@@ -35,6 +37,7 @@
     href,
     onhome,
     fill = false,
+    fillOnPhone = false,
     footer,
     actions,
     fillActions = false,
@@ -53,6 +56,7 @@
   {href}
   {onhome}
   {fill}
+  {fillOnPhone}
   {footer}
   {actions}
   {fillActions}

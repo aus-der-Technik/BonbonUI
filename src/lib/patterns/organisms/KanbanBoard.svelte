@@ -42,7 +42,10 @@
    * KanbanBoard organism — columns of cards for a project board. Cards move by drag and drop,
    * from the keyboard (Alt + arrow keys on a focused card: left/right to the next column, up/down
    * within it) and with the card's "Move to…" menu (touch). The board reorders `cards` itself
-   * (bind it) and reports every move through `onmove(cardId, toColumn, index)`. Columns show
+   * (bind it) and reports every move through `onmove(cardId, toColumn, index)`. If `onmove`
+   * returns a promise that rejects, the card travels back to where it was and says so on the card
+   * itself (`moveErrorMessage`). A card moved by menu or keyboard travels to its new place; its
+   * neighbours slide aside (instant under reduced motion). Columns show
    * their count against an optional WIP limit; in a filling page each column scrolls on its own.
    * A column under a dragged card turns into tinted glass, a card lands with a small jelly
    * wobble, and a card arriving in the last column (your "Done") throws a few sprinkles once
@@ -51,10 +54,15 @@
    *   <KanbanBoard {columns} bind:cards onmove={save} onopen={(card) => (open = card)} />
    */
   import { tick } from 'svelte';
+  import { flip } from 'svelte/animate';
+  import { cubicOut } from 'svelte/easing';
   import AvatarStack from '../molecules/AvatarStack.svelte';
   import Popover from '../molecules/Popover.svelte';
+  import Alert from '../molecules/Alert.svelte';
+  import EmptyState from '../molecules/EmptyState.svelte';
   import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import type { IconName } from '../atoms/icons';
   import { candy, sameDay, startOfDay, toDate } from '../../utils/collab';
   import { celebrate } from '../../utils/delight';
 
@@ -72,13 +80,22 @@
     moveUpLabel?: string;
     moveDownLabel?: string;
     addCardLabel?: string;
-    emptyText?: string;
+    emptyTitle?: string | undefined;
+    /** Text in an empty column. */
+    emptyMessage?: string | undefined;
+    emptyIcon?: IconName | undefined;
+    /** @deprecated Use `emptyMessage`. */
+    emptyText?: string | undefined;
+    /** Shown on a card whose move `onmove` rejected; the card is back where it was. */
+    moveErrorMessage?: string;
+    dismissLabel?: string;
     priorityLabels?: Record<KanbanPriority, string>;
     /** Read by screen readers on every card. */
     keyboardHint?: string;
     limitLabel?: (count: number, limit: number) => string;
     movedLabel?: (title: string, column: string, position: number, total: number) => string;
-    onmove?: ((cardId: string, toColumn: string, index: number) => void) | undefined;
+    /** May return a promise; if it rejects, the card goes back. (Other return values are ignored.) */
+    onmove?: ((cardId: string, toColumn: string, index: number) => unknown) | undefined;
     onopen?: ((card: KanbanCard) => void) | undefined;
     /** Shows an "Add card" button under each column. */
     onadd?: ((columnId: string) => void) | undefined;
@@ -98,7 +115,12 @@
     moveUpLabel = 'Move up',
     moveDownLabel = 'Move down',
     addCardLabel = 'Add card',
-    emptyText = 'Drop cards here',
+    emptyTitle,
+    emptyMessage,
+    emptyIcon,
+    emptyText,
+    moveErrorMessage = 'Could not move this card — it is back where it was.',
+    dismissLabel = 'Dismiss',
     priorityLabels = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' },
     keyboardHint = 'Alt and the arrow keys move this card.',
     limitLabel = (count, limit) => `${count} of ${limit}`,
@@ -118,6 +140,8 @@
   let announcement = $state('');
   // The card that just landed: it wobbles once.
   let landed = $state<string | null>(null);
+  // The card whose move failed and went back.
+  let failed = $state<string | null>(null);
 
   const PRIORITY_COLOR: Record<KanbanPriority, string> = {
     low: 'var(--color-gray)',
@@ -132,10 +156,30 @@
   );
   const columnCards = (columnId: string) => byColumn.get(columnId) ?? [];
 
-  export function move(cardId: string, to: string, index: number): void {
+  const reduced = () =>
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /** A motion token in milliseconds (0 under reduced motion). */
+  function motion(token: string, fallback: number): number {
+    if (reduced()) return 0;
+    const raw = board ? getComputedStyle(board).getPropertyValue(token).trim() : '';
+    const value = parseFloat(raw);
+    if (!Number.isFinite(value)) return fallback;
+    return raw.endsWith('ms') ? value : value * 1000;
+  }
+
+  // Neighbours slide aside when a card leaves or joins their column.
+  const slide = (node: Element, fromTo: { from: DOMRect; to: DOMRect }) =>
+    flip(node, fromTo, { duration: motion('--motion-slow', 360), easing: cubicOut });
+
+  const cardEl = (cardId: string) =>
+    board?.querySelector<HTMLElement>(`[data-card="${CSS.escape(cardId)}"]`) ?? null;
+
+  /** Puts a card at `index` of column `to`; returns where it was. */
+  function place(cardId: string, to: string, index: number) {
     const card = cards.find((c) => c.id === cardId);
-    const column = columns.find((c) => c.id === to);
-    if (!card || !column) return;
+    if (!card) return null;
+    const from = { column: card.column, index: columnCards(card.column).indexOf(card) };
     const rest = cards.filter((c) => c.id !== cardId);
     const target = rest.filter((c) => c.column === to);
     const at = Math.max(0, Math.min(index, target.length));
@@ -144,17 +188,65 @@
     const position = before ? rest.indexOf(before) : last ? rest.indexOf(last) + 1 : rest.length;
     rest.splice(position, 0, { ...card, column: to });
     cards = rest;
-    announcement = movedLabel(card.title, column.title, at + 1, target.length + 1);
-    onmove?.(cardId, to, at);
-    void land(cardId, card.column !== to && to === columns.at(-1)?.id);
+    return { card, from, at, total: target.length + 1 };
   }
 
-  async function land(cardId: string, done: boolean) {
+  /**
+   * Moves a card and reports it. Pass `travel: false` when the pointer already put it there
+   * (a drop); otherwise the card travels from its old place to the new one.
+   */
+  export function move(cardId: string, to: string, index: number, travel = true): void {
+    const column = columns.find((c) => c.id === to);
+    if (!column) return;
+    const start = travel ? cardEl(cardId)?.getBoundingClientRect() : undefined;
+    const moved = place(cardId, to, index);
+    if (!moved) return;
+    const { card, from, at, total } = moved;
+    if (failed === cardId) failed = null;
+    announcement = movedLabel(card.title, column.title, at + 1, total);
+    const done = from.column !== to && to === columns.at(-1)?.id;
+    void land(cardId, done, from.column !== to ? start : undefined);
+    const saving = onmove?.(cardId, to, at);
+    if (saving instanceof Promise) {
+      saving.catch(() => revert(cardId, from.column, from.index));
+    }
+  }
+
+  async function revert(cardId: string, column: string, index: number) {
+    const start = cardEl(cardId)?.getBoundingClientRect();
+    const back = place(cardId, column, index);
+    if (!back) return;
+    failed = cardId;
+    announcement = moveErrorMessage;
+    await tick();
+    if (back.from.column !== column) travelFrom(cardId, start);
+  }
+
+  /** The card glides from where it was (`start`) to where it is now: cause and effect. */
+  function travelFrom(cardId: string, start: DOMRect | undefined): number {
+    const el = cardEl(cardId);
+    const duration = motion('--motion-slow', 360);
+    if (!el || !start || !duration || typeof el.animate !== 'function') return 0;
+    const end = el.getBoundingClientRect();
+    const dx = start.left - end.left;
+    const dy = start.top - end.top;
+    if (!dx && !dy) return 0;
+    el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], {
+      duration,
+      easing: getComputedStyle(el).getPropertyValue('--ease-in-out').trim() || 'ease-in-out',
+    });
+    return duration;
+  }
+
+  async function land(cardId: string, done: boolean, start?: DOMRect) {
     landed = null;
     await tick();
+    // The wobble waits until the card has arrived.
+    const travelled = travelFrom(cardId, start);
+    if (travelled) await new Promise((resolve) => setTimeout(resolve, travelled));
     landed = cardId;
     if (!done || !sprinkle) return;
-    const el = board?.querySelector(`[data-card="${CSS.escape(cardId)}"]`);
+    const el = cardEl(cardId);
     if (el) celebrate(el);
   }
 
@@ -231,7 +323,7 @@
     event.preventDefault();
     const cardId = dragId ?? event.dataTransfer?.getData('text/plain');
     if (cardId && drop) {
-      move(cardId, drop.column, drop.index);
+      move(cardId, drop.column, drop.index, false);
       void focusCard(cardId);
     }
     endDrag();
@@ -308,15 +400,17 @@
         aria-label={column.title}
       >
         {#each list as card (card.id)}
-          {@const at = restIndex(list, card)}
-          {#if drop?.column === column.id && drop.index === at}
-            <li class="slot" style:height="{dragHeight}px" aria-hidden="true"></li>
-          {/if}
+          <!-- The drop slot opens above the card as part of it: animate:flip needs the card to be
+               the only element of its each block. -->
           <li
             class="card"
+            class:slot-before={drop?.column === column.id && drop.index === restIndex(list, card)}
+            style:--slot-h="{dragHeight}px"
             class:dragging={dragId === card.id}
             class:selected={selected === card.id}
             class:landed={landed === card.id}
+            class:failed={failed === card.id}
+            animate:slide
             onanimationend={() => {
               if (landed === card.id) landed = null;
             }}
@@ -446,13 +540,23 @@
                 {/if}
               </div>
             {/if}
+            {#if failed === card.id}
+              <Alert message={moveErrorMessage} {dismissLabel} ondismiss={() => (failed = null)} />
+            {/if}
           </li>
         {/each}
         {#if drop?.column === column.id && drop.index === list.filter((c) => c.id !== dragId).length}
           <li class="slot" style:height="{dragHeight}px" aria-hidden="true"></li>
         {/if}
         {#if !count && drop?.column !== column.id}
-          <li class="empty">{emptyText}</li>
+          <li class="empty">
+            <EmptyState
+              title={emptyTitle}
+              message={emptyMessage ?? emptyText ?? 'Drop cards here'}
+              icon={emptyIcon}
+              compact
+            />
+          </li>
         {/if}
       </ul>
 
@@ -638,12 +742,32 @@
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     background: var(--c);
   }
-  .slot {
+  .slot,
+  .slot-before::before {
     flex-shrink: 0;
     border-radius: var(--radius-lg);
     border: 1.5px dashed var(--accent-border);
     background: var(--accent-faint);
     animation: bb-pop var(--motion-base) var(--ease-out);
+  }
+  .slot-before {
+    margin-top: calc(var(--slot-h) + var(--space-2));
+  }
+  .slot-before::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(-1 * (var(--slot-h) + var(--space-2)));
+    height: var(--slot-h);
+    pointer-events: none;
+  }
+  .card.failed {
+    border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  }
+  .card :global(.alert) {
+    font-size: var(--fs-sm);
+    padding: var(--space-2) var(--space-3);
   }
   .empty {
     display: grid;
@@ -651,9 +775,6 @@
     min-height: 4.5rem;
     border-radius: var(--radius-lg);
     border: 1.5px dashed var(--border-strong);
-    color: var(--text-3);
-    font-size: var(--fs-sm);
-    text-align: center;
     padding: 0 var(--space-3);
   }
 
@@ -708,6 +829,7 @@
     outline-offset: 2px;
   }
   .menu {
+    position: relative;
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -723,6 +845,13 @@
     transition:
       opacity var(--motion-quick) var(--ease-out),
       transform var(--motion-quick) var(--ease-jelly);
+  }
+  /* A 32px hit area around the smaller visible circle. */
+  .menu::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
   }
   .menu:active {
     transform: var(--press-squish);
@@ -885,7 +1014,8 @@
       transform: none;
     }
     .card.landed,
-    .slot {
+    .slot,
+    .slot-before::before {
       animation: none;
     }
   }

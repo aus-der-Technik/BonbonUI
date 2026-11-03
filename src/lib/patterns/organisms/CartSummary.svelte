@@ -3,7 +3,10 @@
    * CartSummary organism — the money side of a cart or checkout: subtotal, shipping, discount
    * and the total, a discount-code field, a free-shipping progress bar and the checkout button.
    * The cart lines go in as children (above the totals). `ondiscount` and `oncheckout` may
-   * return promises; a rejected discount shows `invalidCodeMessage`.
+   * return promises. A code that does not exist: resolve `false`, or reject with an error whose
+   * `code` or `message` is `'invalid'` — the field shows `invalidCodeMessage`. Any other rejection
+   * (the network) shows `discountErrorMessage`, and a failed checkout `checkoutErrorMessage` right
+   * under the button.
    *
    *   <CartSummary subtotal={118} shipping={4.9} freeShippingFrom={150}
    *     ondiscount={(code) => api.apply(code)} oncheckout={() => goto('/checkout')}>
@@ -14,6 +17,7 @@
   import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
   import Price from '../atoms/Price.svelte';
+  import Alert from '../molecules/Alert.svelte';
   import { formatPrice } from '../molecules/web';
 
   interface Props {
@@ -34,7 +38,8 @@
     title?: string | undefined;
     /** `panel` is a glass card; `ground` for inside a drawer or a card of your own. */
     level?: 'panel' | 'ground';
-    ondiscount?: ((code: string) => void | Promise<void>) | undefined;
+    /** Resolve `false` (or reject with `{ code: 'invalid' }`) for a code that does not exist. */
+    ondiscount?: ((code: string) => void | boolean | Promise<void | boolean>) | undefined;
     onremovediscount?: (() => void) | undefined;
     oncheckout?: (() => void | Promise<void>) | undefined;
     checkoutHref?: string | undefined;
@@ -57,6 +62,11 @@
     applyLabel?: string;
     removeCodeLabel?: string;
     invalidCodeMessage?: string;
+    /** A discount check that failed for another reason, e.g. the network. */
+    discountErrorMessage?: string;
+    /** Shown under the checkout button when `oncheckout` rejects. */
+    checkoutErrorMessage?: string;
+    dismissLabel?: string;
     freeShippingLabel?: (missing: string) => string;
     freeShippingReachedLabel?: string;
     /** Cart lines, above the totals. */
@@ -82,7 +92,7 @@
     checkoutDisabled = false,
     note,
     currency = 'EUR',
-    locale = 'de-DE',
+    locale = 'en',
     subtotalLabel = 'Subtotal',
     shippingLabel = 'Shipping',
     shippingLaterLabel = 'Calculated at checkout',
@@ -96,6 +106,9 @@
     applyLabel = 'Apply',
     removeCodeLabel = 'Remove code',
     invalidCodeMessage = 'This code is not valid.',
+    discountErrorMessage = 'Could not check the code. Try again.',
+    checkoutErrorMessage = 'Checkout did not go through. Try again.',
+    dismissLabel = 'Dismiss',
     freeShippingLabel = (missing) => `${missing} away from free shipping`,
     freeShippingReachedLabel = 'You get free shipping',
     children,
@@ -115,6 +128,14 @@
   let applying = $state(false);
   let codeError = $state('');
   let checkingOut = $state(false);
+  let checkoutFailed = $state(false);
+
+  /** An error that means "no such code", as opposed to a request that failed. */
+  function invalidCode(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+    const { code: kind, message } = error as { code?: unknown; message?: unknown };
+    return kind === 'invalid' || message === 'invalid';
+  }
 
   async function apply(event: SubmitEvent) {
     event.preventDefault();
@@ -123,10 +144,10 @@
     applying = true;
     codeError = '';
     try {
-      await ondiscount(value);
-      code = '';
-    } catch {
-      codeError = invalidCodeMessage;
+      if ((await ondiscount(value)) === false) codeError = invalidCodeMessage;
+      else code = '';
+    } catch (error) {
+      codeError = invalidCode(error) ? invalidCodeMessage : discountErrorMessage;
     } finally {
       applying = false;
     }
@@ -135,8 +156,11 @@
   async function checkout() {
     if (!oncheckout || checkingOut) return;
     checkingOut = true;
+    checkoutFailed = false;
     try {
       await oncheckout();
+    } catch {
+      checkoutFailed = true;
     } finally {
       checkingOut = false;
     }
@@ -254,6 +278,13 @@
       onclick={checkoutHref ? undefined : checkout}
       class="checkout"
     />
+    {#if checkoutFailed}
+      <Alert
+        message={checkoutErrorMessage}
+        {dismissLabel}
+        ondismiss={() => (checkoutFailed = false)}
+      />
+    {/if}
   {/if}
   {#if note}<p class="note">{note}</p>{/if}
 </section>

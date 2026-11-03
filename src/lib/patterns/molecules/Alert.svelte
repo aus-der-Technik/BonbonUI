@@ -4,18 +4,17 @@
    * a card or form (a sheet's error box, a dialog error); `card` stands on its own glass card
    * between sections (a failed request); `strong` tints the whole card, for a failure that blocks
    * the page. `title` adds a bold first line, `actions` buttons on the right, `ondismiss` a close
-   * button.
+   * button. Announced as an alert only for `danger`, as a status otherwise.
    *
    *   <Alert tone="warn" title="Draft" message="This list is not published yet." />
    */
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import type { IconName } from '../atoms/icons';
-
-  type Tone = 'error' | 'warn' | 'ok' | 'info';
+  import { noticeRole, toneOf, type Tone } from '../tone';
 
   interface Props {
-    tone?: Tone;
+    tone?: Tone | /** @deprecated Use `danger`. */ 'error';
     variant?: 'inline' | 'card';
     /** Tints the whole card, border and text in the tone, not only its icon. */
     strong?: boolean;
@@ -33,7 +32,7 @@
   }
 
   let {
-    tone = 'error',
+    tone = 'danger',
     variant = 'inline',
     strong = false,
     title,
@@ -46,19 +45,22 @@
   }: Props = $props();
 
   const ICONS: Record<Tone, IconName> = {
-    error: 'x-circle',
+    neutral: 'info',
+    accent: 'sparkles',
+    danger: 'x-circle',
     warn: 'alert',
     ok: 'check-circle',
     info: 'info',
   };
-  const shownIcon = $derived(icon === false ? undefined : (icon ?? ICONS[tone]));
+  const shownTone = $derived(toneOf(tone));
+  const shownIcon = $derived(icon === false ? undefined : (icon ?? ICONS[shownTone]));
 </script>
 
-<div class="alert alert--{tone} alert--{variant}" class:alert--strong={strong}>
+<div class="alert alert--{shownTone} alert--{variant}" class:alert--strong={strong}>
   {#if shownIcon}<span class="icon-wrap" aria-hidden="true"
       ><Icon name={shownIcon} size={variant === 'card' ? 18 : 16} /></span
     >{/if}
-  <div class="text" role={tone === 'error' ? 'alert' : 'status'}>
+  <div class="text" role={noticeRole(shownTone)}>
     {#if title}<strong class="title">{title}</strong
       >{/if}{#if children}{@render children()}{:else}{message}{/if}
   </div>
@@ -84,9 +86,17 @@
     /* The tone as readable text: darkened in light themes, lightened in dark ones. */
     --tone-ink: color-mix(in oklab, var(--tone) var(--ink-share), var(--ink-mix));
   }
-  .alert--error {
+  .alert--danger {
     --tone: var(--danger);
     --tone-bg: var(--tint-danger);
+  }
+  .alert--neutral {
+    --tone: var(--text-3);
+    --tone-bg: var(--fill-subtle);
+  }
+  .alert--accent {
+    --tone: var(--accent);
+    --tone-bg: var(--accent-faint);
   }
   .alert--warn {
     --tone: var(--warn);
@@ -159,6 +169,7 @@
     align-self: center;
   }
   .dismiss {
+    position: relative;
     flex: none;
     display: grid;
     place-items: center;
@@ -173,6 +184,12 @@
     transition:
       background-color var(--motion-quick) var(--ease-out),
       transform var(--motion-quick) var(--ease-jelly);
+  }
+  /* Looks xs, but a finger or pointer gets at least --target-min. */
+  .dismiss::before {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - var(--target-min)) / 2));
   }
   .dismiss:hover {
     background: var(--fill-hover);

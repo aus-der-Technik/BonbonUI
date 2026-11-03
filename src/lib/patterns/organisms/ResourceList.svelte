@@ -12,14 +12,17 @@
    * ResourceList organism — a light list of things you run or own (instances, volumes, jobs):
    * one row each with a leading slot, title and meta line, a status badge and per-row actions.
    * No header, no sorting — use DataTable for reports. Rows light up softly on hover.
+   * `highlight` glows a row once each time it changes to that row's key (one just created).
    *
    *   <ResourceList items={servers} key={(s) => s.id} title={(s) => s.name}
    *     status={(s) => ({ label: 'Running', tone: 'live' })} />
    */
   import type { Snippet } from 'svelte';
+  import { untrack } from 'svelte';
   import Badge from '../atoms/Badge.svelte';
   import Spinner from '../atoms/Spinner.svelte';
   import EmptyState from '../molecules/EmptyState.svelte';
+  import { glowKeyed } from './highlight';
 
   interface Props {
     items: T[];
@@ -31,6 +34,8 @@
     actions?: Snippet<[T]> | undefined;
     emptyText?: string;
     label?: string | undefined;
+    /** Glows that row once each time this changes to its key, and scrolls it into view. */
+    highlight?: string | undefined;
   }
 
   let {
@@ -43,17 +48,27 @@
     actions,
     emptyText = 'Nothing here yet.',
     label,
+    highlight,
   }: Props = $props();
+
+  let list = $state<HTMLUListElement>();
+  let glowed = untrack(() => highlight);
+  $effect(() => {
+    const target = highlight;
+    void items;
+    if (target === undefined) glowed = undefined;
+    else if (target !== glowed && glowKeyed(list, 'li.row', target)) glowed = target;
+  });
 </script>
 
 {#if !items.length}
   <EmptyState message={emptyText} />
 {:else}
-  <ul class="list" aria-label={label}>
+  <ul class="list" aria-label={label} bind:this={list}>
     {#each items as item (key(item))}
       {@const badge = status?.(item)}
       {@const line = meta?.(item)}
-      <li class="row">
+      <li class="row" data-key={key(item)}>
         {#if leading}<span class="leading">{@render leading(item)}</span>{/if}
         <span class="text">
           <span class="title">{title(item)}</span>

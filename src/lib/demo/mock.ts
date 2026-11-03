@@ -89,19 +89,19 @@ export interface FeedbackItem {
 
 const COMMENTS = [
   'The answer cited an outdated venue capacity.',
-  'Super schnell, genau das Hotel gefunden.',
+  'Super fast — found exactly the hotel I needed.',
   'Results for Leipzig showed venues in Halle first.',
   'Please add filters for barrier-free venues.',
-  'Die KI-Antwort war hilfreich, aber zu lang.',
+  'The AI answer was helpful, but far too long.',
   undefined,
   undefined,
   'Map pins were off by a few hundred metres.',
 ];
 const QUERIES = [
-  'Tagungshotels in Leipzig mit 300 Plätzen',
-  'nachhaltige Eventlocation Hamburg',
-  'Kongresszentrum Bayern',
-  'Kongresszentrum Darmstadt Kapazität',
+  'conference hotels in Leipzig with 300 seats',
+  'sustainable event venue Hamburg',
+  'congress centre Bavaria',
+  'congress centre Darmstadt capacity',
 ];
 const SOURCES = ['chat-assistant', 'chat-assistant', 'chat-assistant', 'website', 'mobile-app'];
 
@@ -153,10 +153,10 @@ export function venueRows(): GridRow[] {
     ['Leipzig Congress Hall', 'Leipzig', 3000, true, 4.4, null],
     ['Spa Town Kurhaus', 'Baden-Baden', 2500, false, 4.2, 'Renovation of hall 2 until spring.'],
     ['Elbe Exhibition Centre', 'Dresden', 6000, true, null, null],
-    ['Grand Hotel Altstadt', 'München', 2500, null, 4.8, 'Contact via events team only.'],
+    ['Grand Hotel Altstadt', 'Munich', 2500, null, 4.8, 'Contact via events team only.'],
     ['Kurhaus am Park', 'Wiesbaden', 2200, false, 4.5, null],
     ['Harbour Fair & Congress', 'Hamburg', 12000, true, 4.3, 'Main hall reopened 2024.'],
-    ['Old Town Ballroom', 'Köln', 1400, true, 4.1, null],
+    ['Old Town Ballroom', 'Cologne', 1400, true, 4.1, null],
   ];
   return venues.map(([name, city, capacity, barrierFree, rating, notes], i) => ({
     id: 1001 + i,
@@ -172,20 +172,21 @@ export function venueRows(): GridRow[] {
 
 export type Endpoint = 'places' | 'landmarks' | 'plz' | 'geo';
 
-export const ENDPOINTS: { id: Endpoint; label: string; color: string }[] = [
-  { id: 'places', label: 'Places', color: 'var(--series-1)' },
-  { id: 'landmarks', label: 'Landmarks', color: 'var(--series-2)' },
-  { id: 'plz', label: 'Postal codes', color: 'var(--series-3)' },
-  { id: 'geo', label: 'Nearby', color: 'var(--series-4)' },
-];
-
-// Leaflet paints SVG markers with literal colours, not CSS variables.
+// Leaflet paints SVG markers with literal colours, not CSS variables — so the chips and the
+// suggestions use the same literal colours, and a chip always matches its markers.
 export const ENDPOINT_HEX: Record<Endpoint, string> = {
-  places: '#e3000f',
+  places: '#8b5cf6',
   landmarks: '#2a78d6',
   plz: '#16a34a',
   geo: '#eda100',
 };
+
+export const ENDPOINTS: { id: Endpoint; label: string; color: string }[] = [
+  { id: 'places', label: 'Places', color: ENDPOINT_HEX.places },
+  { id: 'landmarks', label: 'Landmarks', color: ENDPOINT_HEX.landmarks },
+  { id: 'plz', label: 'Postal codes', color: ENDPOINT_HEX.plz },
+  { id: 'geo', label: 'Nearby', color: ENDPOINT_HEX.geo },
+];
 
 export interface Hit extends MapMarker {
   endpoint: Endpoint;
@@ -199,11 +200,11 @@ export function frankfurtHits(): Hit[] {
       lat: 50.1109,
       lon: 8.6821,
       title: 'Frankfurt am Main',
-      subtitle: 'Place · Hessen',
+      subtitle: 'Place · Hesse',
       color: ENDPOINT_HEX.places,
       details: [
-        ['Population', '773.068'],
-        ['State', 'Hessen'],
+        ['Population', '773,068'],
+        ['State', 'Hesse'],
       ],
     },
     {
@@ -234,7 +235,7 @@ export function frankfurtHits(): Hit[] {
       title: '60311',
       subtitle: 'Postal code · Frankfurt am Main',
       color: ENDPOINT_HEX.plz,
-      details: [['District', 'Innenstadt']],
+      details: [['District', 'City centre']],
     },
   ];
   const nearby: Hit[] = Array.from({ length: 14 }, () => {
@@ -392,13 +393,13 @@ export const ANSWER = `## Conference venues in Leipzig for 300 people
 Three venues fit **300 seated guests** and are within 15 minutes of the main station:
 
 1. **Leipzig Congress Hall** — plenary hall for up to 3,000, divisible; barrier-free.
-2. **Hotel am Ring** — ballroom for 400, hotel rooms on site.
+2. **Riverside Hotel** — ballroom for 400, hotel rooms on site.
 3. **Zoo Pavilion Hall** — historic hall for 1,000, 10 minutes on foot from the centre.
 
 | Venue | Seats | Barrier-free |
 | --- | --- | --- |
 | Leipzig Congress Hall | 3,000 | yes |
-| Hotel am Ring | 400 | yes |
+| Riverside Hotel | 400 | yes |
 | Zoo Pavilion Hall | 1,000 | partly |
 
 > Ask the venues directly for availability — capacities depend on the seating layout.
@@ -419,74 +420,24 @@ export function workspaces(): Workspace[] {
       id: 'w1',
       name: 'analytics-notebooks',
       volume: 'data-1 · 2Gi',
-      created: '12.10.2026',
+      created: 'Oct 12, 2026',
       status: 'running',
     },
     {
       id: 'w2',
       name: 'import-scripts',
       volume: 'data-2 · 1Gi',
-      created: '03.10.2026',
+      created: 'Oct 3, 2026',
       status: 'stopped',
     },
     {
       id: 'w3',
       name: 'report-builder',
       volume: 'data-1 · 2Gi',
-      created: '19.10.2026',
+      created: 'Oct 19, 2026',
       status: 'starting',
     },
   ];
-}
-
-// ---------------------------------------------------------------- documents
-
-export interface DocumentRow {
-  urn: string;
-  title: string;
-  access: 'public' | 'members' | 'unknown';
-  rating: number | null;
-  bytes: number;
-  keywords: string[];
-  hasOriginal: boolean;
-  summary: string;
-}
-
-export function documents(): DocumentRow[] {
-  const rand = seeded(23);
-  const titles = [
-    'Meetings & Conventions Report 2026',
-    'Green Meetings Guide',
-    'Venue Capacity Survey Leipzig',
-    'Destination Factsheet',
-    'Hybrid Events Checklist',
-    'Congress Statistics Q3',
-    'Barrier-free Venues Overview',
-    'Association Meetings Study',
-    'Travel Grants Guidelines',
-    'MICE Trends Outlook',
-    'Event Safety Handbook',
-  ];
-  const kws = [
-    'nachhaltigkeit',
-    'statistik',
-    'leipzig',
-    'hybrid',
-    'barrierefrei',
-    'kongress',
-    'trends',
-  ];
-  return titles.map((title, i) => ({
-    urn: `urn:example:document:${4700 + i * 13}`,
-    title,
-    access:
-      (['public', 'public', 'members', 'unknown'] as const)[Math.floor(rand() * 4)] ?? 'public',
-    rating: rand() < 0.2 ? null : Math.round((2.5 + rand() * 2.5) * 2) / 2,
-    bytes: Math.round(80_000 + rand() * 9_000_000),
-    keywords: kws.filter(() => rand() < 0.3).slice(0, 3),
-    hasOriginal: rand() > 0.25,
-    summary: `**${title}** covers the key figures for 2026.\n\n- Main finding one\n- Main finding two\n- Recommended next steps`,
-  }));
 }
 
 // ---------------------------------------------------------------- operations overview
@@ -615,9 +566,9 @@ export interface OpsService {
 export function opsServices(): OpsService[] {
   return [
     { id: 's1', name: 'Crawler', detail: '4 workers · p95 1.8 s', status: 'up' },
-    { id: 's2', name: 'Judge model', detail: 'p95 6.4 s · 2 % timeouts', status: 'degraded' },
+    { id: 's2', name: 'Judge model', detail: 'p95 6.4 s · 2% timeouts', status: 'degraded' },
     { id: 's3', name: 'Classifier', detail: 'v3.2 · p95 120 ms', status: 'up' },
-    { id: 's4', name: 'Export storage', detail: '61 % used', status: 'up' },
+    { id: 's4', name: 'Export storage', detail: '61% used', status: 'up' },
     { id: 's5', name: 'Archive index', detail: 'Reindex until 16:00', status: 'maintenance' },
   ];
 }

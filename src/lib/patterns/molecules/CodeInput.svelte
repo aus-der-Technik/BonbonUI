@@ -165,16 +165,16 @@
     background: var(--tint-danger);
   }
   .box[aria-invalid='true']:focus {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+    box-shadow: var(--focus-halo-danger);
   }
   .box:disabled {
-    opacity: 0.5;
+    opacity: var(--disabled-opacity);
   }
   .dash {
     color: var(--text-3);
     font-size: 1.2rem;
   }
-  @media (max-width: 420px) {
+  @media (max-width: 520px) {
     .code {
       gap: var(--space-1);
     }

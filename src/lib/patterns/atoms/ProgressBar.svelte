@@ -2,18 +2,21 @@
   /**
    * ProgressBar atom — a determinate candy bar (uploads, quotas, imports). `tone` colours the
    * fill (`accent` follows the tint; `brand` is its old name), `showValue` prints the
-   * percentage next to the label, `size` sets the thickness.
+   * percentage next to the label, `size` sets the thickness. The printed value glows briefly
+   * when it changes.
    *
    *   <ProgressBar value={64} label="Storage used" showValue />
    */
   import { percentFormat } from '../../utils/format';
+  import { changeCue } from './changed';
+  import { toneOf, type Tone } from '../tone';
 
   interface Props {
     value: number;
     max?: number;
     label: string;
     showValue?: boolean;
-    tone?: 'accent' | 'brand' | 'ok' | 'warn' | 'danger' | 'info';
+    tone?: Tone | /** @deprecated Use `accent`. */ 'brand';
     size?: 'sm' | 'md' | 'lg';
     /** Replaces the percentage, e.g. "3 of 7" or "1.2 GB of 5 GB". */
     valueLabel?: string | undefined;
@@ -30,12 +33,13 @@
   }: Props = $props();
 
   const ratio = $derived(max > 0 ? Math.max(0, Math.min(1, value / max)) : 0);
+  const shown = $derived(valueLabel ?? percentFormat.format(ratio));
 </script>
 
 <div class="progress progress--{size}">
   {#if showValue}
     <div class="head">
-      <span>{label}</span><span class="value">{valueLabel ?? percentFormat.format(ratio)}</span>
+      <span>{label}</span><span class="value" use:changeCue={shown}>{shown}</span>
     </div>
   {/if}
   <div
@@ -48,7 +52,7 @@
     aria-valuetext={valueLabel}
   >
     <span
-      class="fill fill--{tone === 'brand' ? 'accent' : tone}"
+      class="fill fill--{toneOf(tone)}"
       class:fill--empty={ratio === 0}
       style:width="{ratio * 100}%"
     ></span>
@@ -76,6 +80,7 @@
     color: var(--text-2);
   }
   .value {
+    border-radius: var(--radius-xs);
     font-variant-numeric: tabular-nums;
     font-weight: var(--fw-semibold);
     color: var(--text);
@@ -114,6 +119,9 @@
   }
   .fill--info {
     --_c: var(--info);
+  }
+  .fill--neutral {
+    --_c: var(--text-3);
   }
   @media (prefers-reduced-motion: reduce) {
     .fill {

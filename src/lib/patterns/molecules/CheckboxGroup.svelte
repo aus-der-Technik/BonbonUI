@@ -18,6 +18,7 @@
    *   <CheckboxGroup label="Notify me about" options={topics} bind:value={chosen} />
    */
   import Checkbox from '../atoms/Checkbox.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
 
   interface Props {
     label: string;
@@ -52,25 +53,30 @@
     onchange?.(value);
   }
 
+  const allChosen = $derived(enabled.every((o) => value.includes(o.value)));
+
   function toggle(option: string, checked: boolean) {
     set(checked ? [...value, option] : value.filter((v) => v !== option));
   }
 </script>
 
-<fieldset class="group">
-  <legend class="sr-only">{label}</legend>
+<fieldset class="group" aria-labelledby="{id}-label">
   <div class="head">
-    <span class="label" aria-hidden="true">{label}</span>
+    <span class="label" id="{id}-label">{label}</span>
     <span class="count" aria-live="polite">{countLabel(value.length, options.length)}</span>
     <span class="actions">
+      <!-- aria-disabled, not disabled: the button just pressed keeps focus instead of dropping
+           it to the page. -->
       <button
         type="button"
-        disabled={enabled.every((o) => value.includes(o.value))}
-        onclick={() => set(enabled.map((o) => o.value))}
+        aria-disabled={allChosen}
+        onclick={() => !allChosen && set(enabled.map((o) => o.value))}
       >
         {selectAllLabel}
       </button>
-      <button type="button" disabled={!value.length} onclick={() => set([])}>{clearLabel}</button>
+      <button type="button" aria-disabled={!value.length} onclick={() => value.length && set([])}
+        >{clearLabel}</button
+      >
     </span>
   </div>
   <div class="grid" style:--columns={columns}>
@@ -83,8 +89,8 @@
           onchange={(event) => toggle(option.value, event.currentTarget.checked)}
         />
         <span class:mono>{option.label}</span>
-        {#if option.description}<span class="sr-only" id="{id}-{option.value}"
-            >{option.description}</span
+        {#if option.description}<VisuallyHidden
+            ><span id="{id}-{option.value}">{option.description}</span></VisuallyHidden
           >{/if}
       </label>
     {/each}
@@ -130,10 +136,10 @@
     cursor: pointer;
     transition: background-color var(--motion-quick) var(--ease-out);
   }
-  .actions button:hover:not(:disabled) {
+  .actions button:hover:not([aria-disabled='true']) {
     background: var(--accent-faint);
   }
-  .actions button:disabled {
+  .actions button[aria-disabled='true'] {
     color: var(--text-3);
     cursor: default;
   }
@@ -167,10 +173,10 @@
     font-weight: var(--fw-medium);
   }
   .option:has(:global(input:disabled)) {
-    opacity: 0.5;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
-  .option > span:not(.sr-only) {
+  .option > span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -179,15 +185,7 @@
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
   }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-  @media (max-width: 560px) {
+  @media (max-width: 520px) {
     .grid {
       grid-template-columns: 1fr;
     }

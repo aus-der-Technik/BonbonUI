@@ -2,7 +2,8 @@
   /**
    * TagInput molecule — edits a list of short strings as tags: each tag has an ×, typing and
    * Enter (or a separator, "," by default) adds one, Backspace in the empty field removes the
-   * last. Pasting "a, b, c" adds three. Duplicates are ignored unless `unique` is off.
+   * last. Pasting "a, b, c" adds three. A duplicate is not added (unless `unique` is off): the
+   * typed text stays and the tag that already exists shakes, so the user sees why.
    *
    * Keys it does not use itself — Enter with nothing typed, Escape, Tab — go to `onkeydown`, so a
    * host can save, cancel or move on (EditableGrid does). Tab adds the pending text first.
@@ -12,6 +13,7 @@
    */
   import { untrack } from 'svelte';
   import Tag from '../atoms/Tag.svelte';
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
 
   interface Props {
     /** The tags (bindable). */
@@ -20,6 +22,8 @@
     label: string;
     placeholder?: string | undefined;
     removeLabel?: string;
+    /** Announced when a typed tag already exists. */
+    duplicateLabel?: (tag: string) => string;
     /** Characters that end a tag as it is typed, besides Enter. */
     separators?: string[];
     unique?: boolean;
@@ -36,6 +40,7 @@
     label,
     placeholder,
     removeLabel = 'Remove',
+    duplicateLabel = (tag: string) => `“${tag}” is already added`,
     separators = [','],
     unique = true,
     disabled = false,
@@ -49,23 +54,46 @@
   let text = $state('');
   let field = $state<HTMLInputElement>();
   let root = $state<HTMLDivElement>();
+  let notice = $state('');
 
   function set(next: string[]) {
     value = next;
     onchange?.(next);
   }
 
-  /** Adds every non-empty piece of `raw`; returns whether anything was added. */
-  function add(...raw: string[]): boolean {
+  /** Adds every non-empty piece of `raw`; returns the duplicates it refused (already shown). */
+  function add(...raw: string[]): string[] {
     const next = [...value];
+    const refused: string[] = [];
     for (const piece of raw) {
       const tag = piece.trim();
-      if (!tag || (unique && next.includes(tag))) continue;
+      if (!tag) continue;
+      if (unique && next.includes(tag)) {
+        refused.push(tag);
+        continue;
+      }
       next.push(tag);
     }
-    if (next.length === value.length) return false;
-    set(next);
-    return true;
+    if (next.length !== value.length) set(next);
+    if (refused.length) nope(refused[refused.length - 1] as string);
+    return refused;
+  }
+
+  /** Points at the tag that already exists: a polite head-shake where it is, and a message. */
+  function nope(tag: string) {
+    notice = duplicateLabel(tag);
+    const index = value.indexOf(tag);
+    const el = root?.querySelectorAll<HTMLElement>(':scope > .tag')[index];
+    if (!el || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = 'bb-nope var(--motion-slow) var(--ease-out)';
+    el.addEventListener('animationend', () => (el.style.animation = ''), { once: true });
+  }
+
+  /** Adds the text being typed; a refused duplicate stays in the field to be edited. */
+  function commit() {
+    if (!add(text).length) text = '';
   }
 
   function removeAt(index: number) {
@@ -81,8 +109,13 @@
   function oninput(event: Event & { currentTarget: HTMLInputElement }) {
     const parts = split(event.currentTarget.value);
     // Everything before the last separator is finished; the rest is still being typed.
-    const pending = parts.pop() ?? '';
-    if (parts.length) add(...parts);
+    let pending = parts.pop() ?? '';
+    notice = '';
+    if (parts.length) {
+      const refused = add(...parts);
+      // A refused tag goes back into the field rather than vanishing with its separator.
+      if (!pending.trim() && refused.length) pending = refused[refused.length - 1] as string;
+    }
     text = pending;
     event.currentTarget.value = pending;
   }
@@ -90,8 +123,7 @@
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.isComposing && text.trim()) {
       event.preventDefault();
-      add(text);
-      text = '';
+      commit();
       return;
     }
     if (event.key === 'Backspace' && text === '' && value.length) {
@@ -99,10 +131,7 @@
       set(value.slice(0, -1));
       return;
     }
-    if (event.key === 'Tab' && text.trim()) {
-      add(text);
-      text = '';
-    }
+    if (event.key === 'Tab' && text.trim()) commit();
     onkeydown?.(event);
   }
 
@@ -121,10 +150,7 @@
     // cancelled — has nothing left to report.
     setTimeout(() => {
       if (!root?.isConnected || root.contains(document.activeElement)) return;
-      if (text.trim()) {
-        add(text);
-        text = '';
-      }
+      if (text.trim()) commit();
       onblur?.();
     });
   }
@@ -163,6 +189,7 @@
     {oninput}
     onkeydown={handleKeydown}
   />
+  <VisuallyHidden><span role="status">{notice}</span></VisuallyHidden>
 </div>
 
 <style>
@@ -191,7 +218,7 @@
     box-shadow: var(--focus-halo), var(--glass-inset);
   }
   .tag-input.disabled {
-    opacity: 0.6;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .field {

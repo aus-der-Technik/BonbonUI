@@ -222,7 +222,7 @@
   }
   .unavailable {
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: var(--disabled-opacity);
   }
 
   @media (prefers-reduced-motion: reduce) {

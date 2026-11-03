@@ -1,4 +1,4 @@
-import { HIDE_ATTR, LENS_ATTR, Mirror, STICKY_ATTR } from './mirror';
+import { HIDE_ATTR, LENS_ATTR, Mirror, SHELL_ATTR, STICKY_ATTR } from './mirror';
 
 /** A page with a glass surface (holding its lens box) above some content. */
 function page(content: string) {
@@ -14,7 +14,7 @@ const mirrors: Mirror[] = [];
 function mirror(lens: HTMLElement, surface: HTMLElement) {
   const m = new Mirror(lens, surface);
   mirrors.push(m);
-  lens.append(m.host);
+  lens.append(m.stillHost, m.host);
   return m;
 }
 
@@ -31,12 +31,16 @@ afterEach(() => {
 });
 
 describe('Mirror', () => {
-  it('copies the page under a canvas and hides the surface in the copy', () => {
+  it('copies the page above a still canvas and hides the surface in the copy', () => {
     const { lens, surface } = page('<p class="text">Behind the glass</p>');
     const m = mirror(lens, surface);
-    const [canvas, body] = [...m.stage.children] as HTMLElement[];
+    const [canvas, still] = [...m.stillStage.children] as HTMLElement[];
     expect(canvas?.style.zIndex).toBe('-2147483647');
-    expect(body?.tagName).toBe('BODY');
+    // A plain colour fills the still layer once instead of following the scroll.
+    expect(canvas?.style.inset).toMatch(/^0(px)?$/);
+    expect(still?.tagName).toBe('BODY');
+    expect(m.stage.children[0]?.tagName).toBe('BODY');
+    expect(m.stillHost.shadowRoot).not.toBe(m.host.shadowRoot);
     expect(copy(m, '.text')?.textContent).toBe('Behind the glass');
     expect(copy(m, '.surface')?.hasAttribute(HIDE_ATTR)).toBe(true);
     expect(m.host.getAttribute('aria-hidden')).toBe('true');
@@ -71,8 +75,8 @@ describe('Mirror', () => {
     expect(m.host.inert).toBe(true);
   });
 
-  it('patches attributes and text in place and rebuilds on structural changes', async () => {
-    const { lens, surface } = page('<p class="text">One</p>');
+  it('patches attributes, text and children in place, without copying the page again', async () => {
+    const { lens, surface } = page('<p class="text">One</p><p class="last">Last</p>');
     const m = mirror(lens, surface);
     const build = vi.spyOn(m, 'build');
     const text = orig('.text');
@@ -82,15 +86,21 @@ describe('Mirror', () => {
     await wait();
     expect(copy(m, '.text')?.getAttribute('data-state')).toBe('on');
     expect(copy(m, '.text')?.textContent).toBe('Two');
-    expect(build).not.toHaveBeenCalled();
 
-    document.body
-      .querySelector(':scope > main')!
-      .insertAdjacentHTML('beforeend', '<p class="later">New</p>');
+    const main = document.body.querySelector(':scope > main')!;
+    text.insertAdjacentHTML('afterend', '<p class="later">New</p>');
+    main.append('tail');
+    orig('.last').remove();
+    // Added and removed again in the same batch: never copied.
+    main.append(document.createElement('hr'));
+    main.querySelector(':scope > hr')!.remove();
     await wait();
-    expect(copy(m, '.later')).toBeNull();
+    const main2 = copy(m, 'main')!;
+    expect([...main2.children].map((el) => el.className)).toEqual(['text', 'later']);
+    expect(main2.textContent).toContain('tail');
+    expect(main2.querySelector('hr')).toBeNull();
     await wait(200);
-    expect(copy(m, '.later')?.textContent).toBe('New');
+    expect(build).not.toHaveBeenCalled();
   });
 
   it('ignores changes inside lenses', async () => {
@@ -211,25 +221,114 @@ describe('Mirror', () => {
     vi.restoreAllMocks();
   });
 
-  it('rebuilds after a burst of style changes, a long scroll, a resize or a late image', async () => {
+  it('refreshes stand-ins after style changes, a long scroll or a late image; rebuilds on resize', async () => {
     const { lens, surface } = page('<p class="text">One</p><img class="pic" />');
     const m = mirror(lens, surface);
+    const refresh = vi.spyOn(m, 'refresh');
     const rebuild = vi.spyOn(m, 'rebuild');
     const build = vi.spyOn(m, 'build');
 
     orig('.text').setAttribute('class', 'text big');
-    await wait(500);
-    expect(build).toHaveBeenCalledTimes(1);
-
+    await wait();
+    expect(refresh).toHaveBeenCalledTimes(1);
     m.scrolled(null, 10_000);
-    expect(rebuild).toHaveBeenCalledTimes(2);
+    orig('.pic').dispatchEvent(new Event('load'));
+    expect(refresh).toHaveBeenCalledTimes(3);
+    await wait(200);
+    expect(build).not.toHaveBeenCalled();
 
     window.dispatchEvent(new Event('resize'));
-    orig('.pic').dispatchEvent(new Event('load'));
-    expect(rebuild).toHaveBeenCalledTimes(4);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    await wait();
+    expect(rebuild).toHaveBeenCalledTimes(2);
+    document.documentElement.removeAttribute('data-theme');
 
     m.rebuild(true);
-    expect(build).toHaveBeenCalledTimes(2);
+    expect(build).toHaveBeenCalled();
+  });
+
+  it('fills in a stand-in once it comes near or its original changes size', async () => {
+    const { lens, surface } = page(`
+      <section class="far"><p class="inner">Far away</p></section>
+      <section class="grows"><p class="inner2">Grows</p></section>
+      <section class="shown" style="display:none"><p>Shown</p></section>`);
+    let top = 5000;
+    let height = 100;
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const t = this.closest('.far') ? top : this.closest('.grows, .shown') ? 9000 : 0;
+      return { top: t, bottom: t + 100, left: 0, right: 100, width: 100, height: 100 } as DOMRect;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(100);
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.closest('.grows') ? height : 100;
+    });
+    const m = mirror(lens, surface);
+    expect(copy(m, '.inner')).toBeNull();
+    expect(copy(m, '.inner2')).toBeNull();
+
+    // A change inside a stand-in only asks for a refresh.
+    const refresh = vi.spyOn(m, 'refresh');
+    orig('.inner2').setAttribute('data-x', '1');
+    await wait();
+    expect(refresh).toHaveBeenCalled();
+
+    top = 100;
+    height = 300;
+    orig('.shown').style.display = 'block';
+    await wait(200);
+    expect(copy(m, '.inner')?.textContent).toBe('Far away');
+    // Still far, but with a new size to stand in for.
+    expect(copy(m, '.grows')?.style.getPropertyValue('contain-intrinsic-size')).toBe('100px 300px');
+    expect(copy(m, '.inner2')).toBeNull();
+    vi.restoreAllMocks();
+  });
+
+  it('lifts backgrounds below the content into the still layer, placed where they are', () => {
+    const { lens, surface } = page(`
+      <div class="frame">
+        <div class="glow" style="position:fixed;z-index:-1;inset:0"><i class="blob"></i></div>
+        <div class="over" style="position:fixed;z-index:3">Toast</div>
+      </div>
+      <div class="painted" style="background:red">
+        <div class="kept" style="position:absolute;z-index:-1"></div>
+      </div>`);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const glow = this.classList.contains('glow');
+      return {
+        top: glow ? 10 : 0,
+        left: glow ? 20 : 0,
+        bottom: 300,
+        right: 400,
+        width: glow ? 380 : 400,
+        height: glow ? 290 : 300,
+      } as DOMRect;
+    });
+    const m = mirror(lens, surface);
+    const glow = m.stillStage.querySelector<HTMLElement>('.glow');
+    expect(glow?.parentElement?.hasAttribute(SHELL_ATTR)).toBe(true);
+    expect(glow?.parentElement?.className).toBe('frame');
+    expect(glow?.querySelector('.blob')).not.toBeNull();
+    expect(glow?.style.getPropertyValue('position')).toBe('absolute');
+    expect(glow?.style.left).toBe('20px');
+    expect(glow?.style.width).toBe('380px');
+    expect(copy(m, '.glow')).toBeNull();
+    // Above the content, or on top of a painted ancestor: stays with the content.
+    expect(copy(m, '.over')).not.toBeNull();
+    expect(copy(m, '.kept')).not.toBeNull();
+
+    // A theme switch on an ancestor reaches the stand-in too.
+    orig('.frame').setAttribute('data-theme', 'dark');
+    m.mutated([
+      { type: 'attributes', target: orig('.frame'), attributeName: 'data-theme' } as never,
+    ]);
+    expect(glow?.parentElement?.getAttribute('data-theme')).toBe('dark');
+    vi.restoreAllMocks();
   });
 
   it('copies checkbox input and ignores elements it does not mirror', () => {
@@ -339,6 +438,40 @@ describe('Mirror', () => {
       blob.style.opacity = '0.9';
       vi.advanceTimersByTime(1000);
       expect(copy(m, '.blob')?.style.getPropertyValue('opacity')).toBe('0.9');
+    } finally {
+      delete (document as { getAnimations?: unknown }).getAnimations;
+      vi.useRealTimers();
+    }
+  });
+
+  it('refreshes drifting backgrounds in the still layer only every few seconds', () => {
+    vi.useFakeTimers();
+    const { lens, surface } = page(
+      '<div class="glow" style="position:fixed;z-index:-1"><i class="blob" style="opacity:0.2"></i></div>',
+    );
+    const blob = orig('.blob');
+    Object.defineProperty(document, 'getAnimations', {
+      configurable: true,
+      value: () => [
+        {
+          playState: 'running',
+          effect: {
+            target: blob,
+            getKeyframes: () => [{ offset: 1, opacity: '1' }],
+            getTiming: () => ({ iterations: Infinity }),
+          },
+        },
+      ],
+    });
+    try {
+      const m = mirror(lens, surface);
+      const still = () => m.stillStage.querySelector<HTMLElement>('.blob')!.style.opacity;
+      expect(still()).toBe('0.2');
+      blob.style.opacity = '0.6';
+      vi.advanceTimersByTime(3000);
+      expect(still()).toBe('0.2');
+      vi.advanceTimersByTime(7000);
+      expect(still()).toBe('0.6');
     } finally {
       delete (document as { getAnimations?: unknown }).getAnimations;
       vi.useRealTimers();

@@ -1,8 +1,10 @@
 <script lang="ts">
   /**
    * DetailPanel organism — a record's detail on a glass panel floating over its list: it flies
-   * in from the right and fades out, the list stays visible, blurred, behind it. Escape, the
-   * close button and a click beside the panel close it; ← / → step through the list.
+   * in from the right and fades out, the list stays visible, blurred, behind it. It closes like
+   * every overlay: Escape, the close button at the top end, or a click beside the panel
+   * (`closeOnBackdrop`); ← / → step through the list. Keys pressed inside a dialog opened from
+   * the panel stay with that dialog.
    *
    * Two panels can stand side by side, e.g. a person opened from their organisation: the
    * organisation's panel (`layer="behind"`) slides left and leaves the keys to the person's
@@ -17,10 +19,12 @@
    *     onprevious={…} onnext={…}><DetailHeader titleId="person-title" … /></DetailPanel>{/if}
    */
   import { onMount, tick, type Snippet } from 'svelte';
-  import { cubicOut, quintOut } from 'svelte/easing';
-  import { fade, fly } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import Button from '../atoms/Button.svelte';
   import Skeleton from '../atoms/Skeleton.svelte';
+  import Alert from '../molecules/Alert.svelte';
+  import { glide, motion } from '../../utils/motion';
+  import { fromOtherModal, trapTab } from '../../utils/overlay';
 
   interface Props {
     /** Id of the heading that names the panel, e.g. DetailHeader's `titleId`. */
@@ -33,6 +37,8 @@
     onclose: () => void;
     /** A click beside the panels; closes this panel unless given. */
     onbackdrop?: (() => void) | undefined;
+    /** A click beside the panels does something (`onbackdrop`, else close). */
+    closeOnBackdrop?: boolean;
     /**
      * `single` — the only panel. `behind` — moved left for a panel in front of it; it keeps
      * the backdrop but not the keys. `front` — beside a panel behind it; it owns the keys.
@@ -55,6 +61,7 @@
     error,
     onclose,
     onbackdrop,
+    closeOnBackdrop = true,
     layer = 'single',
     onprevious,
     onnext,
@@ -66,9 +73,13 @@
   }: Props = $props();
 
   let panel = $state<HTMLElement>();
-  const reducedMotion =
-    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const motion = (ms: number) => (reducedMotion ? 0 : ms);
+  // Both the press and the release on the backdrop: a drag out of the panel never closes it.
+  let pressedBackdrop = false;
+  function onBackdropClick() {
+    const hit = pressedBackdrop;
+    pressedBackdrop = false;
+    if (hit && closeOnBackdrop) (onbackdrop ?? onclose)();
+  }
 
   onMount(() => {
     if (layer === 'behind') return;
@@ -80,6 +91,8 @@
   function onkeydown(event: KeyboardEvent) {
     // A panel behind another leaves the keys to the one in front.
     if (layer === 'behind') return;
+    // A Dialog opened from the panel owns its keys: its Escape must not close the panel too.
+    if (fromOtherModal(event, panel)) return;
     if (event.key === 'Escape') {
       event.preventDefault();
       onclose();
@@ -88,29 +101,12 @@
     } else if (event.key === 'ArrowRight' && onnext && !isTyping(event)) {
       onnext();
     } else if (event.key === 'Tab' && panel) {
-      trapFocus(event, panel);
+      trapTab(event, panel);
     }
   }
 
   const isTyping = (event: KeyboardEvent) =>
     event.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName);
-
-  /** Keeps Tab inside the panel while it is open. */
-  function trapFocus(event: KeyboardEvent, root: HTMLElement) {
-    const focusable = [
-      ...root.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex="0"]'),
-    ];
-    const first = focusable[0];
-    const last = focusable.at(-1);
-    if (!first || !last) return;
-    if (event.shiftKey && (document.activeElement === first || document.activeElement === root)) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  }
 </script>
 
 <svelte:window {onkeydown} />
@@ -119,8 +115,9 @@
   <div
     class="backdrop"
     role="presentation"
-    onclick={onbackdrop ?? onclose}
-    transition:fade={{ duration: motion(200) }}
+    onpointerdown={() => (pressedBackdrop = true)}
+    onclick={onBackdropClick}
+    transition:fade={{ duration: motion('base').duration }}
   ></div>
 {/if}
 
@@ -134,8 +131,8 @@
   aria-labelledby={labelledby}
   aria-busy={loading}
   tabindex="-1"
-  in:fly={{ x: 64, duration: motion(380), easing: quintOut, opacity: 0 }}
-  out:fly={{ x: 24, duration: motion(180), easing: cubicOut, opacity: 0 }}
+  in:glide={{ x: 64, speed: 'slow' }}
+  out:glide={{ x: 24, speed: 'quick' }}
 >
   <header>
     <div class="nav">
@@ -162,7 +159,7 @@
   </header>
 
   {#if error}
-    <p class="error" role="alert">{error}</p>
+    <div class="error"><Alert message={error} /></div>
   {:else if itemKey === null}
     <div class="loading">
       <div class="loading-head">
@@ -173,7 +170,7 @@
     </div>
   {:else}
     {#key itemKey}
-      <div class="content" class:stale={loading} in:fade={{ duration: motion(160) }}>
+      <div class="content" class:stale={loading} in:fade={{ duration: motion('quick').duration }}>
         {@render children()}
         {#if footer}<footer>{@render footer()}</footer>{/if}
       </div>
@@ -186,9 +183,11 @@
     position: fixed;
     inset: 0;
     z-index: calc(var(--z-panel) - 1);
+    /* One backdrop for every overlay (Dialog, Drawer, DetailPanel). */
+    --overlay-blur: var(--blur-backdrop, var(--blur-glass));
     background: var(--backdrop);
-    backdrop-filter: blur(4px) saturate(120%);
-    -webkit-backdrop-filter: blur(4px) saturate(120%);
+    backdrop-filter: var(--overlay-blur);
+    -webkit-backdrop-filter: var(--overlay-blur);
   }
   .panel {
     --panel-width: min(34rem, calc(100vw - 2 * var(--space-4)));
@@ -264,11 +263,6 @@
   }
   .error {
     margin: var(--space-4) var(--space-6);
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-lg);
-    background: var(--tint-danger);
-    color: var(--danger);
-    font-weight: var(--fw-medium);
   }
   .content {
     overflow-y: auto;

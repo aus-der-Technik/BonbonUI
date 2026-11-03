@@ -9,12 +9,21 @@ export function niceMax(value: number): number {
 }
 
 /**
- * Indexes of the x-axis labels to draw: about one per 70px, always including the last
- * (most recent) point and stepping back from it.
+ * Room for a column of axis labels, from the longest one: SVG text cannot be measured before it
+ * is drawn, so an average glyph width of the small chart type (--fs-2xs) is close enough.
  */
-export function xTicks(count: number, plotWidth: number): number[] {
+export function labelSpace(labels: readonly string[], min = 24, gap = 10): number {
+  const longest = labels.reduce((n, label) => Math.max(n, label.length), 0);
+  return Math.max(min, Math.ceil(longest * 6.5) + gap);
+}
+
+/**
+ * Indexes of the x-axis labels to draw: one per `spacing` px (70 by default, or what the labels
+ * need), always including the last (most recent) point and stepping back from it.
+ */
+export function xTicks(count: number, plotWidth: number, spacing = 70): number[] {
   if (count <= 0) return [];
-  const maxTicks = Math.max(2, Math.floor(plotWidth / 70));
+  const maxTicks = Math.max(2, Math.floor(plotWidth / Math.max(1, spacing)));
   const step = Math.max(1, Math.ceil(count / maxTicks));
   return [...Array(count).keys()].filter((i) => (count - 1 - i) % step === 0);
 }

@@ -32,7 +32,8 @@ describe('renderMarkdown', () => {
 describe('formatBytes', () => {
   it('scales units', () => {
     expect(formatBytes(512)).toBe('512 B');
-    expect(formatBytes(1536)).toBe('1,5 KB');
+    expect(formatBytes(1536)).toBe('1.5 KB');
+    expect(formatBytes(1536, 'de-DE')).toBe('1,5 KB');
     expect(formatBytes(5 * 1024 * 1024)).toBe('5 MB');
     expect(formatBytes(150 * 1024 * 1024)).toBe('150 MB');
   });

@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
-  import Calendar, { type CalendarEvent } from './Calendar.svelte';
+  import Calendar, { type CalendarDay, type CalendarEvent } from './Calendar.svelte';
   import Button from '../atoms/Button.svelte';
   import Stack from '../layout/Stack.svelte';
   import { NOW, calendarEvents } from '../../demo/mock-collab';
@@ -20,7 +20,21 @@
 <script lang="ts">
   let value = $state<Date | undefined>(NOW);
   let opened = $state<CalendarEvent | null>(null);
+  let added = $state<string[]>([]);
 </script>
+
+{#snippet addButton({ date, focused }: CalendarDay)}
+  <Button
+    size="xs"
+    variant="primary"
+    shape="pill"
+    icon="plus"
+    iconOnly
+    label="Add to {date.toDateString()}"
+    tabindex={focused ? 0 : -1}
+    onclick={() => (added = [...added, date.toDateString()])}
+  />
+{/snippet}
 
 <!-- The month view of a team calendar: candy pills per event, "+n more" when a day is full.
 Narrow it (or open it on a phone) and the pills turn into dots. -->
@@ -53,3 +67,15 @@ Narrow it (or open it on a phone) and the pills turn into dots. -->
     max: new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate() + 14),
   }}
 />
+
+<!-- `day`: your controls inside each day cell, in the corner opposite the number — here an
+"add to this day" button that shows in the hovered, focused or chosen day (`dayReveal="hover"`).
+Under 40rem the cells are too narrow and the slot steps aside. -->
+<Story name="Day actions" asChild>
+  <Stack gap="sm">
+    <Calendar events={calendarEvents} today={NOW} bind:value day={addButton} dayReveal="hover" />
+    <p style="margin:0;color:var(--text-2)">
+      {added.length ? `Added to ${added.at(-1)}` : 'Point at a day and press its “+”.'}
+    </p>
+  </Stack>
+</Story>

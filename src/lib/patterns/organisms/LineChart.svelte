@@ -14,12 +14,16 @@
    * LineChart organism — a value per slot on a fixed scale (e.g. "Average rating per day",
    * 1–5★). A soft gradient fills the area under the line; dots are drawn while there are at most
    * 60 points; hovering snaps a crosshair to the nearest point. `color` takes any token, e.g.
-   * `var(--accent)` to follow the tint or `var(--color-purple)` from the candy palette.
+   * `var(--accent)` to follow the tint or `var(--color-purple)` from the candy palette. The svg is
+   * hidden from assistive tech; a visually hidden table (caption = `label`) carries the values.
    *
    *   <LineChart data={days} min={1} max={5} valueLabel="Average" />
    */
   import ChartTooltip, { type TooltipState } from '../molecules/ChartTooltip.svelte';
-  import { xTicks } from '../../utils/chart';
+  import EmptyState from '../molecules/EmptyState.svelte';
+  import type { IconName } from '../atoms/icons';
+  import ChartDataTable from './ChartDataTable.svelte';
+  import { labelSpace, xTicks } from '../../utils/chart';
   import { decimalFormat, numberFormat } from '../../utils/format';
 
   interface Props {
@@ -37,8 +41,17 @@
     color?: string;
     /** Fills the area under the line with a fading gradient. */
     area?: boolean;
-    emptyText?: string;
+    emptyTitle?: string | undefined;
+    emptyMessage?: string | undefined;
+    emptyIcon?: IconName | undefined;
+    /** @deprecated Use `emptyMessage`. */
+    emptyText?: string | undefined;
+    /** Caption of the hidden data table; defaults to `valueLabel`. */
     label?: string | undefined;
+    /** Heading of the label column in the hidden data table. */
+    categoryLabel?: string;
+    /** A gap (`null`) in the hidden data table. */
+    noValueLabel?: string;
   }
 
   let {
@@ -53,8 +66,13 @@
     height = 220,
     color = 'var(--line)',
     area = true,
-    emptyText = 'No data in this range',
+    emptyTitle,
+    emptyMessage,
+    emptyIcon,
+    emptyText,
     label,
+    categoryLabel = 'Period',
+    noValueLabel = 'No data',
   }: Props = $props();
 
   const id = $props.id();
@@ -63,16 +81,33 @@
   let hover = $state<number | null>(null);
   let tooltip = $state<TooltipState | null>(null);
 
-  const m = { top: 10, right: 10, bottom: 22, left: 32 };
+  const gridValues = $derived(
+    ticks ?? Array.from({ length: Math.floor(max - min) + 1 }, (_, n) => min + n),
+  );
+  // The y labels and the x labels decide how much room they need, so "€25K" is never clipped.
+  const m = $derived({
+    top: 10,
+    right: 10,
+    bottom: 22,
+    left: labelSpace(
+      gridValues.map((v) => tickFormat(v)),
+      24,
+      8,
+    ),
+  });
+  const xSpacing = $derived(
+    labelSpace(
+      data.map((d) => d.label),
+      28,
+      14,
+    ),
+  );
   const points = $derived(data.flatMap((d, i) => (d.value == null ? [] : [{ i, d, v: d.value }])));
   const plotW = $derived(Math.max(0, width - m.left - m.right));
   const plotH = $derived(height - m.top - m.bottom);
   const slot = $derived(data.length ? plotW / data.length : 0);
   const xAt = (i: number) => m.left + i * slot + slot / 2;
   const yAt = (v: number) => m.top + plotH - ((v - min) / (max - min || 1)) * plotH;
-  const gridValues = $derived(
-    ticks ?? Array.from({ length: Math.floor(max - min) + 1 }, (_, n) => min + n),
-  );
   const path = $derived(points.map((p, n) => `${n ? 'L' : 'M'}${xAt(p.i)},${yAt(p.v)}`).join(''));
   const hovered = $derived(hover == null ? undefined : points[hover]);
   const areaPath = $derived.by(() => {
@@ -98,13 +133,24 @@
       y: event.clientY,
       title: p.d.title ?? p.d.label,
       rows: [
-        { label: valueLabel, value: valueFormat(p.v) },
+        { label: valueLabel, value: valueFormat(p.v), color },
         ...(p.d.count != null
           ? [{ label: countLabel, value: numberFormat.format(p.d.count) }]
           : []),
       ],
     };
   }
+
+  const hasCount = $derived(data.some((d) => d.count != null));
+  const tableRows = $derived(
+    data.map((d): [string, string[]] => [
+      d.title ?? d.label,
+      [
+        d.value == null ? noValueLabel : valueFormat(d.value),
+        ...(hasCount ? [d.count == null ? '' : numberFormat.format(d.count)] : []),
+      ],
+    ]),
+  );
 
   function leave() {
     hover = null;
@@ -114,9 +160,23 @@
 
 <div class="chart" style:height="{height}px" bind:clientWidth={width}>
   {#if !points.length}
-    <div class="empty">{emptyText}</div>
-  {:else if width > 0}
-    <svg viewBox="0 0 {width} {height}" role="img" aria-label={label ?? valueLabel}>
+    <div class="empty">
+      <EmptyState
+        title={emptyTitle}
+        message={emptyMessage ?? emptyText ?? 'No data in this range'}
+        icon={emptyIcon}
+        compact={!emptyTitle}
+      />
+    </div>
+  {:else}
+    <ChartDataTable
+      caption={label ?? valueLabel}
+      columns={[categoryLabel, valueLabel, ...(hasCount ? [countLabel] : [])]}
+      rows={tableRows}
+    />
+  {/if}
+  {#if points.length && width > 0}
+    <svg viewBox="0 0 {width} {height}" aria-hidden="true">
       {#each gridValues as v, n (v)}
         <line
           x1={m.left}
@@ -127,7 +187,7 @@
         />
         <text x={m.left - 6} y={yAt(v) + 4} text-anchor="end">{tickFormat(v)}</text>
       {/each}
-      {#each xTicks(data.length, plotW) as i (i)}
+      {#each xTicks(data.length, plotW, xSpacing) as i (i)}
         <text x={xAt(i)} y={height - 6} text-anchor="middle">{data[i]?.label}</text>
       {/each}
       {#if area}
@@ -207,7 +267,7 @@
     overflow: visible;
   }
   text {
-    font-size: 11px;
+    font-size: var(--fs-2xs);
     fill: var(--text-3);
     font-variant-numeric: tabular-nums;
   }
@@ -252,7 +312,5 @@
     inset: 0;
     display: grid;
     place-items: center;
-    color: var(--text-3);
-    font-size: var(--fs-md);
   }
 </style>

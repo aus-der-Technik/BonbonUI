@@ -9,6 +9,8 @@
     showLabel?: boolean | undefined;
     /** Pressed look (a toggled view option). */
     active?: boolean | undefined;
+    /** Never folds into More when the toolbar runs out of room (the main action). */
+    primary?: boolean | undefined;
     disabled?: boolean | undefined;
     onclick?: (() => void) | undefined;
   }
@@ -23,12 +25,19 @@
    * that sticks to the top; `bar` a full-width sticky bar; `plain` has no surface, for a
    * Window's title bar. Left / Right move between the buttons (one tab stop).
    *
+   * When the room runs out (a narrow window, a phone), buttons fold into a labelled **More**
+   * button from the end, the search field and `primary` buttons last of all: the main action
+   * and the search stay in sight, the rest is one click away in a menu under More, which shows
+   * how many it holds.
+   *
    *   <Toolbar title="Inbox" items={[{ icon: 'edit', label: 'Compose', onclick: compose },
    *     { separator: true }, { icon: 'trash', label: 'Delete' }, { spacer: true }]}
    *     bind:search />
    */
-  import type { Snippet } from 'svelte';
+  import { flushSync, type Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
+  import ContextMenu from './ContextMenu.svelte';
+  import type { ContextMenuItem } from './shared.svelte';
   import SearchField from '../molecules/SearchField.svelte';
   import GlassLens from '../atoms/GlassLens.svelte';
   import { frostFilter, type LensOptions } from '../../utils/lens';
@@ -50,6 +59,10 @@
     children?: Snippet | undefined;
     /** At the very end. */
     trailing?: Snippet | undefined;
+    /** Fold buttons that do not fit into a More menu (default); `false` scrolls instead. */
+    collapse?: boolean;
+    /** Name and tooltip of the More button. */
+    moreLabel?: string;
     /** Refraction of the floating and bar variants (magnify, rim, rimBend, chroma, blur,
         saturate); `false` = frosted. */
     lens?: LensOptions | false | undefined;
@@ -68,6 +81,8 @@
     children,
     trailing,
     lens = {},
+    collapse = true,
+    moreLabel = 'More',
   }: Props = $props();
 
   let lensDrawn = $state(false);
@@ -77,7 +92,7 @@
   let focusAt = $state(0);
 
   const isButton = (e: ToolbarEntry): e is ToolbarButton => 'icon' in e;
-  const tools = () => [...root.querySelectorAll<HTMLElement>('.tool:not(:disabled)')];
+  const tools = () => [...root.querySelectorAll<HTMLElement>('.tool:not(:disabled):not([hidden])')];
 
   function onkeydown(event: KeyboardEvent) {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -89,8 +104,89 @@
     all[focusAt]?.focus();
   }
 
-  // Index among the enabled buttons, for the roving tab stop.
-  const enabled = $derived(items.filter((e) => isButton(e) && !e.disabled));
+  // ── Folding into More: from the end, primary buttons never ──
+  /** Indices of the buttons that may fold, in the order they fold (last first). */
+  const foldable = $derived(
+    items.flatMap((e, i) => (isButton(e) && !e.primary ? [i] : [])).reverse(),
+  );
+  let folded = $state(0);
+  const hidden = $derived(new Set(foldable.slice(0, folded)));
+  /** A separator shows only between two visible buttons. */
+  const shows = (i: number) => {
+    const entry = items[i];
+    if (!entry || isButton(entry)) return !hidden.has(i);
+    if (!('separator' in entry)) return true;
+    const visibleIn = (from: number, step: 1 | -1) => {
+      for (let j = from; j >= 0 && j < items.length; j += step) {
+        const e = items[j]!;
+        if (!isButton(e)) return false;
+        if (!hidden.has(j)) return true;
+      }
+      return false;
+    };
+    return visibleIn(i - 1, -1) && visibleIn(i + 1, 1);
+  };
+  const overflow = $derived<ContextMenuItem[]>(
+    items.flatMap((e, i): ContextMenuItem[] => {
+      if (!isButton(e) || !hidden.has(i)) return [];
+      return [
+        {
+          label: e.label,
+          icon: e.icon,
+          checked: e.active,
+          disabled: e.disabled,
+          onselect: () => e.onclick?.(),
+        },
+      ];
+    }),
+  );
+
+  // Index among the enabled, visible buttons (More last), for the roving tab stop.
+  const enabled = $derived(
+    items.filter((e, i) => isButton(e) && !e.disabled && !hidden.has(i)) as ToolbarButton[],
+  );
+
+  /** Shows everything, then folds from the end until nothing spills out. */
+  function fit() {
+    if (!root?.isConnected) return;
+    folded = 0;
+    flushSync();
+    while (folded < foldable.length && root.scrollWidth > root.clientWidth + 1) {
+      folded++;
+      flushSync();
+    }
+  }
+
+  let frame = 0;
+  const refit = () => {
+    cancelAnimationFrame(frame);
+    // Next frame: folding changes the toolbar's own size, which must not happen inside the
+    // observer's callback.
+    frame = requestAnimationFrame(fit);
+  };
+  $effect(() => {
+    void items.length;
+    if (!collapse) {
+      folded = 0;
+      return;
+    }
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(refit) : undefined;
+    observer?.observe(root);
+    refit();
+    return () => {
+      observer?.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  });
+
+  let menu = $state<ContextMenu>();
+  let moreOpen = $state(false);
+  let wasOpen = false;
+  function toggleMore(event: MouseEvent) {
+    if (wasOpen) return;
+    menu?.openBelow(event.currentTarget as Element);
+    moreOpen = !!menu?.isOpen();
+  }
 </script>
 
 <div
@@ -100,6 +196,7 @@
   aria-label={title ?? label}
   bind:this={root}
   class:lensed={glass && lensDrawn}
+  class:collapse
   style:--layer-front-blur={variant === 'plain' ? undefined : frostFilter(lens)}
   {onkeydown}
 >
@@ -113,7 +210,9 @@
   {/if}
   {#each items as entry, i (i)}
     {#if 'separator' in entry}
-      <span class="separator" role="separator" aria-orientation="vertical"></span>
+      {#if shows(i)}
+        <span class="separator" role="separator" aria-orientation="vertical"></span>
+      {/if}
     {:else if 'spacer' in entry}
       <span class="spacer"></span>
     {:else}
@@ -125,6 +224,7 @@
         aria-pressed={entry.active === undefined ? undefined : entry.active}
         title={entry.label}
         disabled={entry.disabled}
+        hidden={hidden.has(i)}
         tabindex={enabled.indexOf(entry) === focusAt ? 0 : -1}
         onclick={() => entry.onclick?.()}
       >
@@ -133,6 +233,33 @@
       </button>
     {/if}
   {/each}
+  {#if overflow.length}
+    <ContextMenu
+      bind:this={menu}
+      items={overflow}
+      label={moreLabel}
+      disabled
+      onclose={() => (moreOpen = false)}
+    >
+      <button
+        type="button"
+        class="tool more"
+        aria-label={moreLabel}
+        aria-haspopup="menu"
+        aria-expanded={moreOpen}
+        title={moreLabel}
+        tabindex={focusAt === enabled.length ? 0 : -1}
+        onpointerdown={() => (wasOpen = moreOpen)}
+        onclick={(e) => {
+          toggleMore(e);
+          wasOpen = false;
+        }}
+      >
+        <Icon name="more-vertical" size={18} />
+        <span class="count" aria-hidden="true">{overflow.length}</span>
+      </button>
+    </ContextMenu>
+  {/if}
   {@render children?.()}
   {#if search !== undefined}
     <div class="search">
@@ -250,6 +377,30 @@
     outline: var(--focus-ring);
     outline-offset: 1px;
   }
+  .tool[hidden] {
+    display: none;
+  }
+  /* More: a glyph with a small count of what it holds. */
+  .more {
+    position: relative;
+    gap: 2px;
+    padding: 0 var(--space-2) 0 var(--space-1);
+  }
+  .more[aria-expanded='true'] {
+    background: var(--fill-hover);
+    color: var(--text);
+  }
+  .count {
+    min-width: 1.15rem;
+    padding: 0 0.3rem;
+    border-radius: var(--radius-pill);
+    background: var(--fill-muted);
+    color: var(--text-2);
+    font-size: var(--fs-2xs);
+    font-weight: var(--fw-bold);
+    line-height: 1.15rem;
+    font-variant-numeric: tabular-nums;
+  }
   .separator {
     flex-shrink: 0;
     width: 1px;
@@ -264,6 +415,15 @@
     flex: 0 1 14rem;
     min-width: 7rem;
     margin-left: var(--space-1);
+  }
+  /* Folding: tools give way before the title truncates or the search gets too short to read
+     its placeholder. */
+  .collapse .title {
+    flex-shrink: 0;
+    max-width: 50%;
+  }
+  .collapse .search {
+    min-width: 9rem;
   }
   .toolbar--floating .search :global(input) {
     border-radius: var(--radius-pill);

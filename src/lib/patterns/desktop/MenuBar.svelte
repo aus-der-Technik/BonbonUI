@@ -4,13 +4,16 @@
 
   /** A status item on the right of the menu bar (wifi, battery, …). */
   export interface MenuBarStatus {
+    /** Stable name, rendered as `data-status` (tests, tours, design notes). */
+    id?: string | undefined;
     icon: IconName;
     /** Accessible name, also the tooltip. */
     label: string;
     /** Short text next to the icon ("82%"). */
     text?: string | undefined;
-    /** Makes it a button (e.g. opens the control center). */
-    onclick?: (() => void) | undefined;
+    /** Makes it a button (e.g. opens quick settings). The event's `currentTarget` is the item,
+     *  so a panel can pop out of it (`anchor`). */
+    onclick?: ((event: MouseEvent) => void) | undefined;
     /** Highlights it while its panel is open. */
     active?: boolean | undefined;
   }
@@ -20,7 +23,7 @@
   /**
    * MenuBar — the **top shelf**: a slim floating glass shelf over the desktop. On the left the
    * front app's name in a pill, followed by its menus (and, with `logoMenu`, the system menu
-   * as three candy dots in front). On the right status items and the **day pill**: a greeting
+   * as a wrapped bonbon in front). On the right status items and the **day pill**: a greeting
    * and the time ("Good afternoon · 14:32") that shows a small wink on hover. A front layer,
    * so it sticks to the top. ARIA menubar: Left / Right move between menus, Down opens one,
    * and while a menu is open hovering a neighbour switches to it.
@@ -41,7 +44,7 @@
 
   interface Props {
     menus?: MenuBarMenu[];
-    /** A glyph for the system menu (default: three candy dots). */
+    /** A glyph for the system menu (default: the wrapped bonbon mark). */
     logo?: IconName | undefined;
     /** The system menu; shown when given (or when `logo` is set). */
     logoMenu?: ContextMenuItem[] | undefined;
@@ -61,8 +64,8 @@
     name?: string | undefined;
     /** Your own words for the moment (another language, another tone). */
     greeting?: (date: Date, name?: string) => Greeting;
-    /** Click on the day pill (e.g. open a calendar or the notification list). */
-    onday?: (() => void) | undefined;
+    /** Click on the day pill (e.g. open a calendar); `currentTarget` is the pill. */
+    onday?: ((event: MouseEvent) => void) | undefined;
     /** A floating shelf below the top edge (default) or a full-width bar. */
     floating?: boolean;
     /** Accessible name of the menu bar. */
@@ -198,7 +201,12 @@
         >
           {#if menu.logo}
             {#if logo}<Icon name={logo} size={16} />{:else}
-              <span class="candy" aria-hidden="true"><i></i><i></i><i></i></span>
+              <svg class="bonbon" viewBox="0 0 28 16" aria-hidden="true">
+                <path class="end end--l" d="M7.5 8 1.2 2.6Q-.3 8 1.2 13.4Z" />
+                <path class="end end--r" d="M20.5 8l6.3-5.4q1.5 5.4 0 10.8Z" />
+                <rect class="body" x="5.5" y="2.5" width="17" height="11" rx="5.5" />
+                <path class="shine" d="M9 5.5h6" />
+              </svg>
             {/if}
           {:else}
             {#if i === firstApp && appIcon}
@@ -233,6 +241,7 @@
           type="button"
           class="status-item"
           class:active={item.active}
+          data-status={item.id}
           aria-label={item.label}
           aria-pressed={item.active === undefined ? undefined : item.active}
           title={item.label}
@@ -242,7 +251,7 @@
           {#if item.text}<span>{item.text}</span>{/if}
         </button>
       {:else}
-        <span class="status-item" title={item.label}>
+        <span class="status-item" data-status={item.id} title={item.label}>
           <Icon name={item.icon} size={16} label={item.label} />
           {#if item.text}<span>{item.text}</span>{/if}
         </span>
@@ -274,7 +283,7 @@
     border-bottom: 0.75px solid var(--layer-front-border);
     box-shadow:
       inset 0 -1px 0 var(--pill-bloom),
-      0 6px 18px rgba(12, 12, 22, 0.08);
+      var(--glass-shadow);
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
     color: var(--text);
@@ -328,7 +337,23 @@
       transform var(--motion-quick) var(--ease-jelly);
   }
   .trigger {
+    position: relative;
     color: var(--text-2);
+  }
+  /* The shelf is slim, but every item is as easy to hit as any control: an invisible hit area
+     grows to --target-min where the item is shorter (compact density). */
+  .trigger::before,
+  button.status-item::before,
+  button.day::before {
+    content: '';
+    position: absolute;
+    top: min(0px, calc((100% - var(--target-min)) / 2));
+    bottom: min(0px, calc((100% - var(--target-min)) / 2));
+    left: 0;
+    right: 0;
+  }
+  button.status-item {
+    position: relative;
   }
   .trigger:active,
   button.status-item:active,
@@ -374,38 +399,45 @@
     outline-offset: -2px;
   }
 
-  /* The system menu: three candy dots in the tint's hues — the same motif as the capsule. */
+  /* The system menu: a wrapped bonbon in the tint's hues — the desktop's own mark. Its wrapper
+     ends twist when pointed at, like a sweet about to be unwrapped. */
   .logo {
     padding: 0 0.6rem;
   }
-  .candy {
-    display: inline-flex;
-    gap: 3px;
+  .bonbon {
+    display: block;
+    width: 28px;
+    height: 16px;
+    overflow: visible;
   }
-  .candy i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--c);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  .bonbon .body {
+    fill: var(--tint);
+  }
+  .bonbon .shine {
+    fill: none;
+    stroke: var(--pill-light);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+  .bonbon .end {
+    fill: var(--tint-2);
+    transform-box: fill-box;
     transition: transform var(--motion-base) var(--ease-spring);
   }
-  .candy i:nth-child(1) {
-    --c: var(--tint-2);
+  .bonbon .end--l {
+    transform-origin: 100% 50%;
   }
-  .candy i:nth-child(2) {
-    --c: var(--tint);
+  .bonbon .end--r {
+    fill: var(--tint-3);
+    transform-origin: 0 50%;
   }
-  .candy i:nth-child(3) {
-    --c: var(--tint-3);
+  .logo:hover .end--l,
+  .logo[aria-expanded='true'] .end--l {
+    transform: rotate(-14deg) scaleY(1.1);
   }
-  .logo:hover .candy i:nth-child(1),
-  .logo[aria-expanded='true'] .candy i:nth-child(1) {
-    transform: translateY(-2px);
-  }
-  .logo:hover .candy i:nth-child(3),
-  .logo[aria-expanded='true'] .candy i:nth-child(3) {
-    transform: translateY(2px);
+  .logo:hover .end--r,
+  .logo[aria-expanded='true'] .end--r {
+    transform: rotate(14deg) scaleY(1.1);
   }
 
   .drop {
@@ -490,7 +522,7 @@
     .status-item,
     .day,
     .wink,
-    .candy i {
+    .bonbon .end {
       transition: none;
     }
   }

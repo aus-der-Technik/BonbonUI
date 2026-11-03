@@ -9,6 +9,7 @@
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import type { IconName } from '../atoms/icons';
+  import type { Tone } from '../tone';
 
   interface Props {
     title: string;
@@ -16,7 +17,8 @@
     /** Grey line next to the title, e.g. a summary of what's inside. */
     meta?: string | undefined;
     open?: boolean;
-    tone?: 'neutral' | 'danger';
+    /** Colours the title, e.g. `danger` for a danger zone. */
+    tone?: Tone;
     /** Buttons on the right of the heading, shown while open (e.g. "Select all"). */
     actions?: Snippet | undefined;
     children: Snippet;
@@ -40,7 +42,7 @@
     <button
       type="button"
       aria-expanded={open}
-      aria-controls="{id}-body"
+      aria-controls={open ? `${id}-body` : undefined}
       onclick={() => (open = !open)}
     >
       <Icon name="chevron-right" size={14} class="chev" />
@@ -109,9 +111,24 @@
     font-weight: var(--fw-semibold);
     letter-spacing: var(--tracking-tight);
   }
-  .disclosure--danger .title,
-  .disclosure--danger .head > button :global(:is(.chev, .lead)) {
-    color: var(--danger);
+  .disclosure--accent {
+    --_ink: var(--accent-ink);
+  }
+  .disclosure--ok {
+    --_ink: color-mix(in oklab, var(--ok) var(--ink-share), var(--ink-mix));
+  }
+  .disclosure--warn {
+    --_ink: var(--draft);
+  }
+  .disclosure--danger {
+    --_ink: var(--danger);
+  }
+  .disclosure--info {
+    --_ink: color-mix(in oklab, var(--info) var(--ink-share), var(--ink-mix));
+  }
+  .disclosure:not(.disclosure--neutral) .title,
+  .disclosure:not(.disclosure--neutral) .head > button :global(:is(.chev, .lead)) {
+    color: var(--_ink);
   }
   .meta {
     margin-left: auto;

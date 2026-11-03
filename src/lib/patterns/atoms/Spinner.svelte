@@ -54,7 +54,7 @@
       #000 calc(100% - var(--_w))
     );
     /* A gentle speed change per turn feels alive; a constant spin feels mechanical. */
-    animation: bb-spin 0.9s cubic-bezier(0.45, 0.15, 0.55, 0.85) infinite;
+    animation: bb-spin calc(var(--motion-slow) * 2.5) var(--ease-gentle) infinite;
   }
   .spinner::after {
     content: '';
@@ -69,7 +69,7 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .spinner {
-      animation-duration: 2.4s;
+      animation-duration: calc(var(--motion-slow) * 6.5);
       animation-timing-function: linear;
     }
   }

@@ -1,6 +1,7 @@
 /**
- * Mock content for the website and shop examples (Storybook only). Brands are fictional,
- * addresses use example.com, pictures come from picsum.photos by seed.
+ * Mock content for the website and shop examples (Storybook only). No real or invented brand
+ * names: makers are "Example …", addresses use example.com, pictures come from picsum.photos by
+ * seed.
  */
 import type { NavLink } from '../patterns/organisms/NavBar.svelte';
 import type { Feature } from '../patterns/organisms/FeatureGrid.svelte';
@@ -19,20 +20,20 @@ export const photo = (seed: string, w = 800, h = 1000) =>
 // ── Website ─────────────────────────────────────────────────────────────────────────────
 
 export const siteLinks: NavLink[] = [
-  { label: 'Product', href: '#product', active: true },
+  { label: 'Product', href: '#top', active: true },
   { label: 'Features', href: '#features' },
   { label: 'Pricing', href: '#pricing' },
   { label: 'Customers', href: '#customers' },
-  { label: 'Docs', href: '#docs' },
+  { label: 'FAQ', href: '#faq' },
 ];
 
 export const logos: Logo[] = [
-  { name: 'Brightwater' },
-  { name: 'Umbra Labs' },
-  { name: 'Fieldnote' },
-  { name: 'Quayside' },
-  { name: 'Lumen&Co' },
-  { name: 'Parcel' },
+  { name: 'Example Corp' },
+  { name: 'Example Labs' },
+  { name: 'Example Health' },
+  { name: 'Example Freight' },
+  { name: 'Example Bank' },
+  { name: 'Example Media' },
 ];
 
 export const features: Feature[] = [
@@ -121,7 +122,7 @@ export const testimonials = [
     quote:
       'We replaced three tools with this one. Planning meetings got shorter and nobody asks where a file lives anymore.',
     name: 'Mara Jensen',
-    role: 'Head of Operations, Larkspur Studio',
+    role: 'Head of Operations, design studio',
     avatar: photo('mara', 96, 96),
     rating: 5,
   },
@@ -129,7 +130,7 @@ export const testimonials = [
     quote:
       'Setup took an afternoon. The sync is so fast that it feels like everyone sits in one room.',
     name: 'Tomás Ruiz',
-    role: 'Engineering Lead, Quayside',
+    role: 'Engineering Lead, logistics start-up',
     avatar: photo('tomas', 96, 96),
     rating: 5,
   },
@@ -137,7 +138,7 @@ export const testimonials = [
     quote:
       'The suggestions are scarily good. Our weekly report now writes itself — we just check it.',
     name: 'Aiko Tanaka',
-    role: 'Product Manager, Fieldnote',
+    role: 'Product Manager, travel company',
     avatar: photo('aiko', 96, 96),
     rating: 4,
   },
@@ -191,7 +192,7 @@ export const footerColumns: FooterColumn[] = [
   {
     title: 'Resources',
     links: [
-      { label: 'Docs', href: '#docs' },
+      { label: 'FAQ', href: '#faq' },
       { label: 'Guides', href: '#guides' },
       { label: 'Status', href: '#status' },
       { label: 'Community', href: '#community' },
@@ -213,10 +214,11 @@ export const socialLinks: SocialLink[] = [
 
 // ── Shop ────────────────────────────────────────────────────────────────────────────────
 
+/** Each link is a ready-made filter of the product grid (see ShopStorefront). */
 export const shopLinks: NavLink[] = [
-  { label: 'New in', href: '#new', active: true },
-  { label: 'Women', href: '#women' },
-  { label: 'Men', href: '#men' },
+  { label: 'All', href: '#all', active: true },
+  { label: 'New in', href: '#new' },
+  { label: 'Knitwear', href: '#knitwear' },
   { label: 'Home', href: '#home' },
   { label: 'Sale', href: '#sale' },
 ];
@@ -245,7 +247,7 @@ export const products: ShopProduct[] = [
   {
     id: 'linen-shirt',
     title: 'Relaxed linen shirt',
-    subtitle: 'Larkspur Studio',
+    subtitle: 'Example Studio',
     category: 'tops',
     price: 59,
     compareAt: 79,
@@ -260,7 +262,7 @@ export const products: ShopProduct[] = [
   {
     id: 'merino-crew',
     title: 'Merino crew knit',
-    subtitle: 'Larkspur Studio',
+    subtitle: 'Example Studio',
     category: 'knitwear',
     price: 89,
     rating: 4.8,
@@ -274,7 +276,7 @@ export const products: ShopProduct[] = [
   {
     id: 'canvas-tote',
     title: 'Waxed canvas tote',
-    subtitle: 'Fieldnote Goods',
+    subtitle: 'Example Workshop',
     category: 'bags',
     price: 45,
     rating: 4.4,
@@ -288,7 +290,7 @@ export const products: ShopProduct[] = [
   {
     id: 'ceramic-mug',
     title: 'Speckled ceramic mug',
-    subtitle: 'Quayside Ceramics',
+    subtitle: 'Example Pottery',
     category: 'home',
     price: 18,
     rating: 4.9,
@@ -301,7 +303,7 @@ export const products: ShopProduct[] = [
   {
     id: 'cord-overshirt',
     title: 'Corduroy overshirt',
-    subtitle: 'Larkspur Studio',
+    subtitle: 'Example Studio',
     category: 'tops',
     price: 74,
     compareAt: 99,
@@ -316,7 +318,7 @@ export const products: ShopProduct[] = [
   {
     id: 'wool-blanket',
     title: 'Lambswool throw',
-    subtitle: 'Lumen & Co',
+    subtitle: 'Example Mills',
     category: 'home',
     price: 129,
     rating: 4.7,
@@ -329,7 +331,7 @@ export const products: ShopProduct[] = [
   {
     id: 'cable-cardigan',
     title: 'Chunky cable cardigan',
-    subtitle: 'Larkspur Studio',
+    subtitle: 'Example Studio',
     category: 'knitwear',
     price: 119,
     rating: 4.5,
@@ -343,7 +345,7 @@ export const products: ShopProduct[] = [
   {
     id: 'leather-pouch',
     title: 'Leather zip pouch',
-    subtitle: 'Fieldnote Goods',
+    subtitle: 'Example Workshop',
     category: 'bags',
     price: 32,
     rating: 4.2,
@@ -412,6 +414,15 @@ export async function applyCode(code: string): Promise<number> {
   if (code.toUpperCase() !== 'SPRING10') throw new Error('invalid');
   return 0.1;
 }
+
+/** Shipping rules of the example shop, in euros. */
+export const FREE_SHIPPING_FROM = 150;
+export const SHIPPING = 4.9;
+export const EXPRESS = 9.9;
+
+const euro = new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' });
+/** A price as the shop shows it ("€9.90"). */
+export const money = (amount: number) => euro.format(amount);
 
 /** A pretend network delay for async callbacks in stories. */
 export const later = (ms = 700) => new Promise<void>((resolve) => setTimeout(resolve, ms));

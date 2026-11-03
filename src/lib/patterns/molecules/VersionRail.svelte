@@ -17,6 +17,8 @@
    *
    *   <VersionRail items={versions} bind:value={version} />
    */
+  import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
+
   interface Props {
     items: VersionItem[];
     value?: string | undefined;
@@ -51,7 +53,9 @@
         aria-current={current ? 'page' : undefined}
         onclick={() => pick(item)}
       >
-        {item.label}{#if item.marked}<span class="dot" aria-label={markLabel}></span>{/if}
+        {item.label}{#if item.marked}<span class="dot" aria-hidden="true"></span><VisuallyHidden
+            >, {markLabel}</VisuallyHidden
+          >{/if}
       </a>
     {:else}
       <button
@@ -62,7 +66,9 @@
         aria-pressed={current}
         onclick={() => pick(item)}
       >
-        {item.label}{#if item.marked}<span class="dot" aria-label={markLabel}></span>{/if}
+        {item.label}{#if item.marked}<span class="dot" aria-hidden="true"></span><VisuallyHidden
+            >, {markLabel}</VisuallyHidden
+          >{/if}
       </button>
     {/if}
   {/each}

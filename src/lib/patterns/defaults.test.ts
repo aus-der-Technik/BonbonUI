@@ -29,7 +29,7 @@ describe('defaults', () => {
   });
 
   it('molecules', () => {
-    expect(render(Alert, {}).querySelector('.alert--error.alert--inline')).not.toBeNull();
+    expect(render(Alert, {}).querySelector('.alert--danger.alert--inline')).not.toBeNull();
     expect(render(DetailList, { items: [] }).querySelector('.list--stacked')).not.toBeNull();
     expect(render(KpiTile, { label: 'x', value: 1, detail: 'last 7 days' }).textContent).toContain(
       'last 7 days',
@@ -41,7 +41,7 @@ describe('defaults', () => {
         meter: [{ value: 0, color: 'red' }],
       }).querySelectorAll('.meter span'),
     ).toHaveLength(0);
-    expect(render(SearchField, { label: 'Filter' }).querySelector('.search--sm')).not.toBeNull();
+    expect(render(SearchField, { label: 'Filter' }).querySelector('.search--md')).not.toBeNull();
     expect(render(Toast, { message: 'm' }).querySelector('.toast--ok')).not.toBeNull();
     expect(
       render(ToggleChip, {

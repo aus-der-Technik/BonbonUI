@@ -19,7 +19,7 @@
     parameters: { layout: 'padded' },
     args: {
       title: 'Relaxed linen shirt',
-      subtitle: 'Larkspur Studio',
+      subtitle: 'Example Studio',
       price: 59,
       compareAt: 79,
       rating: 4.6,

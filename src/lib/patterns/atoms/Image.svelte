@@ -129,7 +129,8 @@
   .image--loading {
     background: linear-gradient(90deg, var(--fill-subtle), var(--fill-muted), var(--fill-subtle));
     background-size: 200% 100%;
-    animation: bb-slide 1.4s ease-in-out infinite;
+    /* About 1.4 s per sweep: a calm shimmer, not a flicker. */
+    animation: bb-slide calc(var(--motion-lazy) * 2.2) var(--ease-in-out) infinite;
   }
   img {
     position: absolute;
@@ -137,7 +138,7 @@
     width: 100%;
     height: 100%;
     opacity: 0;
-    transition: opacity var(--duration-base) ease;
+    transition: opacity var(--motion-slow) var(--ease-out);
   }
   .image--ready img {
     opacity: 1;

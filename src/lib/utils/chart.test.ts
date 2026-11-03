@@ -1,4 +1,4 @@
-import { barPath, hBarPath, niceMax, slotAt, xTicks } from './chart';
+import { barPath, hBarPath, labelSpace, niceMax, slotAt, xTicks } from './chart';
 
 describe('niceMax', () => {
   it('rounds up to 1, 2 or 5 × 10ⁿ', () => {
@@ -42,5 +42,19 @@ describe('slotAt', () => {
     expect(slotAt(25, 10, 4)).toBe(2);
     expect(slotAt(500, 10, 4)).toBe(3);
     expect(slotAt(5, 0, 4)).toBe(0);
+  });
+});
+
+describe('labelSpace', () => {
+  it('makes room for the longest label, never less than the minimum', () => {
+    expect(labelSpace([], 24)).toBe(24);
+    expect(labelSpace(['€0', '€25K'], 24, 8)).toBe(Math.ceil(4 * 6.5) + 8);
+    expect(labelSpace(['Chocolate bars'], 30, 10)).toBeGreaterThan(90);
+  });
+
+  it('spreads x labels by what they need', () => {
+    // Four short labels fit into 200px at 40px each, though not at the default 70px.
+    expect(xTicks(4, 200, 40)).toEqual([0, 1, 2, 3]);
+    expect(xTicks(4, 200)).toEqual([1, 3]);
   });
 });

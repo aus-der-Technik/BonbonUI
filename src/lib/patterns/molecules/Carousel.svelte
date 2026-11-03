@@ -134,6 +134,14 @@
     }
   }
 
+  /** An arrow that reaches the end disables itself; hand its focus to the slides, not the page. */
+  function step(by: number, event: MouseEvent) {
+    goTo(index + by);
+    const arrow = event.currentTarget as HTMLButtonElement;
+    const ended = !loop && (by < 0 ? index === 0 : index >= pages - 1);
+    if (ended && document.activeElement === arrow) track.focus({ preventScroll: true });
+  }
+
   function onkeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowLeft') goTo(index - 1);
     else if (event.key === 'ArrowRight') goTo(index + 1);
@@ -170,7 +178,7 @@
         aria-label={previousLabel}
         aria-controls="{id}-track"
         disabled={!loop && index === 0}
-        onclick={() => goTo(index - 1)}
+        onclick={(e) => step(-1, e)}
       >
         <Icon name="chevron-left" size={20} />
       </button>
@@ -180,7 +188,7 @@
         aria-label={nextLabel}
         aria-controls="{id}-track"
         disabled={!loop && index >= pages - 1}
-        onclick={() => goTo(index + 1)}
+        onclick={(e) => step(1, e)}
       >
         <Icon name="chevron-right" size={20} />
       </button>
@@ -214,7 +222,7 @@
       --view: min(var(--per-view), 2);
     }
   }
-  @media (max-width: 600px) {
+  @media (max-width: 520px) {
     .carousel {
       --view: 1;
     }
@@ -310,9 +318,10 @@
   .dots {
     display: flex;
     justify-content: center;
-    gap: var(--space-1);
+    gap: var(--space-3);
   }
   .dot {
+    position: relative;
     width: 8px;
     height: 8px;
     padding: 0;
@@ -324,9 +333,12 @@
       width var(--motion-base) var(--ease-spring),
       background-color var(--motion-quick) var(--ease-out);
   }
-  /* bigger hit area than the visible dot */
-  .dot {
-    box-shadow: 0 0 0 6px transparent;
+  /* The hit area is --target-min tall and reaches into the gaps; box-shadow would not, as it
+     does not take part in hit testing. */
+  .dot::before {
+    content: '';
+    position: absolute;
+    inset: calc((8px - var(--target-min)) / 2) calc(var(--space-3) / -2);
   }
   .dot:hover {
     background: var(--text-3);

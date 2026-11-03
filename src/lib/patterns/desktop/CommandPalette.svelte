@@ -24,7 +24,9 @@
   /**
    * CommandPalette — the ⌘K dialog: a search field over grouped commands. Typing filters,
    * Up / Down move, Enter runs, Escape closes. ⌘K (Ctrl+K) toggles it from anywhere unless
-   * `hotkey` is off. Built on the native `<dialog>` (focus trap and top layer for free).
+   * `hotkey` is off. Built on the native `<dialog>` (focus trap and top layer for free); a
+   * click on the backdrop closes it (press and release both there, so a drag never does).
+   * Inside a Desktop, a window that a command opens grows out of the command's row.
    *
    *   <CommandPalette bind:open groups={[{ label: 'Files', items: [{ id: 'new',
    *     label: 'New file', shortcut: ['⌘', 'N'], onselect: create }] }]} />
@@ -32,6 +34,8 @@
   import { tick } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import Kbd from '../atoms/Kbd.svelte';
+  import { backdropClick } from '../../utils/overlay';
+  import { getDesktop } from './shared.svelte';
 
   interface Props {
     open?: boolean;
@@ -60,6 +64,7 @@
   }: Props = $props();
 
   const id = $props.id();
+  const manager = getDesktop();
   let dialog = $state<HTMLDialogElement>();
   let input = $state<HTMLInputElement>();
   let active = $state(0);
@@ -104,6 +109,8 @@
   }
 
   function run(item: CommandItem) {
+    const row = dialog?.querySelector(`#${CSS.escape(`${id}-opt-${flat.indexOf(item)}`)}`);
+    if (row) manager?.openFrom(row);
     item.onselect?.();
     onselect?.(item);
     close();
@@ -147,7 +154,7 @@
     e.preventDefault();
     close();
   }}
-  onclick={(e) => e.target === dialog && close()}
+  use:backdropClick={close}
 >
   {#if open}
     <div class="panel">
@@ -219,9 +226,12 @@
     color: var(--text);
     overflow: visible;
   }
+  /* The backdrop every overlay shares. */
   .palette::backdrop {
-    background: color-mix(in srgb, var(--backdrop) 70%, transparent);
-    backdrop-filter: blur(4px);
+    --overlay-blur: var(--blur-backdrop, var(--blur-glass));
+    background: var(--backdrop);
+    backdrop-filter: var(--overlay-blur);
+    -webkit-backdrop-filter: var(--overlay-blur);
   }
   .panel {
     display: flex;

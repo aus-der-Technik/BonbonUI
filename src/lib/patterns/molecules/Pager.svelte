@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * Pager molecule — "26–50 of 1,234" with Previous / Next pills, for offset-paged lists. The
-   * range uses tabular figures so it does not jitter while paging.
+   * range uses tabular figures so it does not jitter while paging. At either end the button is
+   * only marked unavailable (`aria-disabled`), so the focus stays on it after the last page.
    *
    *   <Pager {offset} limit={25} total={1234} onpage={(next) => (offset = next)} />
    */
@@ -38,6 +39,8 @@
 
   const start = $derived(total ? offset + 1 : 0);
   const end = $derived(offset + (count ?? Math.max(0, Math.min(limit, total - offset))));
+  const atStart = $derived(disabled || offset <= 0);
+  const atEnd = $derived(disabled || end >= total);
 </script>
 
 <nav class="pager" aria-label={label}>
@@ -52,14 +55,18 @@
     <Button
       shape="pill"
       label={previousLabel}
-      disabled={disabled || offset <= 0}
-      onclick={() => onpage(Math.max(0, offset - limit))}
+      aria-disabled={atStart ? 'true' : undefined}
+      onclick={() => {
+        if (!atStart) onpage(Math.max(0, offset - limit));
+      }}
     />
     <Button
       shape="pill"
       label={nextLabel}
-      disabled={disabled || end >= total}
-      onclick={() => onpage(offset + limit)}
+      aria-disabled={atEnd ? 'true' : undefined}
+      onclick={() => {
+        if (!atEnd) onpage(offset + limit);
+      }}
     />
   </div>
 </nav>

@@ -10,7 +10,7 @@
   interface Props {
     eyebrow?: string;
     title: string;
-    lead?: string;
+    lead?: string | undefined;
     children: Snippet;
   }
 

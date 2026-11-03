@@ -63,7 +63,7 @@
     {...rest}></textarea>
   {#if counter && max != null}
     <span class="counter" class:over aria-live="polite"
-      >{value.length.toLocaleString('de-DE')} / {max.toLocaleString('de-DE')}</span
+      >{value.length.toLocaleString('en')} / {max.toLocaleString('en')}</span
     >
   {/if}
 </div>
@@ -111,7 +111,7 @@
     }
   }
   textarea[aria-invalid='true']:focus {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+    box-shadow: var(--focus-halo-danger);
   }
   .mono {
     font-family: var(--font-mono);

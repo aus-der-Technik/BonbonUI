@@ -312,6 +312,65 @@ export const icons = {
       'M9 20a3 3 0 0 1-.5-6 5 5 0 0 1 9.5 1 2.5 2.5 0 0 1 0 5z',
     ],
   },
+  // Text formatting and editing, for document, sheet and slide tools.
+  bold: {
+    paths: ['M7 5h6a3.5 3.5 0 0 1 0 7H7z', 'M7 12h7a3.5 3.5 0 0 1 0 7H7z'],
+    strokeWidth: 2.4,
+  },
+  italic: { paths: ['M10 5h8M6 19h8M14 5l-4 14'] },
+  underline: { paths: ['M7 4v7a5 5 0 0 0 10 0V4', 'M5 20h14'] },
+  strikethrough: {
+    paths: [
+      'M4 12h16',
+      'M16.5 7.5C16 5.6 14.2 4.5 12 4.5c-2.6 0-4.5 1.4-4.5 3.5',
+      'M8 16c.4 2.1 2.3 3.5 4.5 3.5 2.6 0 4.5-1.4 4.5-3.5',
+    ],
+  },
+  'align-left': { paths: ['M4 6h16M4 10h10M4 14h16M4 18h10'] },
+  'align-center': { paths: ['M4 6h16M7 10h10M4 14h16M7 18h10'] },
+  'align-right': { paths: ['M4 6h16M10 10h10M4 14h16M10 18h10'] },
+  'list-ordered': {
+    paths: [
+      'M10 6h10M10 12h10M10 18h10',
+      'M4 5l1.5-1v5',
+      'M3.5 14.2c.4-.8 2.5-1 2.5.4 0 1-2.5 2-2.5 3.4h2.6',
+    ],
+  },
+  quote: {
+    paths: [
+      'M6 17c-1.5 0-2.5-1.2-2.5-3 0-3 1.8-5.5 4.5-7',
+      'M15 17c-1.5 0-2.5-1.2-2.5-3 0-3 1.8-5.5 4.5-7',
+      'M3.6 13.5a2.6 2.6 0 1 0 2.4-2.5',
+      'M12.6 13.5a2.6 2.6 0 1 0 2.4-2.5',
+    ],
+  },
+  undo: { paths: ['M9 14 4 9l5-5', 'M4 9h10.5a5.5 5.5 0 0 1 0 11H11'] },
+  redo: { paths: ['m15 14 5-5-5-5', 'M20 9H9.5a5.5 5.5 0 0 0 0 11H13'] },
+  sigma: { paths: ['M18 7V4H6l6 8-6 8h12v-3'] },
+  presentation: {
+    paths: ['M3 4h18', 'M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4', 'M12 16v4M8 21l4-1 4 1'],
+  },
+  type: { paths: ['M4 7V5h16v2', 'M12 5v14', 'M9 19h6'] },
+  square: { paths: ['M5 5h14v14H5z'] },
+  circle: { paths: ['M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z'] },
+  /** Six dots: "you can pick this up and move it" (drag handles). */
+  grip: {
+    paths: ['M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01'],
+    strokeWidth: 3,
+  },
+  'heading-1': { paths: ['M3.5 6v12M11.5 6v12M3.5 12h8', 'M16 10.5l3-2.5v10'] },
+  'heading-2': {
+    paths: [
+      'M3.5 6v12M11.5 6v12M3.5 12h8',
+      'M15.5 10.5c0-1.5 1.1-2.5 2.5-2.5s2.5 1 2.5 2.4c0 1.1-.6 1.9-1.5 2.8L15.5 18h5',
+    ],
+  },
+  'heading-3': {
+    paths: [
+      'M3.5 6v12M11.5 6v12M3.5 12h8',
+      'M15.5 8h5l-2.8 3.4c1.7-.2 3 .9 3 2.7 0 1.8-1.4 3-3.1 3-1.1 0-2-.5-2.5-1.3',
+    ],
+  },
 } as const satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof icons;

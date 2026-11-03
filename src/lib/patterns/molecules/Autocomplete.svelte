@@ -13,14 +13,16 @@
    * Autocomplete molecule — a location-style search: one big field with a suggestion list (ARIA
    * combobox) and a primary button. The component does no fetching: it calls `onquery`
    * (debounced, from `minChars` on) and shows whatever `suggestions` the app passes back.
-   * Arrow keys move through the list, Enter picks or submits, Escape closes. Suggestions drop in
-   * on a frosted glass list.
+   * Arrow keys move through the list, Enter picks or submits, Escape closes. Suggestions grow out
+   * of the field on a frosted glass list (in the top layer, flipping above when there is no room
+   * below). While `loading` the button shows a spinner but keeps focus.
    *
    *   <Autocomplete label="Search places" {suggestions} onquery={lookup} onsearch={go} />
    */
   import Button from '../atoms/Button.svelte';
   import Swatch from '../atoms/Swatch.svelte';
   import SearchField from './SearchField.svelte';
+  import { anchorTo } from './anchor';
 
   interface Props {
     value?: string;
@@ -54,6 +56,8 @@
   let open = $state(false);
   let focused = $state(false);
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let box: HTMLDivElement;
+  let list = $state<HTMLUListElement>();
   /** Suggestions as of the last keystroke; a fresh list reopens the popup. */
   let lastSuggestions: S[] | undefined;
 
@@ -63,6 +67,11 @@
       active = -1;
       open = suggestions.length > 0 && value.trim().length >= minChars && focused;
     }
+  });
+
+  $effect(() => {
+    if (!open || !list) return;
+    return anchorTo(list, box, { placement: 'bottom-start' });
   });
 
   function oninput() {
@@ -82,6 +91,8 @@
   }
 
   function submit() {
+    // Busy, or nothing typed: the button stays focused but does nothing.
+    if (loading || !value.trim()) return;
     open = false;
     const term = value.trim();
     if (term) onsearch(term, null);
@@ -109,7 +120,7 @@
 </script>
 
 <div class="row">
-  <div class="box">
+  <div class="box" bind:this={box}>
     <SearchField
       bind:value
       {label}
@@ -117,7 +128,7 @@
       size="lg"
       role="combobox"
       aria-expanded={open}
-      aria-controls="{id}-list"
+      aria-controls={open ? `${id}-list` : undefined}
       aria-autocomplete="list"
       aria-activedescendant={open && active >= 0 ? `${id}-opt-${active}` : undefined}
       {oninput}
@@ -133,7 +144,14 @@
       }}
     />
     {#if open}
-      <ul class="list" id="{id}-list" role="listbox" aria-label={label}>
+      <ul
+        bind:this={list}
+        class="list"
+        id="{id}-list"
+        role="listbox"
+        aria-label={label}
+        popover="manual"
+      >
         {#each suggestions as suggestion, index (index)}
           <li
             id="{id}-opt-{index}"
@@ -158,7 +176,7 @@
     size="xl"
     label={buttonLabel}
     busy={loading}
-    disabled={loading || !value.trim()}
+    aria-disabled={!value.trim() ? 'true' : undefined}
     onclick={submit}
   />
 </div>
@@ -175,14 +193,16 @@
     min-width: 0;
   }
   .list {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    left: 0;
-    right: 0;
-    z-index: var(--z-dropdown);
-    max-height: 22rem;
+    /* Placed by anchorTo (fixed, in the top layer), which also sets the transform-origin. */
+    position: fixed;
+    inset: auto;
+    z-index: var(--z-popover);
+    width: var(--anchor-width, 100%);
+    max-height: min(22rem, var(--anchor-room, 22rem));
     overflow-y: auto;
+    overscroll-behavior: contain;
     margin: 0;
+    color: var(--text);
     padding: var(--space-1);
     list-style: none;
     background: var(--pill-tint), var(--glass-strong);
@@ -191,7 +211,6 @@
     box-shadow: var(--shadow-pop);
     backdrop-filter: var(--blur-pill);
     -webkit-backdrop-filter: var(--blur-pill);
-    transform-origin: top center;
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
   .option {
@@ -205,8 +224,9 @@
     font-size: var(--fs-base);
     transition: background-color var(--motion-quick) var(--ease-out);
   }
+  /* Pointing is neutral; the accent marks the active suggestion. */
   .option:hover {
-    background: var(--accent-faint);
+    background: var(--fill-hover);
   }
   .option[aria-selected='true'] {
     background: var(--accent-soft);

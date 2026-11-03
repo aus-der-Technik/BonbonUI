@@ -13,8 +13,8 @@
    * `truncate={2}` to two) with an ellipsis.
    *
    * Good typography is the default: 1.5 line height for reading, tighter tracking as the size
-   * grows, no orphaned last words, and a paragraph (`as="p"`) stops at a comfortable ~70
-   * characters per line; `measure={false}` lets it run the full width.
+   * grows, no orphaned last words, and a paragraph (`as="p"`) stops at a comfortable `--measure`
+   * (~68 characters); `measure={false}` lets it run the full width.
    *
    *   <Text tone="muted">Last synced 2 minutes ago</Text>
    *   <Text size="2xl" weight="bold" numeric>1.284</Text>
@@ -105,9 +105,9 @@
     text-wrap: pretty;
     overflow-wrap: break-word;
   }
-  /* Long lines tire the eye: paragraphs stop around 70 characters. */
+  /* Long lines tire the eye: paragraphs stop at the reading measure. */
   .text--measure {
-    max-width: 70ch;
+    max-width: var(--measure);
   }
   .text--measure.text--centered {
     margin-inline: auto;

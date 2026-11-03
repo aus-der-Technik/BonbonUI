@@ -397,16 +397,16 @@ describe('Price', () => {
   const text = (host: HTMLElement, selector: string) =>
     host.querySelector(selector)?.textContent?.replace(/\s/g, ' ');
 
-  it('formats in German euros by default', () => {
+  it('formats in English by default', () => {
     const host = render(Price, { amount: 1234.5 });
-    expect(text(host, '.amount')).toBe('1.234,50 €');
+    expect(text(host, '.amount')).toBe('€1,234.50');
     expect(host.querySelector('.compare')).toBeNull();
   });
 
   it('strikes through a higher compare-at price', () => {
     const host = render(Price, { amount: 39, compareAt: 49, size: 'lg', unit: '/ month' });
     expect(host.querySelector('.price--sale.price--lg')).not.toBeNull();
-    expect(text(host, 's.compare')).toContain('49,00 €');
+    expect(text(host, 's.compare')).toContain('€49.00');
     expect(host.querySelector('s .sr-only')?.textContent).toBe('Regular price');
     expect(host.querySelector('.unit')?.textContent).toBe('/ month');
     expect(render(Price, { amount: 49, compareAt: 39 }).querySelector('.compare')).toBeNull();

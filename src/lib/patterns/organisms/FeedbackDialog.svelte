@@ -7,8 +7,9 @@
   /**
    * FeedbackDialog organism — "Feedback on this page": thumbs or stars, an optional comment,
    * then a thank-you that pops in with a self-drawing tick and a few sprinkles. Props only: the app sends the draft to its feedback service
-   * in `onsubmit`; a rejection shows its message and keeps the draft for a retry. Every visible
-   * text has a prop.
+   * in `onsubmit`; a rejection shows its message and keeps the draft for a retry. The thank-you
+   * closes itself after `closeAfter` ms, or stays with a "Done" button. Pass the button that
+   * asked as `origin` and the dialog grows out of it. Every visible text has a prop.
    *
    *   <FeedbackDialog open={asking} onclose={() => (asking = false)} onsubmit={send} />
    */
@@ -20,6 +21,7 @@
   import ThumbsInput from '../molecules/ThumbsInput.svelte';
   import Dialog from './Dialog.svelte';
   import { celebrate } from '../../utils/delight';
+  import { onDestroy } from 'svelte';
 
   interface Props {
     open: boolean;
@@ -39,6 +41,14 @@
     cancelLabel?: string;
     sendLabel?: string;
     sendingLabel?: string;
+    /** Closes the thank-you. */
+    doneLabel?: string;
+    /** The two thumbs. */
+    upLabel?: string;
+    downLabel?: string;
+    closeLabel?: string;
+    /** What opened it (e.g. a "Feedback" button): the dialog grows out of it. */
+    origin?: Element | DOMRect | undefined;
     onclose: () => void;
     onsubmit: (draft: FeedbackDraft, comment: string) => Promise<void> | void;
   }
@@ -60,6 +70,11 @@
     cancelLabel = 'Cancel',
     sendLabel = 'Send feedback',
     sendingLabel = 'Sending…',
+    doneLabel = 'Done',
+    upLabel = 'Up',
+    downLabel = 'Down',
+    closeLabel = 'Close',
+    origin,
     onclose,
     onsubmit,
   }: Props = $props();
@@ -80,12 +95,24 @@
         : null,
   );
 
+  const formId = $props.id();
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
+  const stopTimer = () => clearTimeout(closeTimer);
+
   $effect(() => {
+    // A new opening starts fresh, and a thank-you timer of the last one must not close it.
+    stopTimer();
     if (open) {
       error = '';
       sent = false;
     }
   });
+  onDestroy(stopTimer);
+
+  function close() {
+    stopTimer();
+    onclose();
+  }
 
   async function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -98,7 +125,7 @@
       thumbs = null;
       stars = 0;
       comment = '';
-      if (closeAfter > 0) setTimeout(onclose, closeAfter);
+      if (closeAfter > 0) closeTimer = setTimeout(close, closeAfter);
     } catch (cause) {
       error = cause instanceof Error ? cause.message : String(cause);
     } finally {
@@ -112,7 +139,15 @@
   }
 </script>
 
-<Dialog {open} title={sent ? undefined : title} intro={sent ? undefined : intro} {onclose}>
+<Dialog
+  {open}
+  {origin}
+  {closeLabel}
+  title={sent ? undefined : title}
+  intro={sent ? undefined : intro}
+  dismissible={!sending}
+  onclose={close}
+>
   {#if sent}
     <div class="sent" role="status">
       <span class="tick" use:cheer
@@ -124,7 +159,7 @@
       <p>{sentMessage}</p>
     </div>
   {:else}
-    <form onsubmit={submit}>
+    <form id={formId} onsubmit={submit}>
       <fieldset>
         <legend>{ratingLabel}</legend>
         <SegmentedControl
@@ -136,9 +171,9 @@
           bind:value={kind}
         />
         {#if kind === 'thumbs'}
-          <ThumbsInput bind:value={thumbs} />
+          <ThumbsInput bind:value={thumbs} label={thumbsLabel} {upLabel} {downLabel} />
         {:else}
-          <StarInput bind:value={stars} />
+          <StarInput bind:value={stars} label={starsLabel} />
         {/if}
       </fieldset>
 
@@ -153,18 +188,25 @@
       </label>
 
       {#if error}<div class="error"><Alert message={error} /></div>{/if}
-
-      <div class="actions">
-        <Button label={cancelLabel} onclick={onclose} />
-        <Button
-          type="submit"
-          variant="primary"
-          label={sending ? sendingLabel : sendLabel}
-          disabled={!draft || sending}
-        />
-      </div>
     </form>
   {/if}
+  {#snippet actions()}
+    {#if sent}
+      <Button variant="primary" label={doneLabel} onclick={close} />
+    {:else}
+      <Button label={cancelLabel} disabled={sending} onclick={close} />
+      <!-- Outside the form in the dialog's action row; `form` still submits it. -->
+      <Button
+        type="submit"
+        form={formId}
+        variant="primary"
+        label={sendLabel}
+        busy={sending}
+        busyLabel={sendingLabel}
+        disabled={!draft}
+      />
+    {/if}
+  {/snippet}
 </Dialog>
 
 <style>
@@ -189,13 +231,6 @@
   }
   .error {
     margin-top: var(--space-3);
-  }
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--space-2);
-    margin-top: var(--space-5);
   }
   .sent {
     display: grid;

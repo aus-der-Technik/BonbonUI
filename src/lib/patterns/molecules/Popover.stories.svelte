@@ -14,7 +14,21 @@
     argTypes: {
       placement: {
         control: 'select',
-        options: ['bottom-start', 'bottom', 'bottom-end', 'top-start', 'top', 'top-end'],
+        options: [
+          'bottom-start',
+          'bottom',
+          'bottom-end',
+          'top-start',
+          'top',
+          'top-end',
+          'right-start',
+          'right',
+          'right-end',
+          'left-start',
+          'left',
+          'left-end',
+          'center',
+        ],
       },
       variant: { control: 'select', options: ['primary', 'secondary', 'glass', 'ghost'] },
     },
@@ -57,6 +71,33 @@
     <Popover label="Share" icon="share" iconOnly variant="glass" placement="top-end" title="Share">
       <p style="margin:0;max-width:16rem;color:var(--text-2)">
         Anyone with the link can view this board. Invite people to let them edit.
+      </p>
+    </Popover>
+  </Row>
+</Story>
+
+<!-- Beside the trigger: from a vertical rail or a sidebar a popover opens sideways, lined up with
+     the trigger's top (`right-start`) or centred on it (`right`). It grows out of the edge facing
+     the trigger, level with it, and flips to the other side when the room runs out. `center`
+     lays the panel over the trigger. -->
+<Story name="Beside the trigger" asChild>
+  <Row justify="between" padding="2xl" align="start">
+    <Stack gap="sm">
+      <Popover label="Slide options" icon="layout" iconOnly placement="right-start" title="Layout">
+        <p style="margin:0;max-width:14rem;color:var(--text-2)">
+          Opens to the right of a rail, aligned with its trigger.
+        </p>
+      </Popover>
+      <Popover label="Centred beside" icon="more" iconOnly placement="right" title="Beside">
+        <p style="margin:0;max-width:14rem;color:var(--text-2)">Centred on the trigger.</p>
+      </Popover>
+    </Stack>
+    <Popover label="Over the trigger" placement="center" title="Rename">
+      <p style="margin:0;max-width:14rem;color:var(--text-2)">Laid over its trigger.</p>
+    </Popover>
+    <Popover label="Details" icon="info" iconOnly placement="left-start" title="Details">
+      <p style="margin:0;max-width:14rem;color:var(--text-2)">
+        Opens to the left — at the right edge of the screen this is where the room is.
       </p>
     </Popover>
   </Row>

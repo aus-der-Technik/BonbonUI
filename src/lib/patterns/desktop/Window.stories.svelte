@@ -16,15 +16,17 @@
   });
 </script>
 
-<!-- A framed app preview in the page flow (`static`). Point at it: the three candy dots on the
-     right unwrap into minimise, zoom and close.
+<!-- A framed app preview in the page flow (`static`). The controls at the end of the title bar
+     are plain glyphs: minimise, zoom and — after a hairline — close. Point at one for its name.
 
-     Why a capsule instead of three coloured lights? Coloured buttons that are always on shout
-     "act on me" while you read. The capsule is calm at rest (tiny dots in the tint's three
-     hues — a wink, not a warning) and clear when you reach for it (labelled icons, a bigger
-     target). Close turns red only under its own pointer, because danger should appear when you
-     are about to act, not all day. Why on the right? That is where the pointer already rests
-     after reading a line, and it keeps the title and the app icon together on the left. -->
+     Why glyphs and not coloured dots? A dot says nothing until you have learned which colour
+     does what; a minus, a frame and a cross say it at once, for everyone, at rest. They stay
+     neutral so they never shout "act on me" while you read, and each is a full 32px target.
+     Close turns red only while you point at (or focus) close itself — danger appears when you
+     are about to act, not all day — and the hairline keeps it one step apart from zoom, so a
+     slightly missed click never closes your work. Why on the right? That is where the pointer
+     already rests after reading a line, and it keeps the title and the app icon together on
+     the left. -->
 <Story name="Playground">
   {#snippet template(args)}
     <Window {...args} onclose={() => {}}>
@@ -73,7 +75,7 @@
 </Story>
 
 <!-- The front window wears the selected layer: a tint rim and a soft glow. A window behind it
-     (`focused={false}`) flattens its shadow, greys its capsule dots and quiets its title.
+     (`focused={false}`) flattens its shadow, quiets its title and its controls.
 
      Why a rim and not just a darker title? On a busy desktop the eye looks for a shape, not a
      shade of grey: the rim is the same "this one is chosen" signal used for selected list rows,
@@ -81,7 +83,7 @@
 <Story name="Focused and behind" asChild>
   <Stack gap="lg">
     <Window title="Front window" icon="edit" color="yellow" static focused height={140}>
-      <Text tone="muted">Tint rim, soft glow, candy dots.</Text>
+      <Text tone="muted">Tint rim, soft glow, readable controls.</Text>
     </Window>
     <Window
       title="Window behind"
@@ -92,7 +94,7 @@
       focused={false}
       height={140}
     >
-      <Text tone="muted">Flatter, quieter, grey dots — hover it and the capsule still opens.</Text>
+      <Text tone="muted">Flatter, quieter — its controls still work at a click.</Text>
     </Window>
   </Stack>
 </Story>

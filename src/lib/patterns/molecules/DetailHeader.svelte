@@ -102,7 +102,7 @@
     color: var(--text-3);
     font-size: var(--fs-sm);
   }
-  @media (max-width: 640px) {
+  @media (max-width: 720px) {
     .identity {
       flex-wrap: wrap;
       gap: var(--space-4);

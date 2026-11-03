@@ -1,15 +1,17 @@
 <script lang="ts">
   /**
    * Window — a desktop app window. The title sits on the left with the app's small candy icon;
-   * the window controls live in the **candy capsule** on the right: three candy dots at rest
-   * that unwrap into minimise, zoom and close when you point at the window (close only turns
-   * red under its own pointer). Optional toolbar in the title bar, a full-height sidebar and a
-   * footer (status bar).
+   * the window controls sit at the end of the title bar: minimise, zoom and — set apart by a
+   * hairline — close, as plain glyph buttons that are readable at rest, 32px targets with a
+   * tooltip naming the action. They stay neutral; close shows the danger colour only while it
+   * is itself pointed at or focused. Optional toolbar in the title bar, a full-height sidebar
+   * and a footer (status bar). In a narrow window the toolbar takes a row of its own.
    *
    * Inside a Desktop it floats: drag it by the title bar, resize it from the corner,
    * double-click the title bar to zoom. The front window wears the selected layer's tint rim;
-   * the others flatten. Windows grow out of their app's icon in the Dock and shrink back into
-   * it when minimised. On phone widths every window becomes a sheet. With `static` it is a
+   * the others flatten. Windows grow out of whatever opened them — a desktop icon, the app jar,
+   * a palette row (`WindowManager.openFrom`) — else out of their app's icon in the Dock, and
+   * shrink back into the Dock when minimised. On phone widths every window becomes a sheet. With `static` it is a
    * framed app preview in the page flow.
    *
    *   <Window title="Notes" icon="edit" color="yellow" bind:x bind:y onclose={() => (open = false)}>
@@ -21,9 +23,11 @@
   import { untrack, type Snippet } from 'svelte';
   import AppIcon from '../atoms/AppIcon.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import Tooltip from '../atoms/Tooltip.svelte';
   import type { IconName } from '../atoms/icons';
   import { space, type Space } from '../layout/space';
   import { getDesktop, type AppColor } from './shared.svelte';
+  import { motion } from '../../utils/motion';
 
   interface Props {
     title: string;
@@ -69,7 +73,7 @@
     minimizeLabel?: string;
     zoomLabel?: string;
     resizeLabel?: string;
-    /** Name of the capsule; `{title}` is replaced. */
+    /** Name of the window controls group; `{title}` is replaced. */
     controlsLabel?: string;
     class?: string;
     children?: Snippet | undefined;
@@ -134,15 +138,14 @@
     return () => manager.unregister(me);
   });
 
-  // ── Motion: grow out of the tray, shrink back into it, pop away on close ──
-  const still = () =>
-    typeof matchMedia !== 'function' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ── Motion: grow out of the opener (or the tray), shrink back into it, pop away on close ──
+  /** Without WAAPI (tests, old engines) windows simply appear and disappear. */
+  const animates = () => typeof root?.animate === 'function';
 
-  /** The Dock icon's centre relative to `box`, as a transform origin. */
-  function trayOrigin(box: DOMRect): string | undefined {
-    const icon = manager?.anchor(wid);
-    if (!icon) return undefined;
-    return `${icon.left + icon.width / 2 - box.left}px ${icon.top + icon.height / 2 - box.top}px`;
+  /** The centre of `rect` relative to `box`, as a transform origin. */
+  function originAt(rect: DOMRect | undefined, box: DOMRect): string | undefined {
+    if (!rect) return undefined;
+    return `${rect.left + rect.width / 2 - box.left}px ${rect.top + rect.height / 2 - box.top}px`;
   }
 
   function play(el: HTMLElement, frames: Keyframe[], duration: number, easing: string) {
@@ -154,18 +157,20 @@
   }
 
   function arrive() {
-    if (!managed || still() || !root?.isConnected) return;
-    const origin = trayOrigin(root.getBoundingClientRect());
+    if (!managed || !animates() || !root?.isConnected) return;
+    const origin = originAt(manager?.origin(wid), root.getBoundingClientRect());
+    const m = motion(origin ? 'slow' : 'base', 'out', root);
     root.style.transformOrigin = origin ?? '50% 0%';
     const from = origin ? 'scale(0.14)' : 'translateY(10px) scale(0.97)';
+    // Reduced motion: the window fades in where it stands.
     const anim = play(
       root,
       [
-        { opacity: 0, transform: from },
+        m.reduced ? { opacity: 0 } : { opacity: 0, transform: from },
         { opacity: 1, transform: 'none' },
       ],
-      origin ? 420 : 260,
-      'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      m.duration,
+      m.easing,
     );
     // Leave no transform behind: it would trap fixed-position children.
     const clear = () => anim?.cancel();
@@ -178,7 +183,7 @@
    */
   let host: HTMLElement | null = null;
   function ghost(into: 'tray' | 'air') {
-    if (!managed || still() || !root || !host?.isConnected) return;
+    if (!managed || !animates() || !root || !host?.isConnected) return;
     const copy = document.createElement('div');
     copy.className = `${root.className} ghost`;
     copy.style.cssText = root.style.cssText;
@@ -186,26 +191,30 @@
     copy.setAttribute('aria-hidden', 'true');
     copy.inert = true;
     host.append(copy);
-    const origin = into === 'tray' ? trayOrigin(copy.getBoundingClientRect()) : undefined;
+    const origin =
+      into === 'tray' ? originAt(manager?.anchor(wid), copy.getBoundingClientRect()) : undefined;
+    const m = origin ? motion('slow', 'in-out', root) : motion('base', 'out', root);
     copy.style.transformOrigin = origin ?? '50% 50%';
     const anim = play(
       copy,
-      origin
-        ? [
-            { opacity: 1, transform: 'none' },
-            { opacity: 0.6, offset: 0.7 },
-            { opacity: 0, transform: 'scale(0.1)' },
-          ]
-        : [
-            { opacity: 1, transform: 'none' },
-            { opacity: 0, transform: 'scale(0.94)' },
-          ],
-      origin ? 380 : 180,
-      origin ? 'cubic-bezier(0.65, 0, 0.35, 1)' : 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+      m.reduced
+        ? [{ opacity: 1 }, { opacity: 0 }]
+        : origin
+          ? [
+              { opacity: 1, transform: 'none' },
+              { opacity: 0.6, offset: 0.7 },
+              { opacity: 0, transform: 'scale(0.1)' },
+            ]
+          : [
+              { opacity: 1, transform: 'none' },
+              { opacity: 0, transform: 'scale(0.94)' },
+            ],
+      m.duration,
+      m.easing,
     );
     const done = () => copy.remove();
     anim?.finished?.then(done, done);
-    setTimeout(done, 900);
+    setTimeout(done, m.duration + 500);
   }
 
   let wasMinimized = untrack(() => minimized);
@@ -291,9 +300,11 @@
     const up = () => {
       handle.removeEventListener('pointermove', move);
       handle.removeEventListener('pointerup', up);
+      handle.removeEventListener('pointercancel', up);
     };
     handle.addEventListener('pointermove', move);
     handle.addEventListener('pointerup', up);
+    handle.addEventListener('pointercancel', up);
   }
 
   function onGripKeydown(event: KeyboardEvent) {
@@ -322,39 +333,43 @@
   }
 </script>
 
-{#snippet capsule()}
-  <div class="capsule" role="group" aria-label={controlsLabel.replace('{title}', title)}>
-    <button
-      type="button"
-      class="ctl minimize"
-      aria-label={minimizeLabel}
-      title={minimizeLabel}
-      disabled={!floating && !onminimize}
-      onclick={minimize}
-    >
-      <Icon name="minus" size={12} />
-    </button>
-    <button
-      type="button"
-      class="ctl zoom"
-      aria-label={zoomLabel}
-      title={zoomLabel}
-      aria-pressed={maximized}
-      disabled={!floating && !onzoom}
-      onclick={zoom}
-    >
-      <Icon name={maximized ? 'minimize' : 'maximize'} size={11} />
-    </button>
-    <button
-      type="button"
-      class="ctl close"
-      aria-label={closeLabel}
-      title={closeLabel}
-      disabled={!onclose}
-      onclick={() => onclose?.()}
-    >
-      <Icon name="close" size={11} />
-    </button>
+{#snippet controls()}
+  <div class="controls" role="group" aria-label={controlsLabel.replace('{title}', title)}>
+    <Tooltip text={minimizeLabel} placement="bottom">
+      <button
+        type="button"
+        class="ctl minimize"
+        aria-label={minimizeLabel}
+        disabled={!floating && !onminimize}
+        onclick={minimize}
+      >
+        <Icon name="minus" size={15} />
+      </button>
+    </Tooltip>
+    <Tooltip text={zoomLabel} placement="bottom">
+      <button
+        type="button"
+        class="ctl zoom"
+        aria-label={zoomLabel}
+        aria-pressed={maximized}
+        disabled={!floating && !onzoom}
+        onclick={zoom}
+      >
+        <Icon name={maximized ? 'minimize' : 'maximize'} size={14} />
+      </button>
+    </Tooltip>
+    <span class="rule" aria-hidden="true"></span>
+    <Tooltip text={closeLabel} placement="bottom">
+      <button
+        type="button"
+        class="ctl close"
+        aria-label={closeLabel}
+        disabled={!onclose}
+        onclick={() => onclose?.()}
+      >
+        <Icon name="close" size={14} />
+      </button>
+    </Tooltip>
   </div>
 {/snippet}
 
@@ -414,7 +429,7 @@
         </div>
       </div>
       {#if toolbar}<div class="toolbar">{@render toolbar()}</div>{/if}
-      {@render capsule()}
+      {@render controls()}
     </header>
     <div class="body">{@render children?.()}</div>
     {#if footer}<div class="footer">{@render footer()}</div>{/if}
@@ -444,10 +459,7 @@
     background: color-mix(in srgb, var(--glass-strong), var(--editor-bg) 70%);
     backdrop-filter: blur(28px) saturate(120%);
     -webkit-backdrop-filter: blur(28px) saturate(120%);
-    box-shadow:
-      0 22px 56px rgba(12, 12, 22, 0.2),
-      0 4px 14px rgba(12, 12, 22, 0.08),
-      inset 0 1px 0 var(--pill-light);
+    box-shadow: var(--shadow-pop);
     color: var(--text);
     transition:
       box-shadow var(--motion-base) var(--ease-out),
@@ -460,16 +472,13 @@
   .rim {
     border-color: var(--layer-selected-border);
     box-shadow:
-      0 26px 64px rgba(12, 12, 22, 0.2),
+      var(--shadow-pop),
       0 12px 40px color-mix(in srgb, var(--tint) 20%, transparent),
-      0 0 0 3px color-mix(in srgb, var(--tint) 8%, transparent),
-      inset 0 1px 0 var(--pill-light);
+      0 0 0 3px color-mix(in srgb, var(--tint) 8%, transparent);
   }
   /* Windows behind it step back: flatter, a little quieter. */
   .dimmed {
-    box-shadow:
-      0 10px 28px rgba(12, 12, 22, 0.12),
-      inset 0 1px 0 var(--pill-light);
+    box-shadow: var(--shadow-frosted);
   }
   .floating {
     position: absolute;
@@ -529,6 +538,8 @@
     flex: 1;
     min-width: 0;
     min-height: 0;
+    /* The title bar follows the window's width, not the screen's. */
+    container: window / inline-size;
   }
   .titlebar {
     display: flex;
@@ -536,7 +547,8 @@
     gap: var(--space-3);
     flex-shrink: 0;
     min-height: 52px;
-    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+    /* Even sides: the controls' tooltips need room inside the window's rounded edge. */
+    padding: var(--space-2) var(--space-4);
     user-select: none;
     touch-action: none;
   }
@@ -595,7 +607,7 @@
     flex: 0 0 auto;
     max-width: 45%;
   }
-  /* The toolbar gives way (it scrolls) before it could push the capsule out of the window. */
+  /* The toolbar gives way (it collapses into More) before it could push the controls out. */
   .toolbar {
     display: flex;
     flex: 1 1 auto;
@@ -608,6 +620,24 @@
     overflow-x: auto;
     scrollbar-width: none;
   }
+  /* A narrow window gives its toolbar a row of its own under the title and the controls. */
+  @container window (max-width: 34rem) {
+    .titlebar.has-toolbar {
+      flex-wrap: wrap;
+      row-gap: var(--space-1);
+    }
+    .has-toolbar .title {
+      flex: 1 1 0;
+      max-width: none;
+    }
+    .has-toolbar h2 {
+      font-size: var(--fs-md);
+    }
+    .toolbar {
+      order: 1;
+      flex-basis: 100%;
+    }
+  }
   .body {
     flex: 1;
     min-height: 0;
@@ -619,136 +649,76 @@
   }
 
   /*
-   * The candy capsule. At rest: three candy dots in a small glass capsule, a quiet hint that
-   * the window can be handled. On pointing (or focus) it unwraps — each dot grows into a
-   * monochrome icon button. Close turns red only under its own pointer: the colour of danger
-   * appears when you are about to act, not all the time.
+   * Window controls: three plain glyph buttons at the end of the title bar — minimise, zoom
+   * and, set apart by a hairline, close. Always readable (no colour code to learn), quiet at
+   * rest, and each a full 32px target. Close shows the danger colour only while it is the one
+   * pointed at or focused: danger appears when you are about to act, not all day.
    */
-  .capsule {
-    --dot: 8px;
-    --btn: 26px;
+  .controls {
+    --btn: var(--control-sm);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 2px;
     flex-shrink: 0;
     margin-left: auto;
-    padding: 4px 6px;
-    border-radius: var(--radius-pill);
-    background: var(--fill-subtle);
-    box-shadow:
-      inset 0 0 0 0.75px var(--border-strong),
-      inset 0 1px 0 var(--pill-light);
-    transition:
-      padding var(--motion-base) var(--ease-spring),
-      gap var(--motion-base) var(--ease-spring),
-      background-color var(--motion-base) var(--ease-out);
   }
   .ctl {
-    --c: var(--tint);
-    position: relative;
     display: grid;
     place-items: center;
-    width: var(--dot);
-    height: var(--dot);
+    width: var(--btn);
+    height: var(--btn);
+    min-width: 32px;
+    min-height: 32px;
     padding: 0;
     border: 0;
     border-radius: var(--radius-pill);
-    background: var(--c);
-    color: transparent;
+    background: transparent;
+    color: var(--text-2);
     cursor: pointer;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      0 1px 2px color-mix(in srgb, var(--c) 40%, transparent);
     transition:
-      width var(--motion-base) var(--ease-spring),
-      height var(--motion-base) var(--ease-spring),
       background-color var(--motion-quick) var(--ease-out),
       color var(--motion-quick) var(--ease-out),
       box-shadow var(--motion-quick) var(--ease-out),
       transform var(--motion-quick) var(--ease-jelly);
   }
-  .ctl :global(.icon) {
-    opacity: 0;
-    transform: scale(0.4);
-    transition:
-      opacity var(--motion-quick) var(--ease-out),
-      transform var(--motion-base) var(--ease-spring);
+  .rule {
+    flex-shrink: 0;
+    width: 1px;
+    height: 16px;
+    margin: 0 var(--space-1);
+    background: var(--border-strong);
   }
-  .minimize {
-    --c: var(--tint-2);
-  }
-  .close {
-    --c: var(--tint-3);
-  }
-  /* Behind the front window the candy goes grey — colour is for the thing you are using. */
+  /* Behind the front window the controls step back with the title. */
   .dimmed .ctl {
-    --c: var(--fill-off);
+    color: var(--text-3);
   }
-  .window:hover .capsule,
-  .capsule:focus-within {
-    gap: 2px;
-    padding: 2px;
-    background: var(--fill-muted);
-  }
-  .window:hover .ctl,
-  .capsule:focus-within .ctl {
-    width: var(--btn);
-    height: var(--btn);
-    background: transparent;
-    color: var(--text-2);
-    box-shadow: none;
-  }
-  .window:hover .ctl :global(.icon),
-  .capsule:focus-within .ctl :global(.icon) {
-    opacity: 1;
-    transform: none;
-  }
-  .window:hover .ctl:hover:not(:disabled),
-  .capsule:focus-within .ctl:focus-visible {
-    background: var(--glass-strong);
+  .ctl:hover:not(:disabled),
+  .ctl:focus-visible {
+    background: var(--fill-hover);
     color: var(--text);
-    box-shadow:
-      0 1px 3px rgba(12, 12, 22, 0.12),
-      inset 0 1px 0 var(--pill-light);
   }
-  .window:hover .close:hover:not(:disabled) {
+  .close:hover:not(:disabled),
+  .close:focus-visible:not(:disabled) {
     background: var(--danger);
-    color: #fff;
-    box-shadow: 0 2px 8px color-mix(in srgb, var(--danger) 40%, transparent);
+    color: var(--on-danger);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--danger) 35%, transparent);
   }
   .ctl:active:not(:disabled) {
     transform: var(--press-squish);
   }
   .ctl:disabled {
-    cursor: default;
-  }
-  .window:hover .ctl:disabled,
-  .capsule:focus-within .ctl:disabled {
     color: var(--text-3);
-    opacity: 0.5;
+    opacity: 0.45;
+    cursor: default;
   }
   .ctl:focus-visible {
     outline: var(--focus-ring);
     outline-offset: 1px;
   }
-  /* Touch has no hover: the capsule stays unwrapped, with bigger buttons. */
+  /* Fingers are bigger than pointers. */
   @media (pointer: coarse) {
-    .capsule {
-      --btn: 32px;
-      gap: 2px;
-      padding: 2px;
-      background: var(--fill-muted);
-    }
-    .ctl {
-      width: var(--btn);
-      height: var(--btn);
-      background: transparent;
-      color: var(--text-2);
-      box-shadow: none;
-    }
-    .ctl :global(.icon) {
-      opacity: 1;
-      transform: none;
+    .controls {
+      --btn: var(--control-md);
     }
   }
 
@@ -817,9 +787,7 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .capsule,
-    .ctl,
-    .ctl :global(.icon) {
+    .ctl {
       transition: none;
     }
   }

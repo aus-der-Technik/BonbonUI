@@ -3,23 +3,25 @@
    * Banner molecule — a page-wide announcement above the content: planned maintenance, a new
    * feature, a trial running out. Tinted glass in its tone (`solid` for a vibrant fill), an
    * icon, a title and message, optional actions and a close button. Once dismissed it is gone
-   * (bind `open` or listen to `ondismiss` to remember that).
+   * (bind `open` or listen to `ondismiss` to remember that). Unlike Alert and Toast, which show
+   * their × only with `ondismiss`, a banner hides itself, so its × is on unless
+   * `dismissible={false}`. Announced as an alert only for `danger`.
    *
    *   <Banner tone="info" title="New: shared boards" message="Invite your team." ondismiss={…} />
    */
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import type { IconName } from '../atoms/icons';
-
-  type Tone = 'accent' | 'info' | 'ok' | 'warn' | 'danger';
+  import { noticeRole, toneOf, type LegacyTone, type Tone } from '../tone';
 
   interface Props {
-    tone?: Tone;
+    /** `error` is a deprecated alias of `danger`. */
+    tone?: Tone | LegacyTone;
     variant?: 'soft' | 'solid';
     title?: string | undefined;
     message?: string | undefined;
-    /** Leading icon; each tone has a default, `null` hides it. */
-    icon?: IconName | null | undefined;
+    /** Leading icon; each tone has a default, `false` hides it (`null` too, for older callers). */
+    icon?: IconName | false | null | undefined;
     open?: boolean;
     /** Shows the × button. */
     dismissible?: boolean;
@@ -45,13 +47,15 @@
   }: Props = $props();
 
   const ICONS: Record<Tone, IconName> = {
+    neutral: 'info',
     accent: 'sparkles',
     info: 'info',
     ok: 'check-circle',
     warn: 'alert',
     danger: 'x-circle',
   };
-  const glyph = $derived(icon === null ? undefined : (icon ?? ICONS[tone]));
+  const shownTone = $derived(toneOf(tone));
+  const glyph = $derived(icon === null || icon === false ? undefined : (icon ?? ICONS[shownTone]));
 
   function dismiss() {
     open = false;
@@ -60,10 +64,7 @@
 </script>
 
 {#if open}
-  <div
-    class="banner banner--{tone} banner--{variant}"
-    role={tone === 'danger' || tone === 'warn' ? 'alert' : 'status'}
-  >
+  <div class="banner banner--{shownTone} banner--{variant}" role={noticeRole(shownTone)}>
     {#if glyph}<span class="icon"><Icon name={glyph} size={18} /></span>{/if}
     <div class="text">
       {#if title}<p class="title">{title}</p>{/if}
@@ -83,6 +84,7 @@
   .banner {
     --tone: var(--accent);
     --tone-ink: var(--accent-ink);
+    --tone-on: var(--on-accent);
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -99,21 +101,30 @@
     color: var(--text);
     animation: banner-in var(--motion-slow) var(--ease-out);
   }
+  .banner--neutral {
+    --tone: var(--text-3);
+    --tone-ink: var(--text-2);
+    --tone-on: oklch(from var(--text-3) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
+  }
   .banner--info {
     --tone: var(--info);
     --tone-ink: var(--info);
+    --tone-on: var(--on-info);
   }
   .banner--ok {
     --tone: var(--ok);
     --tone-ink: var(--ok);
+    --tone-on: var(--on-ok);
   }
   .banner--warn {
     --tone: var(--warn);
     --tone-ink: var(--draft);
+    --tone-on: var(--on-warn);
   }
   .banner--danger {
     --tone: var(--danger);
     --tone-ink: var(--danger);
+    --tone-on: var(--on-danger);
   }
   .banner--solid {
     border-color: transparent;
@@ -126,8 +137,9 @@
     box-shadow:
       0 10px 30px -12px var(--tone),
       inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    color: #fff;
-    --tone-ink: #fff;
+    /* Text follows the fill's lightness: white on red, near-black on amber. */
+    color: var(--tone-on);
+    --tone-ink: var(--tone-on);
   }
   .banner--accent.banner--solid {
     background: var(--grad-primary);
@@ -145,7 +157,7 @@
     color: var(--tone-ink);
   }
   .banner--solid .icon {
-    background: rgba(255, 255, 255, 0.22);
+    background: color-mix(in srgb, var(--tone-on) 20%, transparent);
   }
   .text {
     flex: 1 1 16rem;
@@ -177,8 +189,8 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    width: 30px;
-    height: 30px;
+    width: var(--control-sm);
+    height: var(--control-sm);
     margin-left: auto;
     border: 0;
     border-radius: 50%;
@@ -192,7 +204,7 @@
     background: color-mix(in srgb, var(--tone) 16%, transparent);
   }
   .banner--solid .close:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: color-mix(in srgb, var(--tone-on) 20%, transparent);
   }
   .close:focus-visible {
     outline: var(--focus-ring);

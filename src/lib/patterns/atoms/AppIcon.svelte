@@ -233,7 +233,7 @@
     border-radius: var(--radius-pill);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 60%), var(--danger);
-    color: var(--on-danger, #fff);
+    color: var(--on-danger);
     font-size: max(11px, calc(var(--app-size) * 0.19));
     font-weight: var(--fw-bold);
     font-variant-numeric: tabular-nums;

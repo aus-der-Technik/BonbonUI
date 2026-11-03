@@ -120,7 +120,9 @@
       </Layer>
       <Layer level="panel" align="center" gap="sm">
         <div class="shape-card"></div>
-        <strong>Rounded — hold</strong><span class="muted">cards, panels, windows, icons</span>
+        <strong>Rounded — hold</strong><span class="muted"
+          >cards, panels, windows, icons, status badges</span
+        >
       </Layer>
       <Layer level="panel" align="center" gap="sm">
         <Row gap="xs"><Avatar name="Ada Example" size={36} /><span class="dot"></span></Row>
@@ -332,7 +334,7 @@
     description="Desktop components keep the habits people rely on (windows, a launcher, a menu) but get their own look, so apps built with BonbonUI feel like themselves rather than a copy."
   >
     <Grid min="16rem">
-      {#each [{ icon: 'window', t: 'The candy capsule', d: 'Window controls live in one small capsule: three candy dots at rest that unwrap into minimise, zoom and close on hover. Calm when you read, clear when you reach for it — and close only turns red when you mean it.' }, { icon: 'grid', t: 'The candy tray', d: 'The dock is a glass tray. Icons lift and show their name when you point; opening squishes once. No magnifying wave — it moves your target while you aim.' }, { icon: 'sun', t: 'The top shelf', d: 'A slim floating shelf instead of a full-width bar: app menus on the left, status and a day pill on the right that greets you and tells the time.' }, { icon: 'sparkles', t: 'The candy jar', d: 'All apps in one jar: search first, icons pop in one after another so the grid feels poured, not dumped.' }] as c (c.t)}
+      {#each [{ icon: 'window', t: 'Plain window controls', d: 'Minimise, zoom and — set apart by a hairline — close, as readable glyph buttons at the end of the title bar: no colour code to learn, a full 32px target, a tooltip naming each. Quiet while you read; close only turns red when you point at it.' }, { icon: 'grid', t: 'The candy tray', d: 'The dock is a glass tray. Icons lift and show their name when you point; opening squishes once. No magnifying wave — it moves your target while you aim.' }, { icon: 'sun', t: 'The top shelf', d: 'A slim floating shelf instead of a full-width bar: app menus on the left, status and a day pill on the right that greets you and tells the time.' }, { icon: 'sparkles', t: 'The candy jar', d: 'All apps in one jar: search first, icons pop in one after another so the grid feels poured, not dumped.' }] as c (c.t)}
         <Layer level="panel" gap="xs">
           <span class="badge"><Icon name={c.icon as 'window'} size={18} /></span>
           <strong>{c.t}</strong>

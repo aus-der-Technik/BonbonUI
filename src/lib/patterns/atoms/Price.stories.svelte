@@ -8,7 +8,7 @@
     title: 'Atoms/Price',
     component: Price,
     tags: ['autodocs'],
-    args: { amount: 39, compareAt: 49, currency: 'EUR', locale: 'de-DE', size: 'lg' },
+    args: { amount: 39, compareAt: 49, currency: 'EUR', locale: 'en', size: 'lg' },
     argTypes: { size: { control: 'inline-radio', options: ['sm', 'md', 'lg', 'xl'] } },
   });
 </script>

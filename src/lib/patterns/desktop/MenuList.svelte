@@ -128,7 +128,8 @@
     outline: none;
   }
   .animate {
-    transform-origin: 0 0;
+    /* The corner it grows from; ContextMenu moves it when the menu flips at an edge. */
+    transform-origin: var(--menu-origin, 0 0);
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
   .item {

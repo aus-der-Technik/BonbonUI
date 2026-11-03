@@ -13,7 +13,7 @@
    * Logos are muted to one grey so a mix of brands still looks calm, and regain their colour on
    * hover. Without `src` a logo is set as a wordmark from its name.
    *
-   *   <LogoCloud title="Trusted by teams at" logos={[{ name: 'Larkspur' }, { name: 'Umbra' }]} />
+   *   <LogoCloud title="Trusted by teams at" logos={[{ name: 'Example Planner' }, { name: 'Example Labs' }]} />
    */
   import type { Snippet } from 'svelte';
 

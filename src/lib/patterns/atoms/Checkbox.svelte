@@ -1,13 +1,17 @@
 <script lang="ts">
   /**
    * Checkbox atom — a candy checkbox (accent fill, a check mark that draws itself in),
-   * optionally with its label. `tone="ok"` paints it green (e.g. a draft row that is ready), `danger` red (rows
-   * marked for deletion). `indeterminate` shows a dash for "some selected".
+   * optionally with its label. `tone="ok"` paints it green (e.g. a draft row that is ready), `danger`
+   * red (rows marked for deletion). `indeterminate` shows a dash for "some selected".
+   * `oncheckedchange` hands over the new state as a boolean (like Switch and ToggleChip); the DOM
+   * `onchange` still works. A checkbox without a label keeps its 18px look but a --target-min hit
+   * area.
    *
    *   <Checkbox label="Only with comments" bind:checked={onlyComments} />
    */
   import type { Snippet } from 'svelte';
   import type { HTMLInputAttributes } from 'svelte/elements';
+  import type { Tone } from '../tone';
 
   interface Props extends Omit<HTMLInputAttributes, 'type' | 'class' | 'checked' | 'children'> {
     checked?: boolean;
@@ -15,8 +19,9 @@
     label?: string | undefined;
     /** Grey line under the label. */
     description?: string | undefined;
-    /** `red` is the old name of `accent` and still works. */
-    tone?: 'accent' | 'red' | 'ok' | 'danger';
+    tone?: Tone | /** @deprecated The old name of `accent`. */ 'red';
+    /** Called with the new checked state after the user toggled it. */
+    oncheckedchange?: ((checked: boolean) => void) | undefined;
     class?: string;
     children?: Snippet | undefined;
   }
@@ -27,29 +32,41 @@
     label,
     description,
     tone = 'accent',
+    oncheckedchange,
+    onchange,
     class: extraClass = '',
     children,
     ...rest
   }: Props = $props();
 
+  function changed(event: Event & { currentTarget: EventTarget & HTMLInputElement }) {
+    onchange?.(event);
+    oncheckedchange?.(event.currentTarget.checked);
+  }
+
   const toneClass = $derived(tone === 'red' ? 'accent' : tone);
 </script>
 
-{#snippet box(cls: string)}
-  <span class="box box--{toneClass} {cls}">
-    <input type="checkbox" bind:checked bind:indeterminate {...rest} />
+{#snippet box(cls: string, bare: boolean)}
+  <!-- Bare, the box is its own label so its enlarged hit area toggles the input too. -->
+  <svelte:element
+    this={bare ? 'label' : 'span'}
+    class="box box--{toneClass} {cls}"
+    class:box--bare={bare}
+  >
+    <input type="checkbox" bind:checked bind:indeterminate {...rest} onchange={changed} />
     <svg class="mark mark--check" viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M5 12.5l4.5 4.5L19 7.5" pathLength="1" /></svg
     >
     <svg class="mark mark--dash" viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M6 12h12" pathLength="1" /></svg
     >
-  </span>
+  </svelte:element>
 {/snippet}
 
 {#if label || children}
   <label class="check {extraClass}" class:check--described={description}>
-    {@render box('')}
+    {@render box('', false)}
     <span class="text">
       <span class="label"
         >{#if children}{@render children()}{:else}{label}{/if}</span
@@ -58,7 +75,7 @@
     </span>
   </label>
 {:else}
-  {@render box(extraClass)}
+  {@render box(extraClass, true)}
 {/if}
 
 <style>
@@ -77,9 +94,10 @@
   .check--described .box {
     margin-top: 1px;
   }
-  .check:has(input:disabled) {
+  .check:has(input:disabled),
+  .box--bare:has(input:disabled) {
     cursor: default;
-    opacity: 0.5;
+    opacity: var(--disabled-opacity);
   }
   .text {
     display: grid;
@@ -106,13 +124,31 @@
     height: 18px;
     vertical-align: middle;
   }
+  .box--bare::before {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - var(--target-min)) / 2));
+    cursor: pointer;
+  }
   .box--ok {
     --_c: var(--ok);
-    --_on: var(--on-success, #fff);
+    --_on: var(--on-ok);
+  }
+  .box--warn {
+    --_c: var(--warn);
+    --_on: var(--on-warn);
+  }
+  .box--info {
+    --_c: var(--info);
+    --_on: var(--on-info);
   }
   .box--danger {
     --_c: var(--danger);
-    --_on: var(--on-danger, #fff);
+    --_on: var(--on-danger);
+  }
+  .box--neutral {
+    --_c: var(--text-2);
+    --_on: oklch(from var(--text-2) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
   }
   input {
     grid-area: 1 / 1;
@@ -197,7 +233,7 @@
     .mark path,
     input:checked ~ .mark path,
     input:indeterminate ~ .mark path {
-      transition: opacity var(--motion-quick) ease;
+      transition: opacity var(--motion-quick) var(--ease-out);
     }
     .mark,
     .mark path {

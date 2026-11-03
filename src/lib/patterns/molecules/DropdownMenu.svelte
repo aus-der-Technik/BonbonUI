@@ -14,20 +14,34 @@
     | { separator: true }
     /** A small caps heading over the entries that follow. */
     | { heading: string };
+
+  /** Spread these on your own trigger button (the `trigger` snippet's argument). */
+  export interface MenuTriggerProps {
+    'aria-haspopup': 'menu';
+    'aria-expanded': boolean;
+    /** Only while the menu is rendered, so it never points at a missing id. */
+    'aria-controls': string | undefined;
+    onclick: (event: MouseEvent) => void;
+  }
 </script>
 
 <script lang="ts">
   /**
    * DropdownMenu molecule — a row of actions behind one button (the "⋯" of a table row). ARIA
    * menu: arrows / Home / End move, Enter picks, Escape or an outside click closes and returns
-   * focus to the trigger. The menu is a frosted glass popover that drops in; entries can carry an
-   * icon and a shortcut hint, `danger` ones are red, `{ heading }` groups them.
+   * focus to the trigger; Tab out of it closes it too. The menu is a frosted glass popover that
+   * grows out of its trigger (in the top layer, flipping above when there is no room below);
+   * entries can carry an icon and a shortcut hint, `danger` ones are red, `{ heading }` groups
+   * them. `trigger` replaces the button (spread its props on yours), `header` and `children` add
+   * free content above the entries (children may be `role="menuitem"` elements).
    *
    *   <DropdownMenu items={[{ label: 'Rename', icon: 'edit', onselect: rename }]} />
    */
-  import type { ComponentProps } from 'svelte';
+  import type { ComponentProps, Snippet } from 'svelte';
+  import { tick } from 'svelte';
   import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import { anchorTo } from './anchor';
 
   interface Props {
     items: MenuEntry[];
@@ -40,6 +54,16 @@
     /** Look of the trigger button. */
     variant?: ComponentProps<typeof Button>['variant'];
     shape?: 'rounded' | 'pill';
+    /** Accessible name of the menu itself; `label` when unset. */
+    menuLabel?: string | undefined;
+    /** Smallest width of the menu (any CSS length). */
+    minWidth?: string;
+    /** Your own trigger instead of the button; spread the props onto it. */
+    trigger?: Snippet<[MenuTriggerProps]> | undefined;
+    /** Non-interactive content at the top of the menu, e.g. who is signed in. */
+    header?: Snippet | undefined;
+    /** Extra entries before `items`; give them `role="menuitem"`. */
+    children?: Snippet | undefined;
   }
 
   let {
@@ -51,33 +75,41 @@
     size = 'sm',
     variant = 'secondary',
     shape = 'rounded',
+    menuLabel,
+    minWidth = '13rem',
+    trigger: customTrigger,
+    header,
+    children,
   }: Props = $props();
 
   const id = $props.id();
   let open = $state(false);
   let root: HTMLDivElement;
   let menu = $state<HTMLDivElement>();
-  /** The side actually used: `align`, unless the menu would leave the viewport there. */
-  let side = $state<'start' | 'end'>('end');
 
   const menuItems = () => [
-    ...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]:not([disabled])') ?? []),
+    ...(menu?.querySelectorAll<HTMLElement>(
+      '[role="menuitem"]:not([disabled]):not([aria-disabled="true"])',
+    ) ?? []),
   ];
-  const trigger = () => root.querySelector<HTMLElement>('button');
+  const trigger = () =>
+    root.querySelector<HTMLElement>('[aria-haspopup="menu"]') ??
+    root.querySelector<HTMLElement>('button');
 
   async function setOpen(next: boolean) {
-    side = align;
     open = next;
     if (next) {
-      await Promise.resolve();
-      const box = menu?.getBoundingClientRect();
-      if (box?.width) {
-        if (side === 'end' && box.left < 8) side = 'start';
-        else if (side === 'start' && box.right > window.innerWidth - 8) side = 'end';
-      }
+      await tick();
       menuItems()[0]?.focus();
     }
   }
+
+  $effect(() => {
+    if (!open || !menu) return;
+    return anchorTo(menu, trigger() ?? root, {
+      placement: align === 'start' ? 'bottom-start' : 'bottom-end',
+    });
+  });
 
   function close() {
     open = false;
@@ -108,35 +140,57 @@
   function onDocumentPointerDown(event: PointerEvent) {
     if (open && !root.contains(event.target as Node)) open = false;
   }
-</script>
 
-<svelte:document onpointerdown={onDocumentPointerDown} />
+  /** Tab (or anything else) moving focus out of trigger and menu closes it. */
+  function onFocusOut(event: FocusEvent) {
+    const next = event.relatedTarget as Node | null;
+    if (open && next && !root.contains(next)) open = false;
+  }
 
-<div class="dropdown" bind:this={root} onkeydown={onKeydown} role="presentation">
-  <Button
-    {icon}
-    {label}
-    {iconOnly}
-    {size}
-    {variant}
-    {shape}
-    aria-haspopup="menu"
-    aria-expanded={open}
-    aria-controls="{id}-menu"
-    onclick={(event: MouseEvent) => {
+  const triggerProps = $derived<MenuTriggerProps>({
+    'aria-haspopup': 'menu',
+    'aria-expanded': open,
+    'aria-controls': open ? `${id}-menu` : undefined,
+    onclick: (event: MouseEvent) => {
       event.stopPropagation();
       void setOpen(!open);
-    }}
-  />
+    },
+  });
+</script>
+
+<svelte:document
+  onpointerdown={onDocumentPointerDown}
+  onfocusin={(event) => {
+    // Focus that left the window (relatedTarget null) and came back elsewhere.
+    if (open && !root.contains(event.target as Node)) open = false;
+  }}
+/>
+
+<div
+  class="dropdown"
+  bind:this={root}
+  onkeydown={onKeydown}
+  onfocusout={onFocusOut}
+  role="presentation"
+>
+  {#if customTrigger}
+    {@render customTrigger(triggerProps)}
+  {:else}
+    <Button {icon} {label} {iconOnly} {size} {variant} {shape} {...triggerProps} />
+  {/if}
   {#if open}
     <div
       bind:this={menu}
-      class="pop pop--{side}"
+      class="pop"
       id="{id}-menu"
       role="menu"
-      aria-label={label}
+      aria-label={menuLabel ?? label}
       tabindex="-1"
+      popover="manual"
+      style:min-width={minWidth}
     >
+      {@render header?.()}
+      {@render children?.()}
       {#each items as item, index (index)}
         {#if 'separator' in item}
           <div class="separator" role="separator"></div>
@@ -171,31 +225,29 @@
     display: inline-flex;
   }
   .pop {
-    position: absolute;
-    top: calc(100% + var(--space-2));
+    /* Placed by anchorTo (fixed, in the top layer); these hold until it runs. */
+    position: fixed;
+    inset: auto;
+    margin: 0;
     z-index: var(--z-popover);
-    min-width: 13rem;
     max-width: min(22rem, calc(100vw - 2rem));
+    max-height: min(32rem, var(--anchor-room, calc(100dvh - 16px)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: var(--space-1);
-    border-radius: var(--radius-lg);
+    color: var(--text);
+    border-radius: var(--radius-pop);
     border: 0.75px solid var(--pill-border);
     /* Liquid glass over a denser frost, so the entries stay readable on any page. */
     background: var(--pill-tint), var(--glass-strong);
     backdrop-filter: var(--blur-pill);
     -webkit-backdrop-filter: var(--blur-pill);
     box-shadow: var(--shadow-pop);
-    /* Grows out of the trigger's corner. */
+    /* Grows out of the trigger (anchorTo sets the transform-origin there). */
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
-  .pop--end {
-    right: 0;
-    transform-origin: top right;
-  }
-  .pop--start {
-    left: 0;
-    transform-origin: top left;
-  }
-  .item {
+  .item,
+  .pop :global([role='menuitem']:not(.item)) {
     display: flex;
     align-items: center;
     gap: var(--space-3);
@@ -203,13 +255,14 @@
     min-height: var(--control-md);
     padding: 0 var(--space-3);
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     background: none;
     font: inherit;
     font-size: var(--fs-md);
     font-weight: var(--fw-medium);
     color: var(--text);
     text-align: left;
+    text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
     transition: background-color var(--motion-quick) var(--ease-out);
@@ -218,13 +271,15 @@
     color: var(--text-2);
   }
   /* Pointing is neutral; the accent marks where the keyboard is. */
-  .item:hover:not(:disabled) {
+  .item:hover:not(:disabled),
+  .pop :global([role='menuitem']:not(.item):hover) {
     background: var(--fill-hover);
   }
   .item:hover:not(:disabled) :global(.icon) {
     color: var(--text);
   }
-  .item:focus-visible {
+  .item:focus-visible,
+  .pop :global([role='menuitem']:not(.item):focus-visible) {
     background: var(--accent-soft);
     color: var(--accent-ink);
     outline: none;
@@ -237,7 +292,7 @@
     transform: scale(0.98);
   }
   .item:disabled {
-    opacity: 0.45;
+    opacity: var(--disabled-opacity);
     cursor: default;
   }
   .text {
