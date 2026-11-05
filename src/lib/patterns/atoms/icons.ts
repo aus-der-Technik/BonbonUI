@@ -371,6 +371,39 @@ export const icons = {
       'M15.5 8h5l-2.8 3.4c1.7-.2 3 .9 3 2.7 0 1.8-1.4 3-3.1 3-1.1 0-2-.5-2.5-1.3',
     ],
   },
+  shield: { paths: ['M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z', 'm9 12 2 2 4-4'] },
+  headphones: {
+    paths: [
+      'M4 16v-4a8 8 0 0 1 16 0v4',
+      'M4 15h3v6H6a2 2 0 0 1-2-2v-4z',
+      'M20 15h-3v6h1a2 2 0 0 0 2-2v-4z',
+    ],
+  },
+  cpu: {
+    paths: [
+      'M8 6h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z',
+      'M10 10h4v4h-4z',
+      'M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4',
+    ],
+  },
+  bike: {
+    paths: [
+      'M9 17.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z',
+      'M22 17.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z',
+      'M5.5 17.5 9 10h6.5l3 7.5',
+      'M9 10l3.5 7.5',
+      'M14 6h2.5l-1 4',
+    ],
+  },
+  gamepad: {
+    paths: [
+      'M7 8h10a4 4 0 0 1 4 4v1.5a3.5 3.5 0 0 1-6.3 2.1L14 15h-4l-.7.6A3.5 3.5 0 0 1 3 13.5V12a4 4 0 0 1 4-4z',
+      'M7.5 10.5v3M6 12h3',
+      'M15.5 11.5h.01M17.5 13h.01',
+    ],
+  },
+  waveform: { paths: ['M3 11v2M7 8v8M11 4v16M15 7v10M19 10v4'] },
+  mountain: { paths: ['M3 19 9 9l4 6 2-3 6 7H3z'] },
 } as const satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof icons;
