@@ -344,7 +344,7 @@ describe('frame organisms and templates', () => {
         title: 'x',
         footer: html('<b>f</b>'),
         children: html('<p></p>'),
-      }).querySelector('footer b'),
+      }).querySelector('.footer b'),
     ).not.toBeNull();
     expect(
       render(DashboardGrid, {

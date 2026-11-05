@@ -51,6 +51,8 @@
      * bulk-action bar. Adding to one list belongs at the end of that list, not here.
      */
     floating?: Snippet | undefined;
+    /** A line of text (rendered in a `<footer>`), or your own footer — a snippet supplies its own
+     *  landmark, e.g. a SiteFooter. */
     footer?: string | Snippet | undefined;
     /** Maximum width of the content (header, body and footer share the same edges). */
     width?: 'narrow' | 'medium' | 'wide' | 'full';
@@ -149,10 +151,12 @@
     {#if aside}<aside class="aside">{@render aside()}</aside>{/if}
   </div>
 
-  {#if footer}
-    <footer class="footer">
-      {#if typeof footer === 'string'}{footer}{:else}{@render footer()}{/if}
-    </footer>
+  {#if typeof footer === 'string'}
+    <footer class="footer">{footer}</footer>
+  {:else if footer}
+    <!-- A snippet brings its own landmark (SiteFooter is a <footer>); wrapping it in another
+         would nest two contentinfo landmarks. -->
+    <div class="footer">{@render footer()}</div>
   {/if}
 </div>
 

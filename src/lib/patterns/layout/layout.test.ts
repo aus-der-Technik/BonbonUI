@@ -247,7 +247,9 @@ describe('Page', () => {
     expect(host.querySelector('.top .own')).not.toBeNull();
     expect(host.querySelector('.floating--overlay .fab')).not.toBeNull();
     expect(el(host, 'main').lastElementChild?.className).toBe('sheet');
-    expect(host.querySelector('footer b')).not.toBeNull();
+    // A snippet footer brings its own landmark: no <footer> wrapper around it.
+    expect(host.querySelector('.footer b')).not.toBeNull();
+    expect(host.querySelector('.page > footer')).toBeNull();
     expect(host.querySelector('.backdrop')).not.toBeNull();
   });
 
