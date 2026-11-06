@@ -60,3 +60,26 @@ describe('Card ink', () => {
     expect(render(Card, {}).querySelector('.card')?.hasAttribute('data-theme')).toBe(false);
   });
 });
+
+describe('ArcGauge current', () => {
+  it('lights the ticks to the setting and the glow to where it is now', () => {
+    const host = render(ArcGauge, {
+      label: 'Target',
+      value: 22,
+      current: 19,
+      min: 16,
+      max: 28,
+      step: 0.5,
+      unit: '°C',
+      ticks: 13,
+    });
+    expect(host.querySelectorAll('line.tick.on')).toHaveLength(7);
+    expect(host.querySelector('circle.now')).not.toBeNull();
+    expect(host.querySelector('.now-line')?.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Now 19.0 °C',
+    );
+    expect(host.querySelector('[role="slider"]')?.getAttribute('aria-valuetext')).toBe(
+      '22.0 °C, now 19.0 °C',
+    );
+  });
+});

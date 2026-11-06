@@ -125,16 +125,26 @@ describe('squeeze', () => {
     const host = document.createElement('div');
     host.innerHTML = '<button>Home</button>';
     document.body.append(host);
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: HTMLElement,
-    ) {
-      const tall = this === host;
-      return {
-        left: 0,
-        top: tall ? 0 : 80,
-        width: tall ? 70 : 44,
-        height: tall ? 600 : 44,
-      } as DOMRect;
+    // Layout offsets (what squeeze measures): a 70×600 rail, a 44px item 80px down.
+    const button = host.querySelector('button')!;
+    const define = (el: HTMLElement, box: Record<string, unknown>) => {
+      for (const [k, v] of Object.entries(box)) Object.defineProperty(el, k, { value: v });
+    };
+    define(host, {
+      offsetLeft: 0,
+      offsetTop: 0,
+      offsetWidth: 70,
+      offsetHeight: 600,
+      offsetParent: null,
+      clientLeft: 0,
+      clientTop: 0,
+    });
+    define(button, {
+      offsetLeft: 0,
+      offsetTop: 80,
+      offsetWidth: 44,
+      offsetHeight: 44,
+      offsetParent: host,
     });
     const stop = squeeze(host);
     host

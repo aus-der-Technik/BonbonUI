@@ -1,19 +1,16 @@
 <script lang="ts">
   /** Storybook-only: install, wire up and write a first page — all copy-paste. */
   import DocPage from './DocPage.svelte';
-  import IntroDemo from './IntroDemo.svelte';
   import IntroList, { type IntroItem } from './IntroList.svelte';
+  import LiveExample from './LiveExample.svelte';
   import Section from '../patterns/layout/Section.svelte';
-  import Grid from '../patterns/layout/Grid.svelte';
-  import Application from '../patterns/templates/Application.svelte';
-  import Page from '../patterns/templates/Page.svelte';
-  import Button from '../patterns/atoms/Button.svelte';
-  import KpiTile from '../patterns/molecules/KpiTile.svelte';
   import CodeBlock from '../patterns/molecules/CodeBlock.svelte';
-  import { firstPage, install, rootLayout, tokenCode } from './snippets';
+  import FirstPage from './examples/FirstPage.svelte';
+  import firstPageSource from './examples/FirstPage.svelte?raw';
+  import MyChip from './examples/MyChip.svelte';
+  import myChipSource from './examples/MyChip.svelte?raw';
+  import { install, rootLayout } from './snippets';
   import { storyHref } from './study/links';
-
-  let picked = $state(false);
 
   const next: IntroItem[] = [
     {
@@ -69,23 +66,14 @@
       A <code>Page</code> frames the screen: the floating header, the content edges and the gaps between
       blocks. You only name the parts.
     </p>
-    <CodeBlock label="src/routes/+page.svelte" code={firstPage} />
-    <IntroDemo kind="window" height="17rem" caption="The same file, running.">
-      <Application contained>
-        <Page title="Orders" subtitle="today">
-          {#snippet actions()}
-            <Button variant="primary" icon="plus" label="New order" />
-          {/snippet}
-          <Section title="At a glance" heading={3}>
-            <Grid min="10rem">
-              <KpiTile label="Open" value="24" />
-              <KpiTile label="Shipped" value="118" />
-              <KpiTile label="Returns" value="3" />
-            </Grid>
-          </Section>
-        </Page>
-      </Application>
-    </IntroDemo>
+    <LiveExample
+      source={firstPageSource}
+      label="src/routes/+page.svelte"
+      height="17rem"
+      caption="The file below, running."
+    >
+      <FirstPage />
+    </LiveExample>
   </Section>
 
   <Section title="Your own components">
@@ -93,20 +81,14 @@
       Style them with tokens, never literal colours, and they follow the tint, the theme and the
       density like the library's own.
     </p>
-    <div class="pair">
-      <CodeBlock label="MyChip.svelte, styles" code={tokenCode} />
-      <IntroDemo caption="The chip from the code. Press it; switch the tint in the toolbar.">
-        <button
-          type="button"
-          class="my-chip"
-          aria-pressed={picked}
-          onclick={() => (picked = !picked)}
-        >
-          Design
-        </button>
-        <button type="button" class="my-chip danger">Overdue</button>
-      </IntroDemo>
-    </div>
+    <LiveExample
+      source={myChipSource}
+      label="MyChip.svelte"
+      kind="stage"
+      caption="The chip from the code. Press it; switch the tint in the toolbar."
+    >
+      <div class="chips"><MyChip /></div>
+    </LiveExample>
   </Section>
 
   <Section title="Where next">
@@ -115,41 +97,10 @@
 </DocPage>
 
 <style>
-  .pair {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--space-4);
-    align-items: start;
-  }
-  .pair :global(.frame) {
-    min-height: 12rem;
-  }
-  /* The chip of the token example, exactly as written there. */
-  .my-chip {
-    padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-pill);
-    background: var(--accent-soft);
-    color: var(--accent-ink);
-    border: 1px solid var(--accent-border);
-    font: inherit;
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-semibold);
-    cursor: pointer;
-    transition: background var(--motion-quick) var(--ease-out);
-  }
-  .my-chip:hover {
-    background: var(--accent-faint);
-  }
-  .my-chip[aria-pressed='true'] {
-    background: var(--accent);
-    color: var(--on-accent);
-  }
-  .my-chip.danger {
-    color: var(--danger);
-    background: var(--tint-danger);
-    border-color: transparent;
-  }
-  .my-chip:focus-visible {
-    outline: var(--focus-ring);
   }
 </style>

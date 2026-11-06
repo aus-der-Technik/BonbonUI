@@ -10,7 +10,12 @@
   import Spacer from '../patterns/layout/Spacer.svelte';
   import Button from '../patterns/atoms/Button.svelte';
   import CodeBlock from '../patterns/molecules/CodeBlock.svelte';
-  import { nestedAfter, nestedBefore, pageAnatomy, stackCode } from './snippets';
+  import LiveExample from './LiveExample.svelte';
+  import FewerWrappers from './examples/FewerWrappers.svelte';
+  import fewerWrappersSource from './examples/FewerWrappers.svelte?raw';
+  import PageFrame from './examples/PageFrame.svelte';
+  import pageFrameSource from './examples/PageFrame.svelte?raw';
+  import { nestedBefore, stackCode } from './snippets';
 
   const steps = [
     ['none', '0', '0px'],
@@ -130,10 +135,15 @@
       <code>Section</code>, <code>Layer</code> and <code>Page</code> take layout props themselves, so
       the wrapper divs disappear.
     </p>
-    <div class="pair">
-      <CodeBlock label="Before" code={nestedBefore} />
-      <CodeBlock label="After" code={nestedAfter} />
-    </div>
+    <CodeBlock label="Before" code={nestedBefore} />
+    <LiveExample
+      source={fewerWrappersSource}
+      label="After"
+      kind="stage"
+      caption="The After file, running: a panel with a heading, an action and a grid, no wrappers."
+    >
+      <FewerWrappers />
+    </LiveExample>
   </Section>
 
   <Section title="The page frame">
@@ -153,7 +163,14 @@
       <div class="a-footer"><DemoBox label="footer" /></div>
       <span class="a-floating pill">floating</span>
     </div>
-    <CodeBlock label="Page anatomy" code={pageAnatomy} />
+    <LiveExample
+      source={pageFrameSource}
+      label="Every part of a Page"
+      height="30rem"
+      caption="Each part from the diagram, live. Scroll inside: header, nav and sidebar stay put, Compose floats."
+    >
+      <PageFrame />
+    </LiveExample>
     <IntroList items={frame} />
   </Section>
 </DocPage>
@@ -181,12 +198,6 @@
     font-size: var(--fs-sm);
     color: var(--text-3);
     font-variant-numeric: tabular-nums;
-  }
-  .pair {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
-    gap: var(--space-4);
-    align-items: start;
   }
   .anatomy {
     position: relative;

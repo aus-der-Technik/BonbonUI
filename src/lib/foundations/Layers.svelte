@@ -12,10 +12,11 @@
   import Application from '../patterns/templates/Application.svelte';
   import Page from '../patterns/templates/Page.svelte';
   import Button from '../patterns/atoms/Button.svelte';
-  import CodeBlock from '../patterns/molecules/CodeBlock.svelte';
   import NavRail from '../patterns/organisms/NavRail.svelte';
   import backdrop from '../demo/assets/smart-home-backdrop.jpg';
-  import { layersCode } from './snippets';
+  import LiveExample from './LiveExample.svelte';
+  import FourLayers from './examples/FourLayers.svelte';
+  import fourLayersSource from './examples/FourLayers.svelte?raw';
 
   const layers: IntroItem[] = [
     {
@@ -212,7 +213,14 @@
       are selected, and <code>AppHeader</code>, <code>NavRail</code>, <code>FloatingActions</code>,
       docks and menu bars are front. <code>KpiTile</code> and <code>ChartCard</code> sit on the ground.
     </p>
-    <CodeBlock label="Layer.svelte" code={layersCode} />
+    <LiveExample
+      source={fourLayersSource}
+      label="Plans.svelte"
+      height="26rem"
+      caption="All four layers in one file. Choose a plan, then scroll inside."
+    >
+      <FourLayers />
+    </LiveExample>
   </Section>
 
   <Section title="Rules">

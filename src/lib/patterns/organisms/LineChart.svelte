@@ -23,14 +23,16 @@
   import EmptyState from '../molecules/EmptyState.svelte';
   import type { IconName } from '../atoms/icons';
   import ChartDataTable from './ChartDataTable.svelte';
-  import { labelSpace, xTicks } from '../../utils/chart';
+  import { labelSpace, niceMax, xTicks } from '../../utils/chart';
   import { decimalFormat, numberFormat } from '../../utils/format';
 
   interface Props {
     data: LinePoint[];
     min?: number;
-    max?: number;
-    /** Gridline values; defaults to every integer from min to max. */
+    /** Top of the scale. Default: the data's own maximum, rounded up to a readable value. */
+    max?: number | undefined;
+    /** Gridline values; default: every integer from min to max when `max` is given, else five
+     *  evenly spaced lines. */
     ticks?: number[] | undefined;
     tickFormat?: (value: number) => string;
     valueFormat?: (value: number) => string;
@@ -57,7 +59,7 @@
   let {
     data,
     min = 0,
-    max = 1,
+    max: maxProp,
     ticks,
     tickFormat = (v) => numberFormat.format(v),
     valueFormat = (v) => decimalFormat.format(v),
@@ -81,8 +83,15 @@
   let hover = $state<number | null>(null);
   let tooltip = $state<TooltipState | null>(null);
 
+  // Without a `max` the chart scales to its data, so it never draws an empty frame.
+  const max = $derived(
+    maxProp ?? niceMax(Math.max(min + 1, ...data.map((d) => d.value ?? Number.NEGATIVE_INFINITY))),
+  );
   const gridValues = $derived(
-    ticks ?? Array.from({ length: Math.floor(max - min) + 1 }, (_, n) => min + n),
+    ticks ??
+      (maxProp === undefined
+        ? Array.from({ length: 5 }, (_, n) => min + ((max - min) * n) / 4)
+        : Array.from({ length: Math.floor(max - min) + 1 }, (_, n) => min + n)),
   );
   // The y labels and the x labels decide how much room they need, so "€25K" is never clipped.
   const m = $derived({

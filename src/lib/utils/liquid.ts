@@ -280,12 +280,14 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
     const item =
       event.target instanceof Element ? event.target.closest<HTMLElement>(selector) : null;
     if (!item || !host.contains(item)) return;
-    const box = host.getBoundingClientRect();
-    const r = item.getBoundingClientRect();
-    // Squeeze across the long side: a tall rail narrows, a wide bar gets lower.
-    across = box.height > box.width;
-    origin = `${r.left + r.width / 2 - box.left}px ${r.top + r.height / 2 - box.top}px`;
-    along = across ? r.top + r.height / 2 - box.top : r.left + r.width / 2 - box.left;
+    // Measured from layout offsets, in the host's own coordinates: a transform on an ancestor
+    // (a zoomed preview, a scaled card) must not move the squeeze away from the press.
+    const r = boxWithin(item, host);
+    across = host.offsetHeight > host.offsetWidth;
+    const cx = r.x + r.w / 2;
+    const cy = r.y + r.h / 2;
+    origin = `${cx}px ${cy}px`;
+    along = across ? cy : cx;
     s.to = 1;
     start();
   };

@@ -20,6 +20,12 @@
     step?: number;
     /** Printed small after the figure, e.g. "°C" or "%". */
     unit?: string | undefined;
+    /** Where it is right now (e.g. the room's air), when that differs from the setting: the
+     *  glow follows it, with a small mark at its end, and a line under the figure says it. The
+     *  lit ticks always show the setting. */
+    current?: number | undefined;
+    /** The word before the current value. */
+    currentLabel?: string;
     format?: ((value: number) => string) | undefined;
     /** Number of ticks along the arc. */
     ticks?: number;
@@ -49,6 +55,8 @@
     size = 'md',
     caption = true,
     buttons = true,
+    current,
+    currentLabel = 'Now',
     decreaseLabel = 'Decrease',
     increaseLabel = 'Increase',
     disabled = false,
@@ -87,8 +95,18 @@
       return { t, ox, oy, ix, iy, dx, dy };
     }),
   );
-  const reached = $derived(start + fraction * sweep);
-  const lengthOf = $derived(((fraction * sweep * Math.PI) / 180) * (R - 16));
+  // The glow shows where it is now; without `current` that is the setting itself.
+  const nowFraction = $derived(
+    current === undefined || max <= min
+      ? fraction
+      : Math.min(1, Math.max(0, (current - min) / (max - min))),
+  );
+  const glowTo = $derived(start + nowFraction * sweep);
+  const nowAt = $derived(at(glowTo, R - 16));
+  const nowShown = $derived(
+    current === undefined ? '' : format ? format(current) : current.toFixed(decimals),
+  );
+  const lengthOf = $derived(((nowFraction * sweep * Math.PI) / 180) * (R - 16));
 
   function set(next: number) {
     if (disabled) return;
@@ -149,7 +167,7 @@
     aria-valuemin={min}
     aria-valuemax={max}
     aria-valuenow={value}
-    aria-valuetext={unit ? `${shown} ${unit}` : shown}
+    aria-valuetext={`${unit ? `${shown} ${unit}` : shown}${current === undefined ? '' : `, ${currentLabel.toLowerCase()} ${nowShown}${unit ? ` ${unit}` : ''}`}`}
     aria-disabled={disabled ? 'true' : undefined}
     onpointerdown={down}
     onpointermove={move}
@@ -163,11 +181,11 @@
       </defs>
       <!-- The raised band the ticks sit on. -->
       <path class="band" d={arc(start, start + sweep, R - 2)} />
-      {#if fraction > 0}
-        <!-- Light from within: a blurred band under the reached ticks. -->
+      {#if nowFraction > 0}
+        <!-- Light from within, as far as it is now: a blurred band under the ticks. -->
         <path
           class="glow"
-          d={arc(start, reached, R - 16)}
+          d={arc(start, glowTo, R - 16)}
           filter="url(#{uid}-glow)"
           data-emit="soft"
         />
@@ -179,19 +197,31 @@
           <circle class="tick" cx={m.dx} cy={m.dy} r="1.3" />
         {/if}
       {/each}
-      {#if fraction > 0}
+      {#if current !== undefined}
+        <!-- Where it is now: a small bead at the end of the glow. -->
+        <circle class="now" cx={nowAt[0]} cy={nowAt[1]} r="4.5" />
+      {/if}
+      {#if nowFraction > 0}
         <path
           class="shimmer"
-          d={arc(start, reached, R - 16)}
+          d={arc(start, glowTo, R - 16)}
           style:--len="{lengthOf}px"
           stroke-dasharray="18 {Math.max(lengthOf, 1)}"
         />
       {/if}
     </svg>
     <div class="read">
-      <span class="figure" use:changeCue={shown}>{shown}</span>{#if unit}<span class="unit"
-          >{unit}</span
-        >{/if}
+      <span class="figure-row"
+        ><span class="figure" use:changeCue={shown}>{shown}</span>{#if unit}<span class="unit"
+            >{unit}</span
+          >{/if}</span
+      >
+      {#if current !== undefined}
+        <!-- Where it is now, under the setting: the gap between the two is the story. -->
+        <span class="now-line" use:changeCue={nowShown}
+          >{currentLabel} {nowShown}{unit ? ` ${unit}` : ''}</span
+        >
+      {/if}
     </div>
   </div>
   {#if buttons}
@@ -301,15 +331,34 @@
       stroke-dashoffset: calc(-1 * var(--len));
     }
   }
+  .now {
+    fill: var(--accent);
+    stroke: var(--layer-panel-bg);
+    stroke-width: 2;
+    transition:
+      cx var(--motion-slow) var(--ease-in-out),
+      cy var(--motion-slow) var(--ease-in-out);
+  }
+  .now-line {
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+  }
   .read {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 4%;
     display: flex;
-    justify-content: center;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: center;
     pointer-events: none;
+  }
+  .figure-row {
+    display: flex;
+    align-items: baseline;
   }
   .figure {
     font-size: clamp(2rem, 17cqi, 3.2rem);

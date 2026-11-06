@@ -28,6 +28,9 @@
   let sections = $state<{ id: string; text: string }[]>([]);
   let current = $state('');
 
+  /** Frames around live examples: the prose styles and the contents list leave them alone. */
+  const LIVE = '.demo, .live, .study-demo, .explore-tile, [data-live]';
+
   const slug = (text: string) =>
     text
       .toLowerCase()
@@ -37,7 +40,8 @@
   // The contents list is read from the page's own section headings, so it never goes stale.
   $effect(() => {
     if (!prose) return;
-    const headings = [...prose.querySelectorAll<HTMLElement>('h2')];
+    // The page's own sections only: headings inside a live example belong to the example.
+    const headings = [...prose.querySelectorAll<HTMLElement>('h2')].filter((h) => !h.closest(LIVE));
     const seen: string[] = [];
     sections = headings.map((h) => {
       let id = h.id || slug(h.textContent ?? '');
@@ -164,7 +168,7 @@
     padding-top: var(--space-12);
     border-top: 1px solid var(--border-strong);
   }
-  .prose :global(h2) {
+  .prose :global(h2:not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)) {
     font-family: var(--font-serif);
     font-size: clamp(1.7rem, 1vw + 1.3rem, 2.2rem);
     font-weight: var(--fw-regular);
@@ -172,30 +176,36 @@
     line-height: 1.15;
     scroll-margin-top: var(--space-8);
   }
-  .prose :global(h3) {
+  .prose :global(h3:not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)) {
     font-size: var(--fs-xl);
     font-weight: var(--fw-semibold);
     letter-spacing: var(--tracking-tight);
   }
-  /* Prose rules are for plain text only: lists with a class belong to a component (a rail, a
-     menu) and keep their own layout. */
-  .prose :global(p),
-  .prose :global(:is(ul, ol):not([class]) > li) {
+  /* Prose rules are for the page's own text only: never inside a live example (its frames are
+     listed in LIVE above), and lists with a class belong to a component (a rail, a menu). */
+  .prose :global(p:not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)),
+  .prose
+    :global(
+      :is(ul, ol):not([class])
+        > li:not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)
+    ) {
     max-width: 66ch;
     color: var(--text-2);
     font-size: var(--fs-base);
     line-height: var(--leading-body);
   }
-  .prose :global(ul:not([class])),
-  .prose :global(ol:not([class])) {
+  .prose :global(ul:not([class]):not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)),
+  .prose
+    :global(ol:not([class]):not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)) {
     padding-left: 1.25rem;
     display: grid;
     gap: var(--space-2);
   }
-  .prose :global(strong) {
+  .prose :global(strong:not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)) {
     color: var(--text);
   }
-  .prose :global(:not(pre) > code) {
+  .prose
+    :global(:not(pre) > code:not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)) {
     font-family: var(--font-mono);
     font-size: 0.86em;
     padding: 0.1em 0.4em;
@@ -203,8 +213,8 @@
     background: var(--accent-faint);
     color: var(--accent-ink);
   }
-  /* Plain links only: a link-button (`Button href`) keeps its own colours. */
-  .prose :global(a:not([class])) {
+  /* Links in the text, not link-buttons (`Button href`) and nothing inside a live example. */
+  .prose :global(a:not(.btn):not(:is(.demo, .live, .study-demo, .explore-tile, [data-live]) *)) {
     color: var(--accent-ink);
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;

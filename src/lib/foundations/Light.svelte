@@ -10,10 +10,11 @@
   import Button from '../patterns/atoms/Button.svelte';
   import Switch from '../patterns/atoms/Switch.svelte';
   import ArcGauge from '../patterns/molecules/ArcGauge.svelte';
-  import CodeBlock from '../patterns/molecules/CodeBlock.svelte';
   import NavRail from '../patterns/organisms/NavRail.svelte';
   import backdrop from '../demo/assets/smart-home-backdrop.jpg';
-  import { lightCode } from './snippets';
+  import LiveExample from './LiveExample.svelte';
+  import OwnSurfaces from './examples/OwnSurfaces.svelte';
+  import ownSurfacesSource from './examples/OwnSurfaces.svelte?raw';
 
   let groundOn = $state(true);
   let panelOn = $state(true);
@@ -160,7 +161,21 @@
       moves, such as a selection flowing to its place, a press or a scroll, the light moves with it.
       At rest nothing runs.
     </p>
-    <CodeBlock label="Emitters, reflectors and your own surfaces" code={lightCode} />
+    <p>
+      Your own parts join in the same way: an emitter carries <code>data-emit</code>, a surface
+      carries
+      <code>data-reflect</code> and paints <code>--light</code> under its background. Light is on in
+      every <code>Application</code>; <code>light={'{false}'}</code> turns it off for a page that must
+      stay still.
+    </p>
+    <LiveExample
+      source={ownSurfacesSource}
+      label="Study.svelte"
+      kind="stage"
+      caption="Your own tile and lamp, lit like the library's. Press the lamp and watch the tile."
+    >
+      <OwnSurfaces />
+    </LiveExample>
   </Section>
 
   <Section title="Rules">
