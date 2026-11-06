@@ -17,11 +17,11 @@
     /** 1…5 stars above the quote. */
     rating?: number | undefined;
     size?: 'md' | 'lg';
-    /** `panel` is a glass card; `ground` sits directly on the backdrop. */
+    /** `ground` (default) sits directly on the backdrop; `panel` is a card. */
     level?: 'panel' | 'ground';
   }
 
-  let { quote, name, role, avatar, rating, size = 'md', level = 'panel' }: Props = $props();
+  let { quote, name, role, avatar, rating, size = 'md', level = 'ground' }: Props = $props();
 </script>
 
 <figure class="testimonial testimonial--{size} testimonial--{level}">

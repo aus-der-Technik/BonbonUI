@@ -1,6 +1,6 @@
 <script lang="ts">
   /**
-   * Tooltip atom — a short hint above (or below) its trigger on hover and keyboard focus,
+   * Tooltip atom — a short hint above (or below, or beside) its trigger on hover and keyboard focus,
    * linked with `aria-describedby` on the trigger (the first focusable element inside, else the
    * first element). Escape hides it, and so does opening the trigger's own menu or popover
    * (`aria-expanded="true"`). A small liquid-glass bubble that pops out of its trigger (it scales
@@ -21,7 +21,8 @@
     keys?: readonly string[] | undefined;
     /** Rich content in place of `text`. */
     content?: Snippet | undefined;
-    placement?: 'top' | 'bottom';
+    /** `right`/`left` for triggers stacked in a column (a navigation rail). */
+    placement?: 'top' | 'bottom' | 'right' | 'left';
     /** Which edge of the trigger the bubble lines up with; `start`/`end` for triggers at an edge. */
     align?: 'center' | 'start' | 'end';
     /** Links the bubble as the trigger's description. Turn it off when the bubble only repeats
@@ -127,6 +128,7 @@
   .tip {
     /* Where the bubble sits along the trigger and the point it grows from (set per align). */
     --_x: -50%;
+    --_y: 0%;
     --_ox: 50%;
     position: absolute;
     left: 50%;
@@ -160,7 +162,7 @@
     visibility: hidden;
     /* Pop from origin: it grows out of the trigger, not out of thin air. */
     transform-origin: var(--_ox) 100%;
-    transform: translateX(var(--_x)) translateY(3px) scale(0.86);
+    transform: translate(var(--_x), var(--_y)) translateY(3px) scale(0.86);
     transition:
       opacity var(--motion-quick) var(--ease-out),
       visibility 0s linear var(--motion-quick),
@@ -172,7 +174,7 @@
   .tip--bottom {
     top: calc(100% + 8px);
     transform-origin: var(--_ox) 0;
-    transform: translateX(var(--_x)) translateY(-3px) scale(0.86);
+    transform: translate(var(--_x), var(--_y)) translateY(-3px) scale(0.86);
   }
   /* At an edge the bubble opens towards the room it has, from the trigger's corner. */
   .tip--start {
@@ -186,14 +188,34 @@
     left: auto;
     right: 0;
   }
+  /* Beside the trigger, centred on it; `align` does not apply. */
+  .tip.tip--right,
+  .tip.tip--left {
+    --_x: 0%;
+    --_y: -50%;
+    top: 50%;
+    bottom: auto;
+  }
+  .tip.tip--right {
+    left: calc(100% + 8px);
+    right: auto;
+    transform-origin: 0 50%;
+    transform: translate(var(--_x), var(--_y)) translateX(-3px) scale(0.86);
+  }
+  .tip.tip--left {
+    left: auto;
+    right: calc(100% + 8px);
+    transform-origin: 100% 50%;
+    transform: translate(var(--_x), var(--_y)) translateX(3px) scale(0.86);
+  }
   .keys {
     display: inline-flex;
     gap: 2px;
   }
-  .open {
+  .tip.open {
     opacity: 1;
     visibility: visible;
-    transform: translateX(var(--_x));
+    transform: translate(var(--_x), var(--_y));
     transition:
       opacity var(--motion-quick) var(--ease-out),
       visibility 0s,
@@ -206,9 +228,11 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .tip,
-    .tip--bottom,
-    .open {
-      transform: translateX(var(--_x));
+    .tip.tip--bottom,
+    .tip.tip--right,
+    .tip.tip--left,
+    .tip.open {
+      transform: translate(var(--_x), var(--_y));
       transition: opacity var(--motion-quick) var(--ease-out);
     }
   }

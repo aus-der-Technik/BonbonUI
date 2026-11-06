@@ -197,7 +197,7 @@
 
 {#snippet agendaPanel()}
   <div data-note="agenda" class="agenda-wrap">
-    <Section title={dayTitle} heading={3} level="panel" gap="sm">
+    <Section title={dayTitle} heading={3} gap="sm">
       {#snippet actions()}
         {#if day}
           {@const at = day}
@@ -232,7 +232,7 @@
         <EmptyState compact message="Nothing planned — a good day for focus work." />
       {/if}
     </Section>
-    <Section title="Team" heading={3} level="panel">
+    <Section title="Team" heading={3}>
       <AvatarStack people={team} max={6} label="Team members" />
       <Text size="sm" tone="muted">4 of 8 people are available today.</Text>
     </Section>

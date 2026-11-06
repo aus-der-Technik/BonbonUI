@@ -158,6 +158,7 @@
 </script>
 
 <dialog
+  data-glass
   bind:this={dialog}
   class="dialog"
   class:grow={!!origin}

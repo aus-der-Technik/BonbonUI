@@ -5,6 +5,8 @@
    * - `glass`   — the frosted content card every section sits on (panel layer).
    * - `frosted` — the denser liquid-glass surface: sign-in card, chooser tiles, dialogs.
    * - `subtle`  — a flat neutral box inside a card (e.g. a row detail).
+   * - `ground`  — no surface at all: the content sits on the ground layer (no padding unless
+   *   asked for). Most groups need no box; a heading and some air separate them well enough.
    *
    * `selected` turns it into the selected layer (tinted glass, tint rim and glow) — the chosen
    * plan, the open item. `interactive` adds a hover lift for clickable cards; with `href` the
@@ -27,8 +29,9 @@
   import { space, type Space } from '../layout/space';
 
   interface Props extends Omit<HTMLAttributes<HTMLElement>, 'children' | 'class'> {
-    surface?: 'glass' | 'frosted' | 'subtle';
-    padding?: 'none' | 'sm' | 'md' | 'lg';
+    surface?: 'glass' | 'frosted' | 'subtle' | 'ground';
+    /** Default `md`, or `none` on the ground. */
+    padding?: 'none' | 'sm' | 'md' | 'lg' | undefined;
     as?: 'div' | 'section' | 'article' | 'aside' | 'li';
     title?: string | undefined;
     /** Level of the title's heading element (default 2). */
@@ -50,7 +53,7 @@
 
   let {
     surface = 'glass',
-    padding = 'md',
+    padding: paddingProp,
     as = 'div',
     title,
     headingLevel = 2,
@@ -68,6 +71,7 @@
     ...rest
   }: Props = $props();
 
+  const padding = $derived(paddingProp ?? (surface === 'ground' ? 'none' : 'md'));
   // Stretched: a real button/link on the title covers the card; the card is no control itself.
   const stretchButton = $derived(!href && !!onclick && !!title);
   const stretchLink = $derived(!!href && !!title && !!actions);
@@ -228,6 +232,12 @@
     border: 0.75px solid var(--pill-border);
     border-radius: var(--radius-dialog);
     box-shadow: var(--shadow-frosted);
+  }
+  .card--ground {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    border-radius: var(--radius-card);
   }
   .card--subtle {
     background: var(--fill-subtle);

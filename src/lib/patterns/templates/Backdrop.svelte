@@ -49,7 +49,8 @@
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: var(--bg);
+    /* Light from above: the top of the ground is a touch brighter. */
+    background: linear-gradient(180deg, var(--ground-light), transparent 65%), var(--bg);
   }
   .backdrop--fixed {
     position: fixed;

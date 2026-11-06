@@ -1,4 +1,4 @@
-import { HIDE_ATTR, LENS_ATTR, Mirror, SHELL_ATTR, STICKY_ATTR } from './mirror';
+import { HIDE_ATTR, LENS_ATTR, Mirror, SHELL_ATTR, softened, STICKY_ATTR } from './mirror';
 
 /** A page with a glass surface (holding its lens box) above some content. */
 function page(content: string) {
@@ -487,5 +487,15 @@ describe('Mirror', () => {
     await wait();
     expect(mutated).not.toHaveBeenCalled();
     expect(m.host.isConnected).toBe(false);
+  });
+});
+
+describe('softened', () => {
+  it('drops wide blurs and keeps everything else', () => {
+    expect(softened('blur(70px) saturate(1.3)')).toBe('saturate(1.3)');
+    expect(softened('blur(80px)')).toBe('none');
+    expect(softened('blur(4px) saturate(1.3)')).toBeNull();
+    expect(softened('none')).toBeNull();
+    expect(softened('')).toBeNull();
   });
 });

@@ -404,6 +404,16 @@ export const icons = {
   },
   waveform: { paths: ['M3 11v2M7 8v8M11 4v16M15 7v10M19 10v4'] },
   mountain: { paths: ['M3 19 9 9l4 6 2-3 6 7H3z'] },
+  droplet: { paths: ['M12 3.5c3.2 4 5.5 7.1 5.5 10a5.5 5.5 0 0 1-11 0c0-2.9 2.3-6 5.5-10z'] },
+  wind: {
+    paths: ['M3 9h11a3 3 0 1 0-3-3', 'M3 13h15a3 3 0 1 1-3 3', 'M3 17h7'],
+  },
+  thermometer: {
+    paths: ['M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0z', 'M12 9v6.5'],
+  },
+  leaf: {
+    paths: ['M5 19c0-8 5-14 15-14 0 10-6 15-14 15', 'M5 19c3-4 6-6.5 10-8.5'],
+  },
 } as const satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof icons;

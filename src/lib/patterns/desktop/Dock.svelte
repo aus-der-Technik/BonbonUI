@@ -91,6 +91,7 @@
 <!-- Arrow keys bubble up from the buttons inside (roving focus). -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <nav
+  data-glass
   class="dock"
   class:lensed={lens !== false && lensDrawn}
   aria-label={label}

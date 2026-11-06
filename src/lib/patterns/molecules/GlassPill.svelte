@@ -47,6 +47,7 @@
 
 <svelte:element
   this={as}
+  data-glass
   class="glass {className}"
   class:grow
   class:wrap

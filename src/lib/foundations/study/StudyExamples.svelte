@@ -157,6 +157,32 @@
       ],
     },
     {
+      title: 'On a device',
+      intro: 'A control screen read from across the room and worked with one hand.',
+      items: [
+        {
+          name: 'Climate control',
+          id: 'pages-devices--climate-control',
+          icon: 'leaf',
+          what: 'A greenhouse controller: readings, a thermostat, device keys and a misting plan.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'Readings sit on the ground in fixed-width dot-matrix digits; only one panel.',
+            },
+            {
+              principle: 'locality',
+              text: 'Minus and plus flank the target they change; the arc fills as you press.',
+            },
+            {
+              principle: 'cues',
+              text: '“Mist now” counts down in place, then the humidity reading rises and glows.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       title: 'A whole operating system',
       intro: 'Everything together: windows, a dock, menus, notifications, settings and apps.',
       items: [

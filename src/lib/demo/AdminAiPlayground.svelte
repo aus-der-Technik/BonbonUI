@@ -318,7 +318,7 @@
         </Alert>
       </div>
       <Grid min="17rem">
-        <Section level="panel" heading={3} title="Sources" layout="row" gap="xs">
+        <Section heading={3} title="Sources" layout="row" gap="xs">
           {#if grounded(asked.settings)}
             {#each PLAYGROUND_SOURCES as source (source.href)}
               <Tag href={source.href} external label={source.label} maxWidth="100%" />
@@ -327,7 +327,7 @@
             <StatusText message="No sources — no search tool was allowed." />
           {/if}
         </Section>
-        <Section level="panel" heading={3} title="Tool usage" layout="row" gap="xs">
+        <Section heading={3} title="Tool usage" layout="row" gap="xs">
           {#each usage as use (use.tool)}
             <Tag mono label={use.tool} count={use.calls} title="{use.calls} calls" />
             {#if use.failed}

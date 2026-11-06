@@ -147,7 +147,7 @@
   <Section
     eyebrow="Rule 4"
     title="Honest glass"
-    description="Glass only where something floats over something: panels over the backdrop, the front layer over content, overlays over the page. Inside a panel we use flat fills. Glass in glass in glass turns to fog."
+    description="Glass only where something floats, and what floats is sticky: the front layer over content, overlays over the page. Panels are solid tiles, used sparingly — most groups sit on the ground with a heading and some air. A glass button off a front layer becomes a soft-touch key. Glass in glass in glass turns to fog."
   >
     <Grid min="18rem">
       <Layer level="panel" gap="sm">

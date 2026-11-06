@@ -23,6 +23,7 @@
           'success',
           'danger',
           'danger-solid',
+          'soft',
         ],
       },
       size: { control: 'inline-radio', options: ['xs', 'sm', 'md', 'lg', 'xl'] },
@@ -35,6 +36,8 @@
 
 <script lang="ts">
   let saving = $state(false);
+  let fan = $state(true);
+  let light = $state(false);
 
   function save() {
     saving = true;
@@ -67,6 +70,60 @@ primary, success and danger buttons are filled — everything else stays calm gl
       <Button variant="danger-solid" label="Delete permanently" />
     </Row>
   </Stack>
+</Story>
+
+<!-- `soft` is a matte soft-touch key for controls that sit on the ground (no panel around them):
+it brightens under the pointer and sinks when held. Round icon-only soft keys work as toggles —
+`aria-pressed="true"` tints them, so the state is on the key itself. -->
+<Story name="Soft touch" asChild>
+  <Stack gap="md">
+    <Row>
+      <Button variant="soft" label="Seedlings" aria-pressed={true} />
+      <Button variant="soft" label="Herbs" aria-pressed={false} />
+      <Button variant="soft" icon="calendar" label="Schedule" />
+    </Row>
+    <Row>
+      <Button variant="soft" size="xl" icon="minus" label="Cooler" iconOnly />
+      <Button
+        variant="soft"
+        size="xl"
+        icon="wind"
+        label="Vents"
+        iconOnly
+        aria-pressed={fan}
+        onclick={() => (fan = !fan)}
+      />
+      <Button
+        variant="soft"
+        size="xl"
+        icon="sun"
+        label="Grow light"
+        iconOnly
+        aria-pressed={light}
+        onclick={() => (light = !light)}
+      />
+      <Button variant="soft" size="xl" icon="plus" label="Warmer" iconOnly />
+    </Row>
+  </Stack>
+</Story>
+
+<!-- `shimmer`: a slow ring of light travels round the button — for the one action a panel is
+waiting for, at most one per screen. It goes still while the button is busy or disabled, and
+stands still under reduced motion. -->
+<Story name="Shimmer" asChild>
+  <Row>
+    <Button variant="primary" size="lg" icon="droplet" label="Mist now" shimmer />
+    <Button
+      variant="primary"
+      icon="check"
+      label="Save"
+      shimmer
+      busy={saving}
+      busyLabel="Saving…"
+      onclick={save}
+    />
+    <Button variant="soft" size="lg" icon="play" label="Start" shimmer />
+  </Row>
 </Story>
 
 <!-- Heights follow the density setting in the toolbar. -->

@@ -673,7 +673,7 @@
 
     <Grid columns="minmax(0, 2fr) minmax(0, 3fr)" collapse="lg" align="start">
       <Stack gap="lg">
-        <Section level="panel" heading={3} title="Metadata">
+        <Section heading={3} title="Metadata">
           {#snippet actions()}
             {#if !doc.staged}
               <CopyButton size="sm" value={current.checksum} label="Copy checksum" />
@@ -694,7 +694,7 @@
           />
           <Row gap="sm">{@render accessTag(doc)}<Badge size="sm" label={doc.format} /></Row>
         </Section>
-        <Section level="panel" heading={3} title="Summary">
+        <Section heading={3} title="Summary">
           {#snippet actions()}
             <span class="cell">{@render ratingCell(doc)}</span>
           {/snippet}

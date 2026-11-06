@@ -123,9 +123,8 @@
   .hero--backdrop {
     overflow: hidden;
     padding-inline: clamp(var(--space-5), 5vw, 5rem);
+    /* A soft band of tint on the ground, not a box: no rim, no shadow. */
     border-radius: var(--radius-dialog);
-    border: 1px solid var(--layer-panel-border);
-    box-shadow: var(--glass-shadow), var(--glass-inset);
   }
   .inner {
     display: grid;

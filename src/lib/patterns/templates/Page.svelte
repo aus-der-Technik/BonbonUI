@@ -129,7 +129,7 @@
   <a class="skip" href="#{id}-main">{skipLabel}</a>
 
   {#if hasTop}
-    <div class="top" bind:offsetHeight={topHeight}>
+    <div class="top" data-glass bind:offsetHeight={topHeight}>
       {#if header}
         <div class="top-row">{@render header()}</div>
       {:else if title}

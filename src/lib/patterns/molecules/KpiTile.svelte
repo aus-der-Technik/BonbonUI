@@ -7,7 +7,8 @@
 
 <script lang="ts">
   /**
-   * KpiTile molecule — a summary number on a glass card: label (with an optional icon in a tinted
+   * KpiTile molecule — a summary number, on the ground by default (a hairline on its leading
+   * edge sets a row of them apart; `level="panel"` puts it on a card): label (with an optional icon in a tinted
    * squircle), the big tabular value, a trend pill ("+12 %") and a detail line, and an optional
    * proportional meter (e.g. "Thumbs up share"). A rising `delta` is green, a falling one red;
    * `goodWhen="down"` (or `invert`) swaps that for figures where less is better (errors, wait
@@ -27,6 +28,8 @@
   import { deltaDirection, deltaTone, formatDelta, type GoodWhen } from './delta';
 
   interface Props {
+    /** `ground` (default) sits on the backdrop beside a hairline; `panel` is a card. */
+    level?: 'ground' | 'panel';
     label: string;
     /** `null` renders the "–" placeholder (not loaded / no data). */
     value: string | number | null;
@@ -54,6 +57,7 @@
   }
 
   let {
+    level = 'ground',
     label,
     value,
     detail,
@@ -86,7 +90,7 @@
   const note = $derived(detail ?? deltaLabel);
 </script>
 
-<Card class="kpi">
+<Card class="kpi kpi--{level}" surface={level === 'ground' ? 'ground' : 'glass'}>
   <div class="top">
     <div class="label">{label}</div>
     {#if icon}<span class="icon-tile" aria-hidden="true"><Icon name={icon} size={16} /></span>{/if}
@@ -111,6 +115,11 @@
 </Card>
 
 <style>
+  :global(.kpi--ground) {
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--border-strong) !important;
+    border-radius: 0 !important;
+  }
   .top {
     display: flex;
     align-items: flex-start;

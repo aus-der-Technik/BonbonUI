@@ -1,6 +1,7 @@
 <script lang="ts">
   /**
-   * ChartCard organism — a glass card with a chart heading, a sub line, an optional headline
+   * ChartCard organism — a chart with its heading, on the ground by default (`level="panel"`
+   * for a card): a chart heading, a sub line, an optional headline
    * figure (`value`), a legend and `actions` (a range switch, a menu). The chart itself is
    * `children`. Mark it `wide` to span a full row in a dashboard grid.
    *
@@ -17,15 +18,29 @@
     value?: string | undefined;
     legend?: LegendItem[] | undefined;
     wide?: boolean;
+    /** `ground` (default) sits on the backdrop; `panel` is a card. */
+    level?: 'ground' | 'panel';
     /** Controls on the right of the heading. */
     actions?: Snippet | undefined;
     children: Snippet;
   }
 
-  let { title, sub, value, legend, wide = false, actions, children }: Props = $props();
+  let {
+    title,
+    sub,
+    value,
+    legend,
+    wide = false,
+    level = 'ground',
+    actions,
+    children,
+  }: Props = $props();
 </script>
 
-<Card class={wide ? 'chart-card wide' : 'chart-card'}>
+<Card
+  class={wide ? 'chart-card wide' : 'chart-card'}
+  surface={level === 'ground' ? 'ground' : 'glass'}
+>
   <div class="head">
     <div class="titles">
       <h2>{title}</h2>

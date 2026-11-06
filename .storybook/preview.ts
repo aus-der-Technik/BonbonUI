@@ -112,7 +112,7 @@ const preview: Preview = {
             'The examples',
           ],
           'Pages',
-          ['Website', 'Shop', 'Admin', 'Collaboration', 'Productivity', 'Desktop'],
+          ['Website', 'Shop', 'Admin', 'Collaboration', 'Productivity', 'Devices', 'Desktop'],
           'Templates',
           ['Application', 'Page', '*'],
           'Layout',

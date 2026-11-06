@@ -8,7 +8,8 @@
 
 <script lang="ts">
   /**
-   * Faq organism — questions and answers as an accordion on one glass panel. One answer is open
+   * Faq organism — questions and answers as an accordion, on the ground between hairlines
+   * by default (`level="panel"` puts them on one card). One answer is open
    * at a time unless `multiple`; arrow keys, Home and End move between the questions.
    * `open` (bindable) lists the open questions by index.
    *
@@ -28,10 +29,13 @@
     align?: 'start' | 'center';
     size?: 'default' | 'hero';
     ontoggle?: ((index: number, open: boolean) => void) | undefined;
+    /** `ground` (default) sits on the backdrop; `panel` is a card. */
+    level?: 'ground' | 'panel';
   }
 
   let {
     items,
+    level = 'ground',
     multiple = false,
     open = $bindable([]),
     title,
@@ -71,7 +75,7 @@
 </script>
 
 {#snippet list()}
-  <div class="faq">
+  <div class="faq faq--{level}">
     {#each items as item, i (item.question)}
       {@const isOpen = open.includes(i)}
       <div class="item" class:open={isOpen}>
@@ -112,13 +116,14 @@
     width: 100%;
     max-width: 48rem;
     margin-inline: auto;
+    border-block: 1px solid var(--border-strong);
+  }
+  .faq--panel {
     padding: var(--space-2) var(--space-6);
+    border: 1px solid var(--layer-panel-border);
     border-radius: var(--radius-card);
     background: var(--layer-panel-bg);
-    border: 1px solid var(--layer-panel-border);
     box-shadow: var(--layer-panel-shadow);
-    backdrop-filter: var(--layer-panel-blur);
-    -webkit-backdrop-filter: var(--layer-panel-blur);
   }
   .item + .item {
     border-top: 1px solid var(--border-strong);
@@ -206,13 +211,6 @@
     .a-inner {
       transition: none;
       animation: none;
-    }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .faq {
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      background: var(--glass-strong);
     }
   }
 </style>

@@ -59,7 +59,7 @@
 {#snippet navigation()}
   <div class="nav" data-note="workspace-nav">
     <SideNav groups={nav} label="Workspace" onnavigate={go} />
-    <Section title="Here now" heading={3} level="panel" gap="sm">
+    <Section title="Here now" heading={3} gap="sm">
       <ul class="here">
         {#each here as person (person.id)}
           <li class:away={person.presence === 'away'}>

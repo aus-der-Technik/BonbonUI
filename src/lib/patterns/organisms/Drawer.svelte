@@ -56,6 +56,7 @@
 </script>
 
 <dialog
+  data-glass
   bind:this={dialog}
   class="drawer drawer--{side}"
   style:--width={width}

@@ -8,8 +8,9 @@
    * | `secondary`    | light glass, accent tint on hover            | "Cancel", pagers, filters      |
    * | `tinted`       | soft accent fill, accent text                | strong but not primary: "Add"  |
    * | `plain`        | text only, accent ink                        | inline actions, "Show more"    |
-   * | `glass`        | frosted liquid glass, accent text            | header and floating pills      |
-   * | `ghost`        | frosted liquid glass, neutral text           | "Cancel" next to a glass pill  |
+   * | `glass`        | liquid glass, accent text (when it floats)   | header and floating pills      |
+   * | `ghost`        | liquid glass, neutral text (when it floats)  | "Cancel" next to a glass pill  |
+   * | `soft`         | a matte soft-touch key that sinks when held  | device controls on the ground  |
    * | `success`      | green gradient                               | "Add row", confirm a good step |
    * | `danger`       | red text, red tint on hover                  | "Delete" before it is armed    |
    * | `danger-solid` | red gradient                                 | "Delete permanently"           |
@@ -20,7 +21,13 @@
    * `href` it renders a link. `xs` buttons look 24px tall but keep a 32px hit area.
    * `aria-disabled="true"` disables a button without taking it out of the tab order — use it for
    * a button that may become unavailable right after it was pressed (a pager's "Next" on the
-   * last page), so focus is not dropped to the page.
+   * last page), so focus is not dropped to the page. `soft` keys show `aria-pressed="true"` in
+   * the tint, so a round `soft` icon button is a toggle too. `shimmer` lays a slow ring of light
+   * behind the button — for the one action a panel is waiting for, at most one per screen.
+   *
+   * Glass is for what floats, and what floats is sticky: `glass` and `ghost` are liquid glass
+   * only inside a front layer or an overlay (anything marked `data-layer="front"` or
+   * `data-glass`). On the ground or a panel they are soft-touch keys, like `soft`.
    *
    *   <Button variant="primary" icon="check" label="Save" onclick={save} />
    */
@@ -39,7 +46,8 @@
     | 'danger-solid'
     | 'success'
     | 'glass'
-    | 'ghost';
+    | 'ghost'
+    | 'soft';
 
   interface Props extends Omit<HTMLButtonAttributes, 'children' | 'class'> {
     variant?: Variant;
@@ -59,6 +67,8 @@
     /** Spins the icon (or shows a spinner), sets `aria-busy` and swallows further clicks, so a
      *  slow submit cannot be sent twice. */
     busy?: boolean;
+    /** A slow ring of light behind the button: the one action its panel is waiting for. */
+    shimmer?: boolean;
     /** Label while `busy`, e.g. "Saving…". */
     busyLabel?: string | undefined;
     /** Renders an `<a>` with the same look; with `disabled` it is announced as disabled and
@@ -84,6 +94,7 @@
     collapse = false,
     block = false,
     busy = false,
+    shimmer = false,
     busyLabel,
     href,
     target,
@@ -140,34 +151,50 @@
   {/if}
 {/snippet}
 
-{#if href}
-  <a
-    href={disabled ? undefined : href}
-    {target}
-    rel={target === '_blank' ? 'noopener noreferrer' : undefined}
-    class={classes}
-    class:btn--link-disabled={disabled}
-    role={disabled ? 'link' : undefined}
-    aria-disabled={disabled ? 'true' : undefined}
-    aria-label={iconOnly || collapse ? text : undefined}
-    aria-busy={busy ? 'true' : undefined}
-    onclick={click}
-    {...rest as Record<string, unknown>}
+{#snippet element()}
+  {#if href}
+    <a
+      href={disabled ? undefined : href}
+      {target}
+      rel={target === '_blank' ? 'noopener noreferrer' : undefined}
+      class={classes}
+      class:btn--link-disabled={disabled}
+      role={disabled ? 'link' : undefined}
+      aria-disabled={disabled ? 'true' : undefined}
+      aria-label={iconOnly || collapse ? text : undefined}
+      aria-busy={busy ? 'true' : undefined}
+      onclick={click}
+      {...rest as Record<string, unknown>}
+    >
+      {@render content()}
+    </a>
+  {:else}
+    <button
+      {type}
+      class={classes}
+      {disabled}
+      aria-label={iconOnly || collapse ? text : undefined}
+      aria-busy={busy ? 'true' : undefined}
+      onclick={click}
+      {...rest}
+    >
+      {@render content()}
+    </button>
+  {/if}
+{/snippet}
+
+{#if shimmer}
+  <!-- The light sits behind the button, so the wrapper isolates it: whatever the button does
+       (a filter on hover, a squish on press) it stays underneath. -->
+  <span
+    class="shimmer shimmer--{shape}"
+    class:shimmer--block={block}
+    class:shimmer--still={busy || disabled || softDisabled}
   >
-    {@render content()}
-  </a>
+    {@render element()}
+  </span>
 {:else}
-  <button
-    {type}
-    class={classes}
-    {disabled}
-    aria-label={iconOnly || collapse ? text : undefined}
-    aria-busy={busy ? 'true' : undefined}
-    onclick={click}
-    {...rest}
-  >
-    {@render content()}
-  </button>
+  {@render element()}
 {/if}
 
 <style>
@@ -228,8 +255,8 @@
 
   /* Sugar-glass sheen: one sweep of light across primary and front-layer buttons per hover. */
   .btn--primary::after,
-  .btn--glass::after,
-  .btn--ghost::after {
+  :global(:is([data-layer='front'], [data-glass])) .btn--glass::after,
+  :global(:is([data-layer='front'], [data-glass])) .btn--ghost::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -241,8 +268,10 @@
     pointer-events: none;
   }
   .btn--primary:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after,
-  .btn--glass:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after,
-  .btn--ghost:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after {
+  :global(:is([data-layer='front'], [data-glass]))
+    .btn--glass:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after,
+  :global(:is([data-layer='front'], [data-glass]))
+    .btn--ghost:hover:not(:disabled, .btn--soft-disabled):not(.btn--busy)::after {
     animation: bb-sheen var(--motion-slow) var(--ease-out);
   }
   .btn--glass::after,
@@ -435,13 +464,12 @@
     outline-color: var(--ok);
   }
 
+  /* On the ground or a panel: a soft-touch key (nothing floats there, so nothing is glass). */
   .btn--glass,
   .btn--ghost {
-    background: var(--pill-tint);
-    backdrop-filter: var(--blur-pill);
-    -webkit-backdrop-filter: var(--blur-pill);
-    border: 0.75px solid var(--pill-border);
-    box-shadow: var(--shadow-frosted);
+    background: var(--soft-bg);
+    border-color: transparent;
+    box-shadow: var(--soft-shadow);
   }
   .btn--glass {
     color: var(--accent-ink);
@@ -451,7 +479,106 @@
   }
   .btn--glass:hover:not(:disabled, .btn--soft-disabled),
   .btn--ghost:hover:not(:disabled, .btn--soft-disabled) {
+    background: var(--soft-bg-hover);
+  }
+  .btn--glass:active:not(:disabled, .btn--soft-disabled, .btn--busy),
+  .btn--ghost:active:not(:disabled, .btn--soft-disabled, .btn--busy) {
+    box-shadow: var(--soft-shadow-pressed);
+  }
+  /* Where something floats (a sticky front layer, an overlay): liquid glass. */
+  :global(:is([data-layer='front'], [data-glass])) .btn--glass,
+  :global(:is([data-layer='front'], [data-glass])) .btn--ghost {
+    background: var(--pill-tint);
+    backdrop-filter: var(--blur-pill);
+    -webkit-backdrop-filter: var(--blur-pill);
+    border: 0.75px solid var(--pill-border);
+    box-shadow: var(--shadow-frosted);
+  }
+  :global(:is([data-layer='front'], [data-glass]))
+    .btn--glass:hover:not(:disabled, .btn--soft-disabled),
+  :global(:is([data-layer='front'], [data-glass]))
+    .btn--ghost:hover:not(:disabled, .btn--soft-disabled) {
+    background: var(--pill-tint);
     box-shadow: var(--shadow-frosted-hover);
+  }
+
+  /* Soft-touch: a matte key on the ground. It brightens under the finger and sinks when held. */
+  .btn--soft {
+    background: var(--soft-bg);
+    border-color: transparent;
+    color: var(--text);
+    box-shadow: var(--soft-shadow);
+  }
+  .btn--soft:hover:not(:disabled, .btn--soft-disabled) {
+    background: var(--soft-bg-hover);
+    color: var(--accent-ink);
+  }
+  .btn--soft:active:not(:disabled, .btn--soft-disabled, .btn--busy) {
+    box-shadow: var(--soft-shadow-pressed);
+  }
+  .btn--soft[aria-pressed='true'],
+  .btn--soft[aria-pressed='true']:hover:not(:disabled, .btn--soft-disabled) {
+    background: var(--layer-selected-bg);
+    color: var(--accent-ink);
+    box-shadow:
+      inset 0 0 0 1px var(--layer-selected-border),
+      0 8px 18px -12px color-mix(in srgb, var(--tint) 70%, transparent);
+  }
+
+  .shimmer {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    isolation: isolate;
+  }
+  .shimmer--pill {
+    border-radius: var(--radius-pill);
+  }
+  .shimmer--rounded {
+    border-radius: var(--radius-md);
+  }
+  .shimmer--block {
+    display: flex;
+    width: 100%;
+  }
+  /* A thin ring of light travelling round the edge, and a wide, quiet glow under it. */
+  .shimmer::before,
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  /* Tint-heavy, so the light still shows on a pale ground; white only at its brightest point. */
+  .shimmer::before {
+    inset: -4px;
+    background: conic-gradient(
+      from var(--bb-shimmer-angle),
+      transparent 0deg,
+      var(--accent) 60deg,
+      color-mix(in srgb, var(--tint) 35%, white) 105deg,
+      var(--tint-2) 150deg,
+      transparent 220deg
+    );
+    filter: blur(4px);
+    opacity: 0.85;
+    animation: bb-shimmer-turn var(--duration-shimmer) linear infinite;
+  }
+  .shimmer::after {
+    inset: -12px -8px;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--tint) 40%, transparent),
+      transparent
+    );
+    filter: blur(10px);
+  }
+  .shimmer--still::before,
+  .shimmer--still::after {
+    animation: none;
+    opacity: 0;
+    transition: opacity var(--motion-base) var(--ease-out);
   }
 
   .btn--busy :global(.icon:not(.btn__trailing)) {
@@ -470,8 +597,8 @@
   }
 
   @media (prefers-reduced-transparency: reduce) {
-    .btn--glass,
-    .btn--ghost {
+    :global(:is([data-layer='front'], [data-glass])) .btn--glass,
+    :global(:is([data-layer='front'], [data-glass])) .btn--ghost {
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       background: var(--glass-strong);
@@ -484,7 +611,8 @@
         background-color var(--motion-quick) var(--ease-out),
         color var(--motion-quick) var(--ease-out);
     }
-    .btn::after {
+    .btn::after,
+    .shimmer::before {
       animation: none !important;
     }
     .btn--busy :global(.icon:not(.btn__trailing)) {

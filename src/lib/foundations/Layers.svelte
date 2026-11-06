@@ -18,21 +18,21 @@
       n: 1,
       name: 'Ground',
       level: 'ground' as const,
-      what: 'Directly on the backdrop. No surface at all.',
+      what: 'Directly on the backdrop: soft stone, a little brighter at the top. No surface at all.',
       use: 'Page and section headings, body text, KPI figures, hero copy, empty states.',
     },
     {
       n: 2,
       name: 'Panel',
       level: 'panel' as const,
-      what: 'Frosted glass: translucent, blurred, a hairline rim and a soft shadow.',
-      use: 'Cards, tables, forms, lists — anything that groups content.',
+      what: 'A solid tile a little lighter than the ground. No glass, no lift.',
+      use: 'Tables, forms, results — only what needs a box. Most groups sit on the ground.',
     },
     {
       n: 3,
       name: 'Selected',
       level: 'selected' as const,
-      what: 'Tinted glass with a tint rim and a coloured glow.',
+      what: 'The same tile washed in tint, with a tint rim and a close coloured glow.',
       use: 'The chosen plan, the open conversation, the active window, the row being edited.',
     },
     {
@@ -87,7 +87,7 @@
             {#each Array.from({ length: 9 }, (_, i) => i) as i (i)}
               <Layer level={i === 1 ? 'selected' : 'panel'} gap="xs">
                 <strong>{i === 1 ? 'Selected' : 'Panel'} {i + 1}</strong>
-                <span class="muted">{i === 1 ? 'tinted glass' : 'frosted glass'}</span>
+                <span class="muted">{i === 1 ? 'tinted tile' : 'solid tile'}</span>
               </Layer>
             {/each}
           </Grid>

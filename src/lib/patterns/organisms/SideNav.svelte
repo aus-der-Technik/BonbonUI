@@ -18,7 +18,8 @@
 
 <script lang="ts">
   /**
-   * SideNav organism — the section navigation of a multi-page app on a glass panel. The active
+   * SideNav organism — the section navigation of a multi-page app, on the ground by default
+   * (`level="panel"` puts it on a card). The active
    * item (`aria-current="page"`) is lifted onto the selected layer: tinted glass, tint-coloured
    * text and a small pill marker on its leading edge. When the active item changes, that pill
    * slides over to it instead of blinking. `orientation="auto"` (default) turns it into a
@@ -36,9 +37,17 @@
     /** `auto`: a strip below 900px, except inside a dialog or drawer. */
     orientation?: 'auto' | 'vertical' | 'horizontal';
     onnavigate?: ((item: NavItem, event: MouseEvent) => void) | undefined;
+    /** `ground` (default) sits on the backdrop; `panel` is a card. */
+    level?: 'ground' | 'panel';
   }
 
-  let { groups, label = 'Main', orientation = 'auto', onnavigate }: Props = $props();
+  let {
+    groups,
+    label = 'Main',
+    orientation = 'auto',
+    onnavigate,
+    level = 'ground',
+  }: Props = $props();
 
   let nav: HTMLElement | undefined = $state();
   // Inside an overlay panel the nav is the panel's content: a list, never a strip.
@@ -76,7 +85,7 @@
 </script>
 
 <nav
-  class="nav nav--{mode}"
+  class="nav nav--{mode} nav--{level}"
   class:has-pill={pill && pill.w > 0}
   aria-label={label}
   data-orientation={mode}
@@ -122,9 +131,9 @@
     gap: var(--space-4);
     padding: var(--space-2);
     border-radius: var(--radius-card);
+  }
+  .nav--panel {
     background: var(--layer-panel-bg);
-    backdrop-filter: var(--layer-panel-blur);
-    -webkit-backdrop-filter: var(--layer-panel-blur);
     border: 1px solid var(--layer-panel-border);
     box-shadow: var(--layer-panel-shadow);
   }
@@ -307,13 +316,6 @@
     .pill::before {
       transition: none;
       animation: none;
-    }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .nav {
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      background: var(--glass-strong);
     }
   }
 </style>

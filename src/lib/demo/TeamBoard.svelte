@@ -228,14 +228,14 @@
 </script>
 
 {#snippet activityPanel()}
-  <Section title="This week" heading={3} level="panel" gap="md">
+  <Section title="This week" heading={3} gap="md">
     <Grid columns={2} min="7rem" gap="md">
       <Stat size="sm" label="Done" value={done} delta={25} trend={[1, 2, 2, 3, 5, 4, done]} />
       <Stat size="sm" label="Overdue" value={overdue} delta={-50} goodWhen="down" />
     </Grid>
     <TaskList title="Release checklist" bind:items={tasks} sinkDone />
   </Section>
-  <Section title="Activity" heading={3} level="panel">
+  <Section title="Activity" heading={3}>
     <ActivityLog entries={activity} />
   </Section>
 {/snippet}

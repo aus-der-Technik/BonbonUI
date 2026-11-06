@@ -588,7 +588,7 @@
   </Section>
 
   <Stack gap="lg">
-    <Section level="panel" title="Services" heading={3}>
+    <Section title="Services" heading={3}>
       <ResourceList
         items={services}
         key={(s) => s.id}
@@ -598,7 +598,7 @@
         label="Services"
       />
     </Section>
-    <Section level="panel" title="Activity" heading={3}>
+    <Section title="Activity" heading={3}>
       <ActivityLog entries={opsActivity()} label="Recent activity" />
     </Section>
   </Stack>

@@ -40,7 +40,7 @@
     finePrint?: string | undefined;
     /** Imprint, privacy, terms… next to the fine print. */
     legal?: FooterLink[];
-    /** `panel` is a glass card; `ground` sits directly on the backdrop. */
+    /** `ground` (default) sits directly on the backdrop; `panel` is a card. */
     level?: 'panel' | 'ground';
     /** Under the tagline: a newsletter form, app store badges. */
     children?: Snippet | undefined;
@@ -57,7 +57,7 @@
     social = [],
     finePrint,
     legal = [],
-    level = 'panel',
+    level = 'ground',
     children,
     label = 'Footer',
     legalLabel = 'Legal',

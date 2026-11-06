@@ -15,6 +15,10 @@
  *   - Only boxes near the lens are copied in full; far-away boxes become empty stand-ins of the
  *     same size (`content-visibility: hidden` + `contain-intrinsic-size`), so layout matches.
  *     A stand-in that comes near, or whose original changes size, is filled in on its own.
+ *   - Wide blurs are left out of the copy. A blur of 24px or more only softens what is soft
+ *     already (a tint mesh, a glow), the lens scatters the picture anyway — and WebKit re-runs
+ *     such a blur in software over the whole element on every repaint of the copy. It was what
+ *     made scrolling under the glass drop to a few frames a second in Safari.
  *   - Scrolling only moves the copy; attribute, text and child-list changes are patched in place.
  *     Only a resize copies the page again. Form values, scroll offsets, sticky offsets and
  *     running CSS animations are carried over.
@@ -41,6 +45,11 @@ const REACH = 240;
 /** How long after the last scroll moving backgrounds catch up with the page. */
 const ANCHOR_SETTLE_MS = 160;
 const NO_AFTER = 'data-bb-mirror-no-after';
+/** On copies whose ::before / ::after lose a wide blur (see `softened`). */
+const SOFT_BEFORE = 'data-bb-mirror-soft-before';
+const SOFT_AFTER = 'data-bb-mirror-soft-after';
+/** From this radius on a blur is left out of the copy (see the header). */
+const WIDE_BLUR_PX = 24;
 
 const SKIP_TAGS = new Set(['SCRIPT', 'TEMPLATE', 'NOSCRIPT', 'STYLE', 'LINK', 'META']);
 const MEDIA_TAGS = new Set(['IFRAME', 'VIDEO', 'AUDIO', 'OBJECT', 'EMBED']);
@@ -56,6 +65,7 @@ const OWN_RULES =
   `[${AWAY_ATTR}]{display:none!important}` +
   `[${SHELL_ATTR}]::before,[${SHELL_ATTR}]::after,[${NO_BEFORE}]::before,[${NO_AFTER}]::after` +
   `{display:none!important}` +
+  `[${SOFT_BEFORE}]::before,[${SOFT_AFTER}]::after{filter:none!important}` +
   // A layer of its own anywhere in the copy makes Safari drop the lens filter: no will-change,
   // no backdrop filters, nothing animating (animated values are frozen in, see #freeze).
   // Scrollers are handled per element (#layerless).
@@ -96,6 +106,31 @@ const unset = (value: string) => !value || value === 'none';
 const clear = (color: string) => !color || /^(transparent|rgba\(0, 0, 0, 0\))$/.test(color);
 
 /** Sets an inline style only when it changes: an unchanged write still invalidates in WebKit. */
+/** A `filter` without its wide blurs, or null when it has none to lose. */
+export function softened(filter: string): string | null {
+  if (!filter || filter === 'none') return null;
+  let wide = false;
+  const rest = filter
+    .replace(/blur\(\s*([\d.]+)px\s*\)/g, (all, px: string) => {
+      if (Number.parseFloat(px) < WIDE_BLUR_PX) return all;
+      wide = true;
+      return '';
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
+  return wide ? rest || 'none' : null;
+}
+
+/** Is a box close enough to the lens to show in it (within the widest blur's spread)? */
+function reaches(r: DOMRect, lens: DOMRect): boolean {
+  return (
+    r.right > lens.left - REACH &&
+    r.left < lens.right + REACH &&
+    r.bottom > lens.top - REACH &&
+    r.top < lens.bottom + REACH
+  );
+}
+
 function put(el: HTMLElement, property: string, value: string): void {
   if (el.style.getPropertyValue(property) !== value) el.style.setProperty(property, value);
 }
@@ -256,13 +291,15 @@ export class Mirror {
         'min-height:0!important;margin:0!important;padding:0!important;border:0!important;' +
         'background:transparent!important;box-shadow:none!important;overflow:visible!important';
     });
-    for (const [pseudo, attr] of [
-      ['::before', NO_BEFORE],
-      ['::after', NO_AFTER],
+    for (const [pseudo, attr, soft] of [
+      ['::before', NO_BEFORE, SOFT_BEFORE],
+      ['::after', NO_AFTER, SOFT_AFTER],
     ] as const) {
       const cs = getComputedStyle(document.body, pseudo);
       const fixed = cs.position === 'fixed' && !/^(none|normal)$/.test(cs.content);
       (fixed ? body : still).setAttribute(attr, '');
+      // The body's blurred tint blobs: a wide blur, left out like any other (see the header).
+      if (softened(cs.filter)) for (const el of [body, still]) el.setAttribute(soft, '');
     }
 
     this.stage.replaceChildren(body);
@@ -293,20 +330,21 @@ export class Mirror {
       put(stage, 'transform', `translate(${-view.lens.left}px, ${-view.lens.top}px)`);
     }
     this.#fixes.get(this.#body)?.();
-    this.#placeCanvas?.();
     // Backgrounds usually stay put; one that moved (a scrolled container) is moved along.
     const scrolling = performance.now() - this.#scrolledAt < ANCHOR_SETTLE_MS;
     let settle = false;
+    // A canvas with an image scrolls with the page. Moving it repaints the whole still layer
+    // (the tint mesh with it), so like the backgrounds below it catches up once the scroll
+    // settles; it is a soft, page-wide picture, a short lag under the glass does not show.
+    if (this.#placeCanvas) {
+      if (scrolling) settle = true;
+      else this.#placeCanvas();
+    }
     this.#anchored.forEach((entry, i) => {
       const r = anchors[i]!;
       // A background nowhere near the lens is left out: WebKit runs an element's whole filter
       // (a blurred mesh is huge) even when only a sliver of it, or nothing, shows in the lens.
-      const lens = view.lens;
-      const near =
-        r.right > lens.left - REACH &&
-        r.left < lens.right + REACH &&
-        r.bottom > lens.top - REACH &&
-        r.top < lens.bottom + REACH;
+      const near = reaches(r, view.lens);
       const copy = entry.pair[1];
       if (near !== !copy.hasAttribute(AWAY_ATTR)) {
         if (near) copy.removeAttribute(AWAY_ATTR);
@@ -574,6 +612,13 @@ export class Mirror {
       }
       const cs = computed();
       this.#layerless(orig, copy as HTMLElement, cs);
+      const soft = softened(cs.filter);
+      if (soft) {
+        this.#fix(copy as HTMLElement, (el) => {
+          el.style.setProperty('filter', soft, 'important');
+          el.style.setProperty('-webkit-filter', soft, 'important');
+        });
+      }
       if (cs.position === 'sticky') {
         copy.setAttribute(STICKY_ATTR, '');
         const entry = { pair: [orig, copy as HTMLElement] as Pair, x: 0, y: 0 };
@@ -817,13 +862,22 @@ export class Mirror {
     if (endless) {
       let tick = 0;
       this.#thaw = setInterval(() => {
+        // Nobody sees a hidden tab; every snapshot repaints the copy.
+        if (document.hidden) return;
         // The still layer's backgrounds drift slowly and repaint expensively (blurred, in
         // software): every 10 s is enough there, and never in the middle of a scroll.
         const still = ++tick >= STILL_THAW_TICKS && performance.now() - this.#scrolledAt > 300;
         if (still) tick = 0;
+        const lens = this.#lens.getBoundingClientRect();
         for (const [copy, entry] of this.#frozen) {
-          if (!this.#holds(copy)) this.#frozen.delete(copy);
-          else if (still || !this.stillStage.contains(copy)) this.#snapshot(entry);
+          if (!this.#holds(copy)) {
+            this.#frozen.delete(copy);
+            continue;
+          }
+          const inStill = this.stillStage.contains(copy);
+          if (inStill ? !still : !reaches(entry.pair[0].getBoundingClientRect(), lens)) continue;
+          // Only what can show in the lens is worth the repaint; the rest catches up later.
+          this.#snapshot(entry);
         }
       }, 1000);
     }

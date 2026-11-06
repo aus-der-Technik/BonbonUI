@@ -58,11 +58,14 @@
     /** Hover lift and the card-wide click target. Default: on when it has `href` or `onopen`. */
     interactive?: boolean | undefined;
     currency?: string;
+    /** `ground` (default): picture and text on the backdrop, no box; `panel` puts it on a card. */
+    level?: 'ground' | 'panel';
     locale?: string;
     reviewsLabel?: (count: number) => string;
   }
 
   let {
+    level = 'ground',
     title,
     price,
     compareAt,
@@ -142,7 +145,12 @@
   }
 </script>
 
-<article class="product" class:interactive={clickable} class:sold-out={soldOut} bind:this={card}>
+<article
+  class="product product--{level}"
+  class:interactive={clickable}
+  class:sold-out={soldOut}
+  bind:this={card}
+>
   <div class="media" style:aspect-ratio={aspect}>
     {#if media}
       {@render media()}
@@ -224,16 +232,20 @@
     min-width: 0;
     overflow: hidden;
     border-radius: var(--radius-card);
-    background: var(--layer-panel-bg);
-    border: 1px solid var(--layer-panel-border);
-    box-shadow: var(--layer-panel-shadow);
-    backdrop-filter: var(--layer-panel-blur);
-    -webkit-backdrop-filter: var(--layer-panel-blur);
     transition:
       transform var(--motion-base) var(--ease-out),
       box-shadow var(--motion-base) var(--ease-out);
   }
-  .interactive:hover {
+  .product--ground {
+    overflow: visible;
+  }
+  .product--panel {
+    background: var(--layer-panel-bg);
+    border: 1px solid var(--layer-panel-border);
+    box-shadow: var(--layer-panel-shadow);
+  }
+  /* On the ground the picture answers the pointer (it zooms); only a card lifts. */
+  .product--panel.interactive:hover {
     transform: var(--hover-lift);
     box-shadow:
       var(--glass-shadow),
@@ -252,8 +264,7 @@
   .media {
     position: relative;
     overflow: hidden;
-    margin: 6px 6px 0;
-    border-radius: calc(var(--radius-card) - 6px);
+    border-radius: var(--radius-card);
     background:
       radial-gradient(120% 80% at 30% 20%, var(--tint-100), transparent 60%),
       linear-gradient(160deg, var(--fill-subtle), var(--fill-muted));
@@ -314,13 +325,12 @@
     width: var(--control-md);
     height: var(--control-md);
     padding: 0;
-    border: 0.75px solid var(--layer-front-border);
+    /* A soft-touch key, not glass: it sits on the picture, it does not float over the page. */
+    border: 0;
     border-radius: var(--radius-pill);
     color: var(--text-2);
-    background: var(--layer-front-bg);
-    box-shadow: var(--shadow-frosted);
-    backdrop-filter: var(--blur-pill);
-    -webkit-backdrop-filter: var(--blur-pill);
+    background: var(--soft-bg-hover);
+    box-shadow: var(--soft-shadow);
     cursor: pointer;
     transition:
       transform var(--motion-quick) var(--ease-jelly),
@@ -349,6 +359,13 @@
     flex-direction: column;
     flex: 1;
     gap: var(--space-1);
+    padding: var(--space-3) 2px 0;
+  }
+  .product--panel .media {
+    margin: 6px 6px 0;
+    border-radius: calc(var(--radius-card) - 6px);
+  }
+  .product--panel .body {
     padding: var(--space-3) var(--space-4) var(--space-4);
   }
   .subtitle {
@@ -441,13 +458,6 @@
     }
     .wish.on :global(svg) {
       animation: none;
-    }
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    .product {
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      background: var(--glass-strong);
     }
   }
 </style>

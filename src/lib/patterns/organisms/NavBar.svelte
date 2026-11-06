@@ -88,7 +88,7 @@
 
 <svelte:window onclick={onwindowclick} onkeydown={onwindowkeydown} />
 
-<header class="navbar" bind:this={root} style:--layer-front-blur={frostFilter(lens)}>
+<header class="navbar" data-glass bind:this={root} style:--layer-front-blur={frostFilter(lens)}>
   <div class="bar" class:lensed={lens !== false && lensDrawn}>
     {#if lens !== false}<GlassLens {...lens} bind:active={lensDrawn} />{/if}
     {#if brand || logo}

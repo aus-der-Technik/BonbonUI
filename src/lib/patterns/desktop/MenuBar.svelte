@@ -175,6 +175,7 @@
 {/snippet}
 
 <header
+  data-glass
   class="menubar"
   class:floating
   class:lensed={lens !== false && lensDrawn}

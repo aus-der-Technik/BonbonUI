@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * FeatureCard molecule — one selling point of a website: an icon in a candy squircle, a title
-   * and a line or two of text. On a glass panel by default, or straight on the ground layer.
+   * and a line or two of text. Straight on the ground layer by default, or on a panel.
    * With `href` the whole card is a link and lifts on hover.
    *
    *   <FeatureCard icon="bolt" color="orange" title="Instant sync" text="Changes land in ms." />
@@ -19,7 +19,7 @@
     color?: AccentColor | undefined;
     /** `tinted` — soft colour square, coloured glyph; `solid` — a glossy app-icon square. */
     iconStyle?: 'tinted' | 'solid';
-    /** `panel` is a glass card; `ground` sits directly on the backdrop. */
+    /** `ground` (default) sits directly on the backdrop; `panel` is a card. */
     level?: 'panel' | 'ground';
     /** `horizontal` puts the icon beside the text (dense lists). */
     layout?: 'vertical' | 'horizontal';
@@ -36,7 +36,7 @@
     icon,
     color,
     iconStyle = 'tinted',
-    level = 'panel',
+    level = 'ground',
     layout = 'vertical',
     href,
     heading = 3,

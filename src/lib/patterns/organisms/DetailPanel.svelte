@@ -122,6 +122,7 @@
 {/if}
 
 <div
+  data-glass
   bind:this={panel}
   class="panel"
   class:behind={layer === 'behind'}

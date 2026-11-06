@@ -57,10 +57,14 @@
   /* Text */
   --text: #1a1a1a;
   --text-2: #555;
-  --text-3: #6b6b6b; /* ≥ 4.5:1 on the tinted background */
+  --text-3: #636363; /* ≥ 4.5:1 on the stone ground */
 
   /* Surfaces */
-  --bg-base: #f3f4f6;
+  /* The ground is soft stone, a shade darker than the panels: panels read as raised tiles
+     without needing a shadow, and the tint can stay a whisper. */
+  --bg-base: #e9e9e6;
+  /* Light from above: the top of the ground catches a little more of it. */
+  --ground-light: rgba(255, 255, 255, 0.5);
   --border: rgba(255, 255, 255, 0.6);
   --border-strong: rgba(20, 20, 30, 0.08);
   /* Field edges need to be findable: stronger than a card's hairline. */
@@ -69,6 +73,19 @@
   --glass-strong: rgba(255, 255, 255, 0.72);
   --glass-shadow: 0 10px 30px rgba(20, 20, 40, 0.08), 0 2px 6px rgba(20, 20, 40, 0.04);
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+  /* Panels lie on the ground: a solid tile a little lighter than it, no glass (glass is for
+     what floats, and what floats is sticky). How much lighter: */
+  --panel-lift: 55%;
+  --panel-border: rgba(255, 255, 255, 0.6);
+  --panel-shadow: 0 1px 2px rgba(20, 20, 40, 0.035);
+  /* Soft-touch keys: matte, slightly domed buttons that sit on the ground and sink when pressed. */
+  --soft-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.5));
+  --soft-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.66));
+  --soft-shadow:
+    0 1px 1px rgba(20, 20, 40, 0.05), 0 8px 16px -10px rgba(20, 20, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(20, 20, 40, 0.04);
+  --soft-shadow-pressed:
+    inset 0 2px 5px rgba(20, 20, 40, 0.14), inset 0 0 0 1px rgba(20, 20, 40, 0.04);
   --tooltip-bg: rgba(255, 255, 255, 0.94);
   --input-bg: rgba(255, 255, 255, 0.7);
   --head-bg: rgba(248, 248, 251, 0.92);
@@ -111,9 +128,10 @@
   /* Knobs the derived tokens read (how the tint is mixed in this theme) */
   --ink-mix: black;
   --ink-share: 74%;
-  --bg-tint-share: 5%;
-  --blob-share: 42%;
-  --blob-share-2: 26%;
+  --bg-tint-share: 3%;
+  /* A quiet mesh: colour lives in the 10 % (actions, selection), not in the ground. */
+  --blob-share: 24%;
+  --blob-share-2: 14%;
 }
 
 /* ── 2. Theme values: dark (OS) ──────────────────────────────────────────────────────────── */
@@ -126,7 +144,8 @@
     --text-2: #c3c2b7;
     --text-3: #8f8e86;
     --draft: #f2b84b;
-    --bg-base: #111214;
+    --bg-base: #121313;
+    --ground-light: rgba(255, 255, 255, 0.03);
     --border: rgba(255, 255, 255, 0.08);
     --border-strong: rgba(255, 255, 255, 0.09);
     --input-border: rgba(255, 255, 255, 0.16);
@@ -134,6 +153,16 @@
     --glass-strong: rgba(40, 40, 44, 0.8);
     --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
     --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --panel-lift: 5%;
+    --panel-border: rgba(255, 255, 255, 0.06);
+    --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --soft-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+    --soft-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.07));
+    --soft-shadow:
+      0 1px 1px rgba(0, 0, 0, 0.3), 0 8px 16px -10px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --soft-shadow-pressed:
+      inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     --tooltip-bg: rgba(30, 30, 33, 0.96);
     --input-bg: rgba(255, 255, 255, 0.06);
     --head-bg: rgba(30, 30, 34, 0.94);
@@ -167,9 +196,9 @@
     --star-5: #9ec5f4;
     --ink-mix: white;
     --ink-share: 62%;
-    --bg-tint-share: 7%;
-    --blob-share: 30%;
-    --blob-share-2: 18%;
+    --bg-tint-share: 5%;
+    --blob-share: 20%;
+    --blob-share-2: 11%;
 
     --color-red: #ff453a;
     --color-orange: #ff9f0a;
@@ -196,7 +225,8 @@
   --text-2: #c3c2b7;
   --text-3: #8f8e86;
   --draft: #f2b84b;
-  --bg-base: #111214;
+  --bg-base: #121313;
+  --ground-light: rgba(255, 255, 255, 0.03);
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.09);
   --input-border: rgba(255, 255, 255, 0.16);
@@ -204,6 +234,16 @@
   --glass-strong: rgba(40, 40, 44, 0.8);
   --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
   --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --panel-lift: 5%;
+  --panel-border: rgba(255, 255, 255, 0.06);
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --soft-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  --soft-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.07));
+  --soft-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.3), 0 8px 16px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --soft-shadow-pressed:
+    inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   --tooltip-bg: rgba(30, 30, 33, 0.96);
   --input-bg: rgba(255, 255, 255, 0.06);
   --head-bg: rgba(30, 30, 34, 0.94);
@@ -237,9 +277,9 @@
   --star-5: #9ec5f4;
   --ink-mix: white;
   --ink-share: 62%;
-  --bg-tint-share: 7%;
-  --blob-share: 30%;
-  --blob-share-2: 18%;
+  --bg-tint-share: 5%;
+  --blob-share: 20%;
+  --blob-share-2: 11%;
 
   --color-red: #ff453a;
   --color-orange: #ff9f0a;
@@ -384,19 +424,21 @@
   /*
    * The four layers, bottom to top. Every surface in the library is one of these.
    *   ground   — on the backdrop itself: headings, text, KPI rows, empty states
-   *   panel    — frosted glass: cards, tables, forms
+   *   panel    — a solid tile a little lighter than the ground: cards, tables, forms
    *   selected — a panel that is chosen / active / focused: tinted glass
    *   front    — liquid glass floating over everything; always sticky (design rule)
    */
   --layer-ground-bg: transparent;
-  --layer-panel-bg: var(--glass);
-  --layer-panel-border: var(--border);
-  --layer-panel-shadow: var(--glass-shadow), var(--glass-inset);
-  --layer-panel-blur: var(--blur-glass);
-  --layer-selected-bg: color-mix(in srgb, var(--tint) 13%, var(--glass-strong));
+  --layer-panel-bg: color-mix(in oklab, var(--bg), white var(--panel-lift));
+  --layer-panel-border: var(--panel-border);
+  --layer-panel-shadow: var(--panel-shadow), var(--glass-inset);
+  /* Not glass: panels are solid, so nothing behind them needs scattering (and none is paid). */
+  --layer-panel-blur: none;
+  /* Selected is the panel washed in tint: the same tile, coloured; its glow stays close. */
+  --layer-selected-bg: color-mix(in oklab, var(--tint) 14%, var(--layer-panel-bg));
   --layer-selected-border: var(--accent-border);
   --layer-selected-shadow:
-    0 14px 36px color-mix(in srgb, var(--tint) 22%, transparent), var(--glass-inset);
+    0 14px 30px -16px color-mix(in srgb, var(--tint) 55%, transparent), var(--glass-inset);
   --layer-front-bg: var(--pill-tint);
   --layer-front-border: var(--pill-border);
   --layer-front-shadow: var(--shadow-header-pill);
@@ -494,6 +536,8 @@
   --duration-base: 0.3s;
   /* The backdrop gradient drifts slowly and gently. */
   --duration-drift: 48s;
+  /* One turn of the light around a shimmering button: slow enough to read as calm. */
+  --duration-shimmer: 5.6s;
 
   /* Motion — every animation answers one question: where did it come from, where did it go,
      did it work? Small things may spring; big things (panels, pages) only ease. */
@@ -641,6 +685,19 @@
     box-shadow:
       inset 0 0 0 999px var(--accent-faint),
       0 0 0 4px var(--accent-faint);
+  }
+}
+
+/* The angle of a button's shimmer (Button `shimmer`); registered so it can be animated. */
+@property --bb-shimmer-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes bb-shimmer-turn {
+  to {
+    --bb-shimmer-angle: 360deg;
   }
 }
 

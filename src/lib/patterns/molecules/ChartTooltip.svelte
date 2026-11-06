@@ -16,8 +16,10 @@
 <script lang="ts">
   /**
    * ChartTooltip molecule — the small card next to the pointer over a chart: a heading and
-   * label/value rows on frosted glass. Positioned `fixed` at viewport coordinates and kept inside
-   * the viewport; tabular figures so the values line up.
+   * label/value rows on frosted glass, beside the pointer and kept inside the viewport; tabular
+   * figures so the values line up. It opens in the top layer (a manual popover): a chart usually
+   * sits in a panel, and anything with a filter would otherwise become the containing block of
+   * a `fixed` tooltip (it would drift away from the pointer) and stack it under the next panel.
    *
    *   <ChartTooltip tooltip={{ x, y, title: 'Mon', rows: [{ label: 'Up', value: '14' }] }} />
    */
@@ -29,6 +31,7 @@
 
   let { tooltip }: Props = $props();
 
+  let el = $state<HTMLElement>();
   let width = $state(0);
   let height = $state(0);
 
@@ -43,11 +46,19 @@
     const y = tooltip.y + PAD;
     return Math.max(8, y + height > window.innerHeight - 8 ? tooltip.y - height - PAD : y);
   });
+
+  $effect(() => {
+    if (el && typeof el.showPopover === 'function' && !el.matches(':popover-open')) {
+      el.showPopover();
+    }
+  });
 </script>
 
 {#if tooltip}
   <div
     class="tooltip"
+    popover="manual"
+    bind:this={el}
     style:left="{left}px"
     style:top="{top}px"
     bind:clientWidth={width}
@@ -69,6 +80,10 @@
 <style>
   .tooltip {
     position: fixed;
+    /* The popover defaults centre it in the viewport; it is placed by left/top instead. */
+    inset: auto;
+    margin: 0;
+    overflow: visible;
     z-index: var(--z-tooltip);
     pointer-events: none;
     min-width: 9rem;

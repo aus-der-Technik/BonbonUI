@@ -239,6 +239,32 @@ export const corrections: { title: string; intro: string; items: Correction[] }[
     ],
   },
   {
+    title: 'Too many boxes',
+    intro:
+      'A screen of cards is a screen of borders. Most groups need a heading and some air, not a box.',
+    items: [
+      {
+        was: 'Every group was a frosted panel: KPI tiles, charts, the side navigation, service and activity lists, features, testimonials, product cards.',
+        now: 'They sit on the ground; panels are kept for tables, forms and results. A row of figures is set apart by hairlines.',
+        breaks: ['function'],
+        where:
+          'KpiTile · ChartCard · SideNav · Faq · FeatureCard · ProductCard · every example page',
+      },
+      {
+        was: 'Panels were glass and glass buttons sat anywhere — on the ground, on cards, on photos.',
+        now: 'Panels are solid tiles. Glass is only what floats and sticks: glass buttons turn into soft-touch keys outside a front layer or overlay.',
+        breaks: ['function', 'cues'],
+        where: 'Layers · Button (glass, ghost) · ProductCard',
+      },
+      {
+        was: 'Chart tooltips inside a panel opened far from the pointer and under the next panel.',
+        now: 'They open in the top layer, beside the pointer, above everything.',
+        breaks: ['locality'],
+        where: 'ChartTooltip · LineChart · bar charts',
+      },
+    ],
+  },
+  {
     title: 'Fewer, better pages',
     intro: 'Forty-seven example stories became a handful of complete applications.',
     items: [

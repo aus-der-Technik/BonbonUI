@@ -40,7 +40,7 @@
     /** Maximum number of columns. */
     columns?: number | undefined;
     gap?: Space;
-    /** `panel` cards on glass; `ground` lays the features straight on the backdrop. */
+    /** `ground` (default) lays the features straight on the backdrop; `panel` puts each on a card. */
     level?: 'panel' | 'ground';
     iconStyle?: 'tinted' | 'solid';
     /** `horizontal` puts each icon beside its text. */
@@ -62,7 +62,7 @@
     min = '16rem',
     columns = 3,
     gap = 'md',
-    level = 'panel',
+    level = 'ground',
     iconStyle = 'tinted',
     layout = 'vertical',
     children,

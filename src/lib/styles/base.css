@@ -25,7 +25,10 @@ html {
 body {
   font-family: var(--font-sans);
   font-size: var(--fs-base);
-  background: var(--bg);
+  /* Light from above: the top of the ground is a touch brighter. */
+  background:
+    linear-gradient(180deg, var(--ground-light), transparent 40rem) no-repeat,
+    var(--bg);
   color: var(--text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

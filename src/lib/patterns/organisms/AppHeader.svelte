@@ -37,7 +37,7 @@
   let { title, subtitle, href, hint, onhome, fillActions = false, actions, lens }: Props = $props();
 </script>
 
-<header class="hdr">
+<header class="hdr" data-glass>
   <div class="inner" class:fill={fillActions}>
     <div class="title">
       <TitlePill
