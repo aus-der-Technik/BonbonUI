@@ -17,16 +17,19 @@ Real screens from the example pages; each opens its story in Storybook.
 
 <table>
   <tr>
-    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-website--residence"><img src="src/lib/foundations/assets/welcome-residence.jpg" alt="Residence: A quiet landing page with one glass drop for a menu."></a><br><b>Residence</b> · A quiet landing page with one glass drop for a menu.</td>
-    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-devices--climate-control"><img src="src/lib/foundations/assets/welcome-climate.jpg" alt="Climate control: Readings on the ground, soft keys, a rail."></a><br><b>Climate control</b> · Readings on the ground, soft keys, a rail.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-website--residence"><img src="src/lib/foundations/assets/welcome-residence.jpg" alt="Residence: A quiet landing page with one glass drop for a menu."></a><br><b>Residence</b> · A quiet landing page with one glass drop for a menu.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-devices--climate-control"><img src="src/lib/foundations/assets/welcome-climate.jpg" alt="Climate control: Readings on the ground, soft keys, a rail."></a><br><b>Climate control</b> · Readings on the ground, soft keys, a rail.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-admin--admin-console"><img src="src/lib/foundations/assets/welcome-admin.jpg" alt="Admin console: Figures and charts on the ground, tables on panels."></a><br><b>Admin console</b> · Figures and charts on the ground, tables on panels.</td>
   </tr>
   <tr>
-    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-admin--admin-console"><img src="src/lib/foundations/assets/welcome-admin.jpg" alt="Admin console: Figures and charts on the ground, tables on panels."></a><br><b>Admin console</b> · Figures and charts on the ground, tables on panels.</td>
-    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-fun--music-player"><img src="src/lib/foundations/assets/welcome-music.jpg" alt="Music player: A dot-matrix clock, round keys and a queue you trim in place."></a><br><b>Music player</b> · A dot-matrix clock, round keys and a queue you trim in place.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-productivity-document-editor--document-editor"><img src="docs/screens/document.jpg" alt="Document editor: Comments beside the passage they are about."></a><br><b>Document editor</b> · Comments beside the passage they are about.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-productivity-spreadsheet--spreadsheet"><img src="docs/screens/spreadsheet.jpg" alt="Spreadsheet: Formats at the selection, the sum right under it."></a><br><b>Spreadsheet</b> · Formats at the selection, the sum right under it.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-productivity-slide-deck--slide-deck"><img src="docs/screens/slides.jpg" alt="Slide deck: A toolbar on the text you are editing, notes below."></a><br><b>Slide deck</b> · A toolbar on the text you are editing, notes below.</td>
   </tr>
   <tr>
-    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-maritime--sea-traffic"><img src="src/lib/foundations/assets/welcome-sea.jpg" alt="Sea traffic: A drawn sea chart with weather and ships that move."></a><br><b>Sea traffic</b> · A drawn sea chart with weather and ships that move.</td>
-    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-programming--code-review"><img src="src/lib/foundations/assets/welcome-review.jpg" alt="Code review: A diff with comments at the line, in the dark theme."></a><br><b>Code review</b> · A diff with comments at the line, in the dark theme.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-fun--music-player"><img src="src/lib/foundations/assets/welcome-music.jpg" alt="Music player: A dot-matrix clock, round keys and a queue you trim in place."></a><br><b>Music player</b> · A dot-matrix clock, round keys and a queue you trim in place.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-maritime--sea-traffic"><img src="src/lib/foundations/assets/welcome-sea.jpg" alt="Sea traffic: A drawn sea chart with weather and ships that move."></a><br><b>Sea traffic</b> · A drawn sea chart with weather and ships that move.</td>
+    <td width="33%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-programming--code-review"><img src="src/lib/foundations/assets/welcome-review.jpg" alt="Code review: A diff with comments at the line, in the dark theme."></a><br><b>Code review</b> · A diff with comments at the line, in the dark theme.</td>
   </tr>
 </table>
 
@@ -69,7 +72,7 @@ and how feedback stays where you act.
   <tr>
     <td width="33%"><img src="docs/cards/a-calendar.jpg" alt="A month at a glance"></td>
     <td width="33%"><img src="docs/cards/a-kanban-card.jpg" alt="Work you can hold: a kanban board"></td>
-    <td width="33%"><img src="docs/cards/dock-and-windows.jpg" alt="A desk of your own: windows, dock and menu bar"></td>
+    <td width="33%"><img src="docs/cards/mail-desk.jpg" alt="A desk of your own: a mail window with mailboxes, list and message, a menu bar and a dock"></td>
   </tr>
   <tr>
     <td width="33%"><img src="docs/cards/product-and-cart.jpg" alt="From card to cart"></td>
