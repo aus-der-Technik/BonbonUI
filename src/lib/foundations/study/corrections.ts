@@ -121,6 +121,12 @@ export const corrections: { title: string; intro: string; items: Correction[] }[
         breaks: ['cues', 'friendly'],
         where: 'KanbanBoard',
       },
+      {
+        was: 'A press on the ground moved whole sections, panels included, and the same amount across the screen; sliders and fields did not answer at all.',
+        now: 'A press moves only its own layer, piece by piece, and loses energy with every pixel, so the neighbours answer and the far side barely stirs. Every control starts it, and a drag sways what is around it.',
+        breaks: ['cues', 'locality'],
+        where: 'Application · utils/flow.ts · Layers',
+      },
     ],
   },
   {

@@ -9,7 +9,8 @@
   import Application from '../patterns/templates/Application.svelte';
   import Page from '../patterns/templates/Page.svelte';
   import Icon from '../patterns/atoms/Icon.svelte';
-  import { introPager, type PagerStep } from './intro';
+  import { introPager } from './intro';
+  import type { PagerStep } from './book';
 
   interface Props {
     eyebrow?: string;
@@ -86,13 +87,19 @@
       <nav class="pager" aria-label="Chapters">
         {#if steps.prev}
           <a class="step" href={steps.prev.href} target="_top">
-            <span class="dir"><Icon name="arrow-left" size={14} /> Previous</span>
+            <span class="dir"
+              ><Icon name="arrow-left" size={14} />
+              {`Previous${steps.prev.chapter ? ` · ${steps.prev.chapter}` : ''}`}</span
+            >
             <strong>{steps.prev.title}</strong>
           </a>
         {:else}<span></span>{/if}
         {#if steps.next}
           <a class="step step--next" href={steps.next.href} target="_top">
-            <span class="dir">Next <Icon name="arrow-right" size={14} /></span>
+            <span class="dir"
+              >{`Next${steps.next.chapter ? ` · ${steps.next.chapter}` : ''}`}
+              <Icon name="arrow-right" size={14} /></span
+            >
             <strong>{steps.next.title}</strong>
             {#if steps.next.blurb}<span class="blurb">{steps.next.blurb}</span>{/if}
           </a>

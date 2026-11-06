@@ -9,9 +9,9 @@
 
   <Section title="At a glance">
     <Grid min="10rem">
-      <KpiTile label="Open" value="24" />
-      <KpiTile label="Shipped" value="118" />
-      <KpiTile label="Returns" value="3" />
+      <KpiTile label="Open">24</KpiTile>
+      <KpiTile label="Shipped">118</KpiTile>
+      <KpiTile label="Returns">3</KpiTile>
     </Grid>
   </Section>
 </Page>

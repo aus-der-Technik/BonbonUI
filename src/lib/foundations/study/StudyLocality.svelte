@@ -190,8 +190,9 @@
       </div>
     </StudyDemo>
     <p>
-      Pressing also moves the page a little, and only near the press: the panel you pressed dips
-      with its neighbours. Even the give of the surface happens where you look.
+      Pressing also moves the page a little, and mostly near the press: the things beside it dip
+      with it, the far ones barely, because the wave loses energy with every pixel. Even the give of
+      the surface happens where you look.
     </p>
   </Section>
 

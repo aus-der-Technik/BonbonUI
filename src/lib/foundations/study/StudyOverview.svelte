@@ -1,6 +1,7 @@
 <script lang="ts">
   /**
-   * Storybook-only: the study's first page — the four principles, what is new in this edition,
+   * Storybook-only: the study's first page — the four principles, five ideas that run through
+   * every chapter (with something to try),
    * how the rest is built, the traditions it stands on, a glossary and the sources.
    */
   import StudyPage from './StudyPage.svelte';
@@ -9,7 +10,16 @@
   import StudyItem from './StudyItem.svelte';
   import Section from '../../patterns/layout/Section.svelte';
   import Icon from '../../patterns/atoms/Icon.svelte';
+  import Button from '../../patterns/atoms/Button.svelte';
+  import IconButton from '../../patterns/atoms/IconButton.svelte';
+  import Input from '../../patterns/atoms/Input.svelte';
+  import Layer from '../../patterns/layout/Layer.svelte';
+  import GlassPill from '../../patterns/molecules/GlassPill.svelte';
+  import SegmentedControl from '../../patterns/molecules/SegmentedControl.svelte';
   import { chapterHref, type ChapterSlug } from './links';
+
+  let view = $state('week');
+  let lamp = $state(true);
 
   const principles: { slug: ChapterSlug; title: string; text: string }[] = [
     {
@@ -34,7 +44,7 @@
     },
   ];
 
-  const edition: { term: string; text: string; slug: ChapterSlug; where: string }[] = [
+  const ideas: { term: string; text: string; slug: ChapterSlug; where: string }[] = [
     {
       term: 'Ground first',
       text: 'Most groups need a heading and some air, not a box. Panels are solid tiles, kept for tables, forms and results.',
@@ -55,7 +65,7 @@
     },
     {
       term: 'Presses by layer',
-      text: 'A press on the ground ripples the page, a panel dips with its neighbours, glass moves nothing below it.',
+      text: 'A press moves only its own layer: on the ground or a panel the things nearby sink and bob, less with every pixel, and a drag sways them; glass moves nothing below it.',
       slug: 'cause-and-effect',
       where: 'Cause and effect',
     },
@@ -160,7 +170,7 @@
     ],
     [
       'Glass',
-      'A surface that floats above the page — front bars and overlays. Gently frosted; a panel is never glass.',
+      'A surface that floats above the page: front bars and overlays. Gently frosted; a panel turns to glass only over a photo.',
     ],
     [
       'Emitter',
@@ -243,18 +253,50 @@
   </Section>
 
   <Section
-    title="New in this edition"
-    description="The system grew calmer and more physical; five changes run through every chapter."
+    title="Five ideas you will meet everywhere"
+    description="They run through every chapter; each is explained where it belongs."
     gap="lg"
   >
     <StudyList min="15rem">
-      {#each edition as e (e.term)}
+      {#each ideas as e (e.term)}
         <StudyItem term={e.term}>
           {e.text}
           <a class="more" href={chapterHref(e.slug)} target="_top">{e.where}</a>
         </StudyItem>
       {/each}
     </StudyList>
+    <!-- On the ground, not in a demo frame: the frame is a panel, and the form needs its own. -->
+    <figure class="five-demo" data-live>
+      <div class="five">
+        <SegmentedControl
+          label="View"
+          options={[
+            { value: 'day', label: 'Day' },
+            { value: 'week', label: 'Week' },
+            { value: 'month', label: 'Month' },
+          ]}
+          bind:value={view}
+        />
+        <Button
+          variant="soft"
+          icon="sun"
+          label="Lamp"
+          aria-pressed={lamp}
+          onclick={() => (lamp = !lamp)}
+        />
+        <Layer level="panel" padding="md" direction="horizontal" gap="sm" align="center">
+          <Input aria-label="Name" placeholder="A form on a panel" />
+        </Layer>
+        <GlassPill label="Glass tools">
+          <IconButton icon="bold" label="Bold" />
+          <IconButton icon="italic" label="Italic" />
+          <IconButton icon="link" label="Link" />
+        </GlassPill>
+      </div>
+      <figcaption>
+        All five at once: switch the view, press the lamp, type into the panel, try the glass tools.
+      </figcaption>
+    </figure>
   </Section>
 
   <Section
@@ -321,6 +363,24 @@
 </StudyPage>
 
 <style>
+  .five-demo {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  .five-demo figcaption {
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+  .five {
+    padding: var(--space-5);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-card);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+  }
   .principles,
   .rest,
   .sources {

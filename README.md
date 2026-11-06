@@ -42,7 +42,7 @@ and how feedback stays where you act.
   <tr>
     <td width="33%"><img src="docs/cards/the-liquid-drop.jpg" alt="The liquid drop: the selection glides like thick water"></td>
     <td width="33%"><img src="docs/cards/squeeze-settings.jpg" alt="The squeeze: a pressed glass bar swells under the finger"></td>
-    <td width="33%"><img src="docs/cards/presses-by-layer.jpg" alt="Presses by layer: ground ripples, panels sink, glass gives"></td>
+    <td width="33%"><img src="docs/cards/presses-by-layer.jpg" alt="Presses by layer: what lies on the ground or a panel bobs, glass gives, the layers never move each other"></td>
   </tr>
   <tr>
     <td width="33%"><img src="docs/cards/light-from-what-is-on.jpg" alt="Light comes from what is on"></td>
@@ -87,7 +87,7 @@ BonbonUI installs from a release tag; each tag carries the built package, so not
 on install.
 
 ```bash
-npm install git+ssh://git@github.com/aus-der-Technik/BonbonUI.git#v1.1.0
+npm install git+ssh://git@github.com/aus-der-Technik/BonbonUI.git#v1.2.0
 npm install leaflet   # only for MapView (@bonbon-ui/core/map)
 ```
 
@@ -116,8 +116,8 @@ Peer dependency: `svelte ^5.20`.
   {#snippet actions()}<Button variant="primary" icon="plus" label="New order" />{/snippet}
   <Section title="At a glance">
     <Grid min="12rem">
-      <KpiTile label="Open" value={24} />
-      <KpiTile label="Shipped" value={118} />
+      <KpiTile label="Open">24</KpiTile>
+      <KpiTile label="Shipped">118</KpiTile>
     </Grid>
   </Section>
 </Page>

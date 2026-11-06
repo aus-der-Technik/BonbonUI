@@ -6,7 +6,8 @@
    */
   import type { Snippet } from 'svelte';
   import DocPage from '../DocPage.svelte';
-  import { chapterHref, chapters, type ChapterSlug } from './links';
+  import { chapters, type ChapterSlug } from './links';
+  import { bookPager } from '../book';
 
   interface Props {
     slug: ChapterSlug;
@@ -21,11 +22,7 @@
   const eyebrow = $derived(
     index === 0 ? 'Design study' : `Design study · ${index} of ${chapters.length - 1}`,
   );
-  const pager = $derived.by(() => {
-    const step = (c: (typeof chapters)[number] | undefined) =>
-      c ? { title: c.title, href: chapterHref(c.slug), blurb: c.blurb } : undefined;
-    return { prev: step(chapters[index - 1]), next: step(chapters[index + 1]) };
-  });
+  const pager = $derived(bookPager(`design-study-${slug}--${slug}`));
 </script>
 
 <DocPage {eyebrow} {title} {lead} {pager}>

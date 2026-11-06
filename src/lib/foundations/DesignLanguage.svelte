@@ -4,6 +4,7 @@
    * grouped in pairs — plus the desktop concept.
    */
   import DocPage from './DocPage.svelte';
+  import { introPager } from './intro';
   import IntroDemo from './IntroDemo.svelte';
   import IntroList, { type IntroItem } from './IntroList.svelte';
   import IntroRule from './IntroRule.svelte';
@@ -94,6 +95,7 @@
 <DocPage
   eyebrow="Design language"
   title="Candy, disciplined."
+  pager={introPager('Design language')}
   lead="Ten rules behind the look. They take Dieter Rams’ discipline, as little design as possible, and add one permission: a little delight."
 >
   <Section title="Colour and shape">
@@ -218,7 +220,7 @@
     <IntroRule
       n={6}
       title="Motion with intent"
-      text="Every animation answers a question: where did it come from, where did it go, did it work? Things move like thick water. A selection flows to its new place, stretches, thins and lands with a soft wobble. A press gives by layer: the ground ripples, a panel dips with its neighbours, glass squeezes alone. Big things never travel or bounce, and with reduced motion, movement becomes a quick fade."
+      text="Every animation answers a question: where did it come from, where did it go, did it work? Things move like thick water. A selection flows to its new place, stretches, thins and lands with a soft wobble. A press gives by layer, and the layers never move each other: what lies on the ground or on the panels sinks and bobs like something floating, the neighbours less and the far side barely, and a drag sways it along; glass squeezes alone. Big things never travel or bounce, and with reduced motion, movement becomes a quick fade."
     >
       <div class="demos demos--two">
         <IntroDemo caption="Pick another view: the mark flows there.">

@@ -16,6 +16,9 @@
    * `goodWhen`, `unit`, `locale` — so a Stat can move onto a card without rewriting it. A changed
    * value glows briefly.
    *
+   * The value is `value`, or the children when there is nothing else to say about it.
+   *
+   *   <KpiTile label="Open">24</KpiTile>
    *   <KpiTile label="Orders" value="1,284" delta="+12 %" detail="vs. last week" icon="cart" />
    *   <KpiTile label="Errors" value={12} delta={-8} deltaLabel="vs last week" goodWhen="down" />
    */
@@ -23,7 +26,7 @@
   import Card from '../atoms/Card.svelte';
   import type { IconName } from '../atoms/icons';
   import Icon from '../atoms/Icon.svelte';
-  import { changeCue } from '../atoms/changed';
+  import { changeCue, textCue } from '../atoms/changed';
   import DeltaPill from './DeltaPill.svelte';
   import { deltaDirection, deltaTone, formatDelta, type GoodWhen } from './delta';
 
@@ -31,9 +34,11 @@
     /** `ground` (default) sits on the backdrop beside a hairline; `panel` is a card. */
     level?: 'ground' | 'panel';
     label: string;
-    /** `null` renders the "–" placeholder (not loaded / no data). */
-    value: string | number | null;
-    detail?: string | undefined;
+    /** `null` renders the "–" placeholder (not loaded / no data). Leave it out to pass the
+     *  value as children. */
+    value?: string | number | null;
+    /** The line under the value; a snippet for anything richer than text. */
+    detail?: string | Snippet | undefined;
     meter?: MeterSegment[] | undefined;
     icon?: IconName | undefined;
     /** Change against a previous period: printed as given ("+12 %", "−3"), or a number read
@@ -53,6 +58,7 @@
     unit?: string | undefined;
     /** Formats a numeric `value` and `delta`. */
     locale?: string;
+    /** The value, written as content: `<KpiTile label="Open">24</KpiTile>`. */
     children?: Snippet | undefined;
   }
 
@@ -87,7 +93,10 @@
         ? new Intl.NumberFormat(locale).format(value)
         : value,
   );
-  const note = $derived(detail ?? deltaLabel);
+  const note = $derived(typeof detail === 'string' ? detail : deltaLabel);
+  const detailSnippet = $derived(typeof detail === 'function' ? detail : undefined);
+  // Children are the value only when no `value` is given (`null` still means "no data").
+  const content = $derived(value === undefined ? children : undefined);
 </script>
 
 <Card class="kpi kpi--{level}" surface={level === 'ground' ? 'ground' : 'glass'}>
@@ -95,12 +104,18 @@
     <div class="label">{label}</div>
     {#if icon}<span class="icon-tile" aria-hidden="true"><Icon name={icon} size={16} /></span>{/if}
   </div>
-  <div class="value" use:changeCue={shown}>
-    {shown}{#if unit && value != null}<span class="unit">{unit}</span>{/if}
-  </div>
+  {#if content}
+    <div class="value" use:textCue>
+      {@render content()}{#if unit}<span class="unit">{unit}</span>{/if}
+    </div>
+  {:else}
+    <div class="value" use:changeCue={shown}>
+      {shown}{#if unit && value != null}<span class="unit">{unit}</span>{/if}
+    </div>
+  {/if}
   <div class="detail">
     {#if change}<DeltaPill text={change} {direction} {tone} flatIcon={false} />{/if}
-    {#if children}{@render children()}{:else if note}<span>{note}</span
+    {#if detailSnippet}{@render detailSnippet()}{:else if note}<span>{note}</span
       >{:else if !change}&nbsp;{/if}
   </div>
   {#if meter}

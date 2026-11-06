@@ -37,7 +37,7 @@
 
   <Section
     title="Presses by layer"
-    description="Every press gets a little give, and what gives depends on what was pressed on. Ground ripples, a panel sinks with its neighbours, glass floats above it all."
+    description="Every press gets a little give, felt only on the layer it lands on. What lies on the ground or on the panels sinks and bobs, less with every pixel the wave travels, and sways along with a drag; glass floats above it all."
   >
     <LabPress />
   </Section>

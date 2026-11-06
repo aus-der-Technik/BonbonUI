@@ -25,6 +25,12 @@
   import music from './assets/welcome-music.jpg';
   import sea from './assets/welcome-sea.jpg';
   import review from './assets/welcome-review.jpg';
+  import toolbarShot from './assets/welcome-toolbar.png';
+  import TintPicker from './TintPicker.svelte';
+  import Button from '../patterns/atoms/Button.svelte';
+  import Switch from '../patterns/atoms/Switch.svelte';
+  import ProgressBar from '../patterns/atoms/ProgressBar.svelte';
+  import SegmentedControl from '../patterns/molecules/SegmentedControl.svelte';
   import meals from './assets/welcome-meals.jpg';
   import type { IconName } from '../patterns/atoms/icons';
 
@@ -125,7 +131,7 @@
     {
       icon: 'layout',
       title: 'See it whole',
-      text: 'More than twenty complete example pages, each with its design notes.',
+      text: 'Twenty-three complete example pages, each with its design notes.',
       href: chapterHref('the-examples'),
     },
   ];
@@ -136,6 +142,10 @@
     { term: 'Radius', text: 'Square, soft or round corners on every part.' },
     { term: 'Density', text: 'Compact for tools, comfortable for touch and websites.' },
   ];
+
+  // The live sample beside the picker: every part of it takes its colour from the tint.
+  let alerts = $state(true);
+  let view = $state('week');
 
   // The hero leans a little towards the pointer — the screens have depth, like the UI.
   let tilt = $state({ x: 0, y: 0 });
@@ -172,6 +182,43 @@
     </div>
   </div>
 
+  <Section title="Make it yours">
+    <p>
+      The toolbar above every page sets theme, tint, corners and density for the whole Storybook:
+      the same four values an <code>Application</code> sets in your app. Open the brush and pick a colour,
+      or pick one right here.
+    </p>
+    <div class="yours">
+      <figure class="toolbar-shot">
+        <img
+          src={toolbarShot}
+          alt="The Storybook toolbar with the tint menu open: Green (default), Mint, Blue, Indigo, Purple, Pink, Red, Orange and Graphite."
+        />
+        <figcaption>The tint menu in the toolbar, next to theme, corners and density.</figcaption>
+      </figure>
+      <div class="try">
+        <TintPicker />
+        <IntroDemo caption="Accents, selections, switches, focus rings and the light all follow.">
+          <div class="sample">
+            <SegmentedControl
+              label="View"
+              options={[
+                { value: 'day', label: 'Day' },
+                { value: 'week', label: 'Week' },
+                { value: 'month', label: 'Month' },
+              ]}
+              bind:value={view}
+            />
+            <Switch label="Alerts" bind:checked={alerts} />
+            <ProgressBar label="Synced" value={64} />
+            <Button variant="primary" icon="check" label="Save" />
+          </div>
+        </IntroDemo>
+        <IntroList items={toolbar} />
+      </div>
+    </div>
+  </Section>
+
   <Section title="A first look">
     <p>Every picture is a real page from this Storybook, built only from the library. Open one.</p>
     <Grid min="16rem" gap="lg">
@@ -198,7 +245,7 @@
     <div class="pair">
       <CodeBlock label="App.svelte" code={welcomeExample} />
       <IntroDemo kind="window" height="100%">
-        <Application tint="#007aff" contained>
+        <Application contained>
           <Page title="Team" subtitle="who is in">
             <Section title="Members" heading={3} description="Everyone who can sign in.">
               <Grid min="7rem">
@@ -224,14 +271,6 @@
         </a>
       {/each}
     </div>
-  </Section>
-
-  <Section title="Use the toolbar">
-    <p>
-      Every story follows the Storybook toolbar. It sets the same values <code>Application</code> sets
-      in a real app, so what you see is what you ship.
-    </p>
-    <IntroList items={toolbar} />
   </Section>
 </DocPage>
 
@@ -333,6 +372,49 @@
   }
 
   /* ── Your first page: code beside its result ──────────────────────────────────────── */
+  /* ── Make it yours: the real toolbar beside swatches and a live sample ────────────── */
+  .yours {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--space-8);
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .yours {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .toolbar-shot {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+  }
+  .toolbar-shot img {
+    width: 100%;
+    max-width: 28rem;
+    height: auto;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+  }
+  .toolbar-shot figcaption {
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+  .try {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .sample {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-5);
+  }
+  .sample > :global(.progress),
+  .sample > :global([role='progressbar']) {
+    flex: 1 1 10rem;
+  }
+
   .pair {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));

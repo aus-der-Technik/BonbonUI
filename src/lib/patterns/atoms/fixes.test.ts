@@ -8,7 +8,7 @@ import SearchField from '../molecules/SearchField.svelte';
 import Button from './Button.svelte';
 import Card from './Card.svelte';
 import Tooltip from './Tooltip.svelte';
-import { changeCue } from './changed';
+import { changeCue, textCue } from './changed';
 
 const byText = (host: HTMLElement, text: string) =>
   [...host.querySelectorAll('button')].find((b) => b.textContent?.trim() === text);
@@ -33,6 +33,19 @@ describe('changeCue', () => {
     expect(node.style.animation).toBe('');
     cue.update(2);
     expect(node.style.animation).toContain('bb-changed');
+  });
+
+  it('textCue glows when the content text changes', async () => {
+    const node = document.createElement('span');
+    node.textContent = '1';
+    const cue = textCue(node);
+    node.textContent = '1';
+    await Promise.resolve();
+    expect(node.style.animation).toBe('');
+    node.textContent = '2';
+    await Promise.resolve();
+    expect(node.style.animation).toContain('bb-changed');
+    cue.destroy();
   });
 });
 

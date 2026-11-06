@@ -29,8 +29,7 @@ export function dropCode(bulge: number, mode: DropMode): string {
     mode === 'move'
       ? 'drop.moveTo(boxWithin(item, track));'
       : `drop.moveTo(boxWithin(item, track), '${mode}');`;
-  return `// Inside the library (src/lib/utils/liquid.ts); not exported from the package yet.
-import { LiquidDrop, boxWithin } from '../utils/liquid';
+  return `import { LiquidDrop, boxWithin } from '@bonbon-ui/core';
 
 const drop = new LiquidDrop({
 ${options.join('\n')}
@@ -47,8 +46,7 @@ export const SQUEEZE_DEFAULTS = { amount: 0.03, bulge: 4, reach: 34, inset: 8 } 
 
 export function squeezeCode(amount: number, bulge: number, reach: number): string {
   const amountLine = amount === SQUEEZE_DEFAULTS.amount ? '' : `\n  amount: ${fmt(amount)},`;
-  return `// Inside the library (src/lib/utils/liquid.ts); not exported from the package yet.
-import { squeeze, pillPath } from '../utils/liquid';
+  return `import { squeeze, pillPath } from '@bonbon-ui/core';
 
 const ROOM = ${SQUEEZE_DEFAULTS.inset}; // room on each long side for the bulge to grow into
 
@@ -74,7 +72,7 @@ export function pillPathCode(at: number, bulge: number, reach: number): string {
   return `pillPath(320, 72, { inset: 10, at: ${Math.round(at)}, bulge: ${fmt(bulge, 1)}, reach: ${Math.round(reach)}, vertical: false });`;
 }
 
-export const FLOW_DEFAULTS = { depth: 3, reach: 360, speed: 1.4 } as const;
+export const FLOW_DEFAULTS = { depth: 3, reach: 200, speed: 1.4 } as const;
 
 export function flowCode(depth: number, reach: number, speed: number): string {
   const changed: string[] = [];
@@ -86,15 +84,16 @@ export function flowCode(depth: number, reach: number, speed: number): string {
 <Application>…</Application>          <!-- flow={false} keeps a page still -->
 
 <!-- What a press moves depends on where it lands (utils/flow.ts): -->
-<Layer level="panel">…</Layer>         <!-- panel: it sinks, its neighbours give -->
+<Layer level="panel">…</Layer>         <!-- panel: what lies on panels moves, not the ground -->
 <div data-glass>…</div>                <!-- glass: the page below stays still -->
 <div data-flow-off>…</div>             <!-- never moves -->
 
-// Inside the library (src/lib/utils/flow.ts); not exported from the package yet.
-import { pressField, pressLayer } from '../utils/flow';
+// For a page outside an Application, or a field of its own:
+import { heft, pressField, pressLayer } from '@bonbon-ui/core';
 
 const release = pressField(root${options});
-pressLayer(button); // → { layer: 'glass' | 'panel' | 'ground', panel? }`;
+pressLayer(button); // → { layer: 'glass' | 'panel' | 'ground', panel? }
+heft(button);       // → how much water it moves: ~1 for a standard button, 0.45–1.8`;
 }
 
 export type EmitKind = '' | 'soft' | 'ok' | 'danger';
@@ -127,8 +126,8 @@ export function lightCode(
     ? `
 
 <script lang="ts">
-  // Tuned in the lab; the defaults live in src/lib/utils/light.ts (not exported yet).
-  import { LIGHT_MODELS } from '../utils/light';
+  // Tuned in the lab; the defaults live in src/lib/utils/light.ts.
+  import { LIGHT_MODELS } from '@bonbon-ui/core';
 ${tuned.map((k) => `  LIGHT_MODELS.${k} = { inside: ${fmt(models[k].inside, 1)}, beside: ${fmt(models[k].beside, 1)}, spread: ${fmt(models[k].spread, 2)} };`).join('\n')}
 </script>`
     : '';

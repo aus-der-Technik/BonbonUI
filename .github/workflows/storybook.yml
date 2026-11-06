@@ -49,6 +49,27 @@ jobs:
           name: storybook-static
           path: storybook-static
 
+      # Each build renames its hashed chunks. A page opened (or cached) before this deploy still
+      # asks for the old names, so the previous deploy's chunks stay one more generation: only
+      # those listed in its manifest, so carried-over files do not pile up.
+      - uses: actions/checkout@v5
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: previous
+
+      - name: Keep the previous deploy's chunks
+        run: |
+          (cd storybook-static/assets && ls -1) > storybook-static/assets-manifest.txt
+          [ -d previous/assets ] || exit 0
+          # A deploy from before the manifest existed holds only its own chunks.
+          [ -f previous/assets-manifest.txt ] || (cd previous/assets && ls -1) > previous/assets-manifest.txt
+          while IFS= read -r f; do
+            if [ -f "previous/assets/$f" ] && [ ! -e "storybook-static/assets/$f" ]; then
+              cp "previous/assets/$f" storybook-static/assets/
+            fi
+          done < previous/assets-manifest.txt
+
       - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

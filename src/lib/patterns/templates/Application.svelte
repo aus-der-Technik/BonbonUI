@@ -26,8 +26,9 @@
    * Without `tint` it inherits (default: #5a9854, the house green). The colours
    * are pure CSS (`color-mix`, relative colours), so changing `tint` re-themes instantly.
    *
-   * The page flows: pressing any control sinks the page a little around the press and lets it
-   * rise back on a soft spring (`utils/flow.ts`); `flow={false}` keeps it still. And it is lit:
+   * The page flows: pressing any control (a key, a field, a slider) moves what lies on the same
+   * layer like things floating in thick water, the far ones less, and a drag sways them along
+   * (`utils/flow.ts`); `flow={false}` keeps it still. And it is lit:
    * what is on or chosen (`data-emit`) casts its tint onto the surfaces near it — a little on
    * panels, more inside glass (`utils/light.ts`); `light={false}` turns that off.
    */
@@ -54,7 +55,7 @@
     animate?: boolean | undefined;
     /** Fills its parent instead of the viewport — for previews, embeds, windows. */
     contained?: boolean | undefined;
-    /** Presses ripple through the page like thick water (default on; off with reduced motion). */
+    /** Presses move their own layer like thick water (default on; off with reduced motion). */
     flow?: boolean;
     /** Emitters light the surfaces around them (default on). */
     light?: boolean;

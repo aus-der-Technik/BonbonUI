@@ -248,24 +248,26 @@
     gap="lg"
   >
     <p>
-      The four layers are not only drawn, they behave like what they are. The page is one body of
-      thick water: the dip starts under your finger, travels outwards and settles on a soft spring.
-      Press each of the three below and watch what moves.
+      The four layers are not only drawn, they behave like what they are. Each layer is a body of
+      thick water and what lies on it floats: the dip starts under your finger, travels outwards,
+      loses energy with every pixel and settles with a bob or two. A big key moves more water than a
+      small one. A drag sways what is around it. A press is felt only on its own layer. Press each
+      of the three below and watch what moves.
     </p>
     <div class="presses">
       <div class="press">
         <div class="p-text">
           <span class="p-term">On the ground</span>
-          <span>The ground is the page, so the whole page ripples out from the press.</span>
+          <span
+            >What lies on the ground dips: the nearest most, the far side barely. Panels stay.</span
+          >
         </div>
         <div class="p-live"><Button variant="soft" icon="sun" label="Press the ground" /></div>
       </div>
       <div class="press">
         <div class="p-text">
           <span class="p-term">On a panel</span>
-          <span
-            >A panel lies on the page: it dips, its neighbours give a little, the rest stays.</span
-          >
+          <span>What lies on the panels dips, nearest first. The tiles and the ground stay.</span>
         </div>
         <div class="p-live tiles">
           <Layer level="panel" padding="md"><span class="muted">Beside</span></Layer>
@@ -292,8 +294,8 @@
     </div>
     <p>
       The press answers where it happened and in proportion to it — a few pixels, never a jolt. It
-      makes the depth model something you feel: what floats is free, what lies on the page moves
-      with it. More in <a href={storyHref('introduction-layers--layers')} target="_top"
+      makes the depth model something you feel: each layer is its own water, and glass floats free
+      of all of them. More in <a href={storyHref('introduction-layers--layers')} target="_top"
         >Introduction › Layers</a
       >.
     </p>

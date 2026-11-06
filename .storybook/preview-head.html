@@ -1,0 +1,41 @@
+<!--
+  Recovers the preview from a deploy that happened while it was open (or cached): each deploy
+  renames the hashed chunks, so an old page asks for files that are gone and the browser reports
+  "Importing a module script failed" / "Failed to fetch dynamically imported module". One reload
+  fetches the new page; the guard keeps a real outage from turning into a reload loop.
+-->
+<script>
+  (function () {
+    var KEY = 'bb-stale-reload';
+    var STALE = /Importing a module script failed|dynamically imported module|Unable to preload/i;
+    function reload() {
+      try {
+        var last = Number(sessionStorage.getItem(KEY) || 0);
+        if (Date.now() - last < 30000) return false;
+        sessionStorage.setItem(KEY, String(Date.now()));
+      } catch (e) {
+        return false;
+      }
+      location.reload();
+      return true;
+    }
+    // Vite's preload helper (every story import) announces a missing chunk.
+    window.addEventListener('vite:preloadError', function (event) {
+      if (reload()) event.preventDefault();
+    });
+    // A missing entry script or stylesheet of this page.
+    window.addEventListener(
+      'error',
+      function (event) {
+        var el = event.target;
+        var src = el && (el.src || el.href);
+        if (src && /\/assets\//.test(src) && /^(SCRIPT|LINK)$/.test(el.tagName)) reload();
+      },
+      true,
+    );
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event.reason;
+      if (STALE.test(String((reason && reason.message) || reason))) reload();
+    });
+  })();
+</script>

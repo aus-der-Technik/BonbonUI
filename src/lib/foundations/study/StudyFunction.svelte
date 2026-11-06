@@ -266,10 +266,10 @@
     gap="lg"
   >
     <p>
-      The front bars used to be thick glass that magnified and bent whatever passed underneath. Over
-      pictures it was lovely; over running text the letters fringed into rainbows and the bar’s own
-      title became hard to read. Glass is now gentle: a little blur, saturation near one, one crisp
-      edge of light — the same in every browser.
+      An early design made the front bars thick glass that magnified and bent whatever passed
+      underneath. Over pictures it was lovely; over running text the letters fringed into rainbows
+      and the bar’s own title became hard to read. So the glass became gentle: a little blur,
+      saturation near one, one crisp edge of light, the same in every browser.
     </p>
     <StudyList min="14rem">
       <StudyItem term="Glass floats" meta="Front layer, overlays">

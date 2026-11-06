@@ -12,6 +12,8 @@
   import Application from '../patterns/templates/Application.svelte';
   import Page from '../patterns/templates/Page.svelte';
   import Button from '../patterns/atoms/Button.svelte';
+  import Input from '../patterns/atoms/Input.svelte';
+  import Slider from '../patterns/atoms/Slider.svelte';
   import NavRail from '../patterns/organisms/NavRail.svelte';
   import backdrop from '../demo/assets/smart-home-backdrop.jpg';
   import LiveExample from './LiveExample.svelte';
@@ -46,6 +48,7 @@
 
   let lamp = $state(false);
   let fan = $state(true);
+  let brightness = $state(60);
 </script>
 
 <DocPage
@@ -108,15 +111,24 @@
 
   <Section title="What a press moves">
     <p>
-      Every press gets a little give, and what gives depends on the layer you pressed on. Try all
-      three and watch what moves.
+      Every layer is a body of thick water, and what lies on it floats. A press is felt only on its
+      own layer: the layers never move each other. Try all three and watch what moves.
     </p>
     <div class="press">
       <div class="press-text">
         <h3>On the ground</h3>
-        <p>The ground is the page, so the whole page ripples outwards from your finger.</p>
+        <p>
+          Press a key, a field or a slider: the thing under your finger sinks and pushes the water
+          aside, its neighbours dip a moment later and less, and the far side of the page barely
+          stirs, because the wave loses energy with every pixel it travels. Drag the slider and the
+          things around it sway along, then swing back and forth into place. A big key moves more
+          water than a small one: press both and compare. Panels and glass stay still.
+        </p>
       </div>
       <IntroDemo>
+        <div class="drag">
+          <Slider label="Brightness" bind:value={brightness} min={0} max={100} />
+        </div>
         <Button
           variant="soft"
           icon="sun"
@@ -124,14 +136,17 @@
           aria-pressed={lamp}
           onclick={() => (lamp = !lamp)}
         />
+        <Button variant="soft" size="xs" label="Small" />
+        <Button variant="soft" size="xl" label="Big key" />
       </IntroDemo>
     </div>
     <div class="press">
       <div class="press-text">
         <h3>On a panel</h3>
         <p>
-          A panel lies on the page like a tile: it dips, its neighbours give a little, and the rest
-          stays still.
+          The panels are a body of water of their own. A press on one moves what lies on the panels,
+          the nearest most and the panels beside it a little, while the tiles themselves, the ground
+          and the glass stay still.
         </p>
       </div>
       <IntroDemo align="stretch">
@@ -146,7 +161,9 @@
               onclick={() => (fan = !fan)}
             />
           </Layer>
-          <Layer level="panel" padding="md" class="tile"><span class="muted">Beside</span></Layer>
+          <Layer level="panel" padding="md" class="tile"
+            ><Input aria-label="A field on a panel" placeholder="Type here" /></Layer
+          >
         </div>
       </IntroDemo>
     </div>
@@ -294,6 +311,9 @@
   .press-text {
     display: grid;
     gap: var(--space-1);
+  }
+  .drag {
+    width: min(14rem, 100%);
   }
   .tiles {
     display: grid;

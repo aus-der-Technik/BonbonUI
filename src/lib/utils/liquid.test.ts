@@ -205,19 +205,13 @@ describe('what a press moves', () => {
     document.body.innerHTML = '';
   });
 
-  it('leaves the page still for glass and moves only the panel group for a panel', () => {
-    const run = frames();
+  /** A page of ground, panels and glass with boxes from `tops` (by id, or the parent's id). */
+  function page(html: string, tops: Record<string, number>) {
     const root = document.createElement('div');
-    root.innerHTML = `<main>
-      <section id="a" data-layer="panel"><button id="in-a">A</button></section>
-      <section id="b" data-layer="panel"></section>
-      <section id="far" data-layer="panel"></section>
-      <div id="bar" data-layer="front"><button id="on-glass">G</button></div>
-    </main>`;
+    root.innerHTML = html;
     document.body.append(root);
     vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(100);
     vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(100);
-    const tops: Record<string, number> = { a: 0, b: 120, far: 2000, bar: 0 };
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,
     ) {
@@ -225,32 +219,197 @@ describe('what a press moves', () => {
       return { left: 0, right: 100, top, bottom: top + 100, width: 100, height: 100 } as DOMRect;
     });
     vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(3000);
-    const stop = pressField(root);
-    const down = (id: string) =>
-      root.querySelector(`#${id}`)!.dispatchEvent(
+    const at = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!;
+    const down = (id: string, x = 50, y = 50) =>
+      at(id).dispatchEvent(
         new PointerEvent('pointerdown', {
           bubbles: true,
           button: 0,
           isPrimary: true,
-          clientX: 50,
-          clientY: 50,
+          clientX: x,
+          clientY: y,
         }),
       );
-    const moved = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!.style.translate !== '';
+    const moved = (id: string) => at(id).style.translate !== '';
+    const xy = (id: string) =>
+      (at(id).style.translate || '0px 0px').split(' ').map(Number.parseFloat);
+    return { root, at, down, moved, xy };
+  }
+
+  it('moves only the layer pressed on: glass nothing, a panel the things on panels', () => {
+    const run = frames();
+    const { root, down, moved } = page(
+      `<main>
+        <p id="text">On the ground</p>
+        <section id="a" data-layer="panel"><button id="in-a">A</button></section>
+        <section id="b" data-layer="panel"><p id="b-text">Beside</p></section>
+        <section id="far" data-layer="panel"><p id="far-text">Far</p></section>
+        <div id="bar" data-layer="front"><button id="on-glass">G</button></div>
+      </main>`,
+      { text: 0, a: 0, b: 120, far: 2000, bar: 0 },
+    );
+    const stop = pressField(root);
 
     down('on-glass');
     run(20);
-    expect(['a', 'b', 'far', 'bar'].some(moved)).toBe(false);
+    expect(['text', 'a', 'in-a', 'b-text', 'far-text', 'bar'].some(moved)).toBe(false);
     window.dispatchEvent(new PointerEvent('pointerup'));
 
     down('in-a');
     run(20);
-    expect(moved('a')).toBe(true);
-    expect(moved('b')).toBe(true);
-    expect(moved('far')).toBe(false);
+    // The things on the panels answer; the tiles, the ground and the glass stay.
+    expect(moved('in-a')).toBe(true);
+    expect(moved('b-text')).toBe(true);
+    expect(moved('a')).toBe(false);
+    expect(moved('b')).toBe(false);
+    expect(moved('far-text')).toBe(false);
+    expect(moved('text')).toBe(false);
     expect(moved('bar')).toBe(false);
     window.dispatchEvent(new PointerEvent('pointerup'));
-    run(300);
+    run(400);
+    stop();
+    root.remove();
+  });
+
+  it('a press on the ground moves the ground around a panel, never the panel', () => {
+    const run = frames();
+    const { root, down, moved } = page(
+      `<main>
+        <div id="row"><button id="go">Go</button><p id="near">Near</p><p id="far">Far</p></div>
+        <section id="tile" data-layer="panel"><p id="on-tile">On a panel</p></section>
+      </main>`,
+      { go: 0, near: 150, far: 900, tile: 60 },
+    );
+    const stop = pressField(root);
+    down('go');
+    run(40);
+    // The row is one small piece of the ground; the panel beside it is another layer.
+    expect(moved('row')).toBe(true);
+    expect(moved('tile')).toBe(false);
+    expect(moved('on-tile')).toBe(false);
+    window.dispatchEvent(new PointerEvent('pointerup'));
+    run(400);
+    expect(moved('row')).toBe(false);
+    stop();
+    root.remove();
+  });
+
+  it('loses energy with every pixel: the far pieces dip much less', () => {
+    const run = frames();
+    const { root, down, xy } = page(
+      `<main><button id="go">Go</button><p id="near">Near</p><p id="mid">Mid</p><p id="far">Far</p></main>`,
+      { go: 0, near: 140, mid: 400, far: 800 },
+    );
+    const stop = pressField(root);
+    down('go');
+    run(90);
+    const [, go] = xy('go');
+    const [, near] = xy('near');
+    const [, mid] = xy('mid');
+    const [, far] = xy('far');
+    expect(go).toBeGreaterThan(2);
+    expect(near).toBeLessThan(go!);
+    expect(mid).toBeLessThan(near! / 2);
+    expect(far ?? 0).toBeLessThan(near! / 8);
+    stop();
+    root.remove();
+  });
+
+  it('a bigger control moves more water than a small one', async () => {
+    const { heft } = await import('./flow');
+    const run = frames();
+    const root = document.createElement('div');
+    root.innerHTML = `<main><button id="small">S</button><button id="big">B</button><p id="near">Near</p></main>`;
+    document.body.append(root);
+    const boxes: Record<string, [number, number, number, number]> = {
+      small: [0, 0, 28, 28],
+      big: [0, 0, 240, 56],
+      near: [0, 160, 100, 20],
+    };
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const [left, top, width, height] = boxes[this.id] ?? [0, 0, 0, 0];
+      return { left, top, width, height, right: left + width, bottom: top + height } as DOMRect;
+    });
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(1000);
+    const small = root.querySelector('#small')!;
+    const big = root.querySelector('#big')!;
+    expect(heft(small)).toBeLessThan(0.7);
+    expect(heft(big)).toBeGreaterThan(1.3);
+
+    const near = root.querySelector<HTMLElement>('#near')!;
+    const dipAfter = (button: Element) => {
+      button.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          bubbles: true,
+          button: 0,
+          isPrimary: true,
+          clientX: 10,
+          clientY: 10,
+        }),
+      );
+      run(40);
+      const dip = Number.parseFloat(near.style.translate.split(' ')[1] ?? '0');
+      window.dispatchEvent(new PointerEvent('pointerup'));
+      run(600);
+      return dip;
+    };
+    const stop = pressField(root);
+    const fromSmall = dipAfter(small);
+    const fromBig = dipAfter(big);
+    expect(fromBig).toBeGreaterThan(fromSmall * 2);
+    stop();
+    root.remove();
+  });
+
+  it('a drag sways the pieces around, never the one in the hand, and they swing back', () => {
+    const run = frames();
+    const { root, at, down, xy } = page(
+      `<main><div id="held"><input id="slider" type="range" /></div><p id="near">Near</p></main>`,
+      { held: 0, near: 120 },
+    );
+    const stop = pressField(root);
+    down('slider');
+    run(6);
+    for (let i = 1; i <= 8; i++) {
+      run(1);
+      window.dispatchEvent(
+        new PointerEvent('pointermove', { isPrimary: true, clientX: 50 + i * 12, clientY: 50 }),
+      );
+    }
+    run(4);
+    expect(xy('near')[0]).toBeGreaterThan(0.3);
+    expect(xy('held')[0]).toBeCloseTo(0, 1);
+    // The hand stops: the sway swings past its place and back.
+    let crossed = false;
+    for (let i = 0; i < 60 && !crossed; i++) {
+      run(1);
+      crossed = (xy('near')[0] ?? 0) < -0.02;
+    }
+    expect(crossed).toBe(true);
+    window.dispatchEvent(new PointerEvent('pointerup'));
+    run(600);
+    expect(at('near').style.translate).toBe('');
+    stop();
+    root.remove();
+  });
+
+  it('a text field starts the wave but a drag in it does not sway, nor does typing a space', () => {
+    const run = frames();
+    const { root, at, down, moved } = page(
+      `<main><div id="field"><input id="name" type="text" /></div><p id="near">Near</p></main>`,
+      { field: 0, near: 120 },
+    );
+    const stop = pressField(root);
+    at('name').dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    run(20);
+    expect(moved('near')).toBe(false);
+    down('name');
+    run(20);
+    expect(moved('near')).toBe(true);
+    window.dispatchEvent(new PointerEvent('pointerup'));
+    run(400);
     stop();
     root.remove();
   });

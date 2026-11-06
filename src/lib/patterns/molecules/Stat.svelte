@@ -8,17 +8,20 @@
    * When `value` changes the figure glows briefly, so an update is noticed. KpiTile takes the
    * same delta props, so the two are interchangeable (Stat on the ground, KpiTile on a card).
    *
+   *   <Stat label="Open tasks">128</Stat>
    *   <Stat label="Open tasks" value={128} delta={-12} deltaLabel="vs last week" goodWhen="down" />
    */
+  import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import type { IconName } from '../atoms/icons';
-  import { changeCue } from '../atoms/changed';
+  import { changeCue, textCue } from '../atoms/changed';
   import DeltaPill from './DeltaPill.svelte';
   import { deltaDirection, deltaTone, formatDelta, type GoodWhen } from './delta';
 
   interface Props {
     label: string;
-    value: string | number;
+    /** Leave it out to pass the value as children. */
+    value?: string | number | undefined;
     /** Small text after the value, e.g. "%", "h", "€". */
     unit?: string | undefined;
     /** Relative change in percent; its sign picks the arrow. */
@@ -37,6 +40,8 @@
     locale?: string;
     /** Accessible description of the sparkline. */
     trendLabel?: string;
+    /** The value, written as content: `<Stat label="Open">128</Stat>`. */
+    children?: Snippet | undefined;
   }
 
   let {
@@ -53,13 +58,14 @@
     align = 'start',
     locale = 'en',
     trendLabel = 'Trend',
+    children,
   }: Props = $props();
 
   const W = 120;
   const H = 36;
 
   const shown = $derived(
-    typeof value === 'number' ? new Intl.NumberFormat(locale).format(value) : value,
+    typeof value === 'number' ? new Intl.NumberFormat(locale).format(value) : (value ?? ''),
   );
   const direction = $derived(deltaDirection(delta));
   const tone = $derived(deltaTone(direction, goodWhen));
@@ -86,9 +92,15 @@
     {#if icon}<Icon name={icon} size={14} />{/if}
     {label}
   </span>
-  <span class="value" use:changeCue={shown}>
-    {shown}{#if unit}<span class="unit">{unit}</span>{/if}
-  </span>
+  {#if value === undefined && children}
+    <span class="value" use:textCue>
+      {@render children()}{#if unit}<span class="unit">{unit}</span>{/if}
+    </span>
+  {:else}
+    <span class="value" use:changeCue={shown}>
+      {shown}{#if unit}<span class="unit">{unit}</span>{/if}
+    </span>
+  {/if}
   {#if change || deltaLabel}
     <span class="delta">
       {#if change}<DeltaPill text={change} {direction} {tone} />{/if}

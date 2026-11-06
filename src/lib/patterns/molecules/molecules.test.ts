@@ -1,6 +1,7 @@
 import { flushSync } from 'svelte';
 import { click, html, input, key, render, tick } from '../../test/render';
 import Alert from './Alert.svelte';
+import Stat from './Stat.svelte';
 import Autocomplete from './Autocomplete.svelte';
 import ChartTooltip from './ChartTooltip.svelte';
 import ChoiceCard from './ChoiceCard.svelte';
@@ -370,8 +371,25 @@ describe('display molecules', () => {
     });
     expect(host.querySelectorAll('.meter span')).toHaveLength(2);
     expect(
-      render(KpiTile, { label: 'x', value: 1, children: html('<em>d</em>') }).querySelector('em'),
+      render(KpiTile, { label: 'x', value: 1, detail: html('<em>d</em>') }).querySelector(
+        '.detail em',
+      ),
     ).not.toBeNull();
+  });
+
+  it('KpiTile and Stat take their value as children', () => {
+    const tile = render(KpiTile, { label: 'Open', children: html('<b>24</b>') });
+    expect(tile.querySelector('.value b')?.textContent).toBe('24');
+    expect(tile.textContent).not.toContain('–');
+    // `null` still means "no data", and a given value wins over children.
+    expect(
+      render(KpiTile, { label: 'Open', value: null, children: html('<b>24</b>') }).textContent,
+    ).toContain('–');
+    expect(
+      render(KpiTile, { label: 'Open', value: 3, children: html('<b>24</b>') }).querySelector('b'),
+    ).toBeNull();
+    const stat = render(Stat, { label: 'Open', unit: '%', children: html('<b>80</b>') });
+    expect(stat.querySelector('.value')?.textContent).toBe('80%');
   });
 
   it('Alert, Toast, EmptyState pick roles from their tone', () => {

@@ -265,7 +265,7 @@ export { buildLens, canRefract, frostFilter, LENS_DEFAULTS, type LensOptions } f
 // your own surfaces and selection marks.
 export { boxWithin, LiquidDrop, pillPath, squeeze } from './utils/liquid';
 export type { Box, LiquidOptions, SqueezeOptions } from './utils/liquid';
-export { flowBlocks, pressField, pressLayer } from './utils/flow';
+export { flowBlocks, flowPieces, heft, pressField, pressLayer } from './utils/flow';
 export type { FlowOptions, PressLayer } from './utils/flow';
 export { LIGHT_MODELS, lightField, lightFor } from './utils/light';
 export { isGlass, nestedPanel, surfaceKind, type SurfaceKind } from './utils/surfaces';

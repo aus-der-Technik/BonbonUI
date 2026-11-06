@@ -24,3 +24,19 @@ export function changeCue(node: HTMLElement, value: unknown): { update: (next: u
     },
   };
 }
+
+/**
+ * The same cue for content passed as children: the glow follows the element's text, so
+ * `<KpiTile label="Open">{count}</KpiTile>` glows when `count` changes.
+ */
+export function textCue(node: HTMLElement): { destroy: () => void } {
+  let last = node.textContent;
+  const observer = new MutationObserver(() => {
+    const next = node.textContent;
+    if (next === last) return;
+    last = next;
+    flashChanged(node);
+  });
+  observer.observe(node, { childList: true, characterData: true, subtree: true });
+  return { destroy: () => observer.disconnect() };
+}
