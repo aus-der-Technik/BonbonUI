@@ -7,6 +7,29 @@ interface that answers every touch.
 **Storybook:** <https://aus-der-technik.github.io/BonbonUI/>, or locally with `npm run storybook`.
 Start with **Introduction › Welcome**.
 
+<p align="center">
+  <a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-devices--smart-home"><img src="src/lib/foundations/assets/welcome-smart-home.jpg" alt="A smart-home dashboard built with BonbonUI: smoked glass panels over a house, a temperature arc and device controls."></a>
+</p>
+
+## A look inside
+
+Real screens from the example pages; each opens its story in Storybook.
+
+<table>
+  <tr>
+    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-website--residence"><img src="src/lib/foundations/assets/welcome-residence.jpg" alt="Residence: A quiet landing page with one glass drop for a menu."></a><br><b>Residence</b> · A quiet landing page with one glass drop for a menu.</td>
+    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-devices--climate-control"><img src="src/lib/foundations/assets/welcome-climate.jpg" alt="Climate control: Readings on the ground, soft keys, a rail."></a><br><b>Climate control</b> · Readings on the ground, soft keys, a rail.</td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-admin--admin-console"><img src="src/lib/foundations/assets/welcome-admin.jpg" alt="Admin console: Figures and charts on the ground, tables on panels."></a><br><b>Admin console</b> · Figures and charts on the ground, tables on panels.</td>
+    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-fun--music-player"><img src="src/lib/foundations/assets/welcome-music.jpg" alt="Music player: A dot-matrix clock, round keys and a queue you trim in place."></a><br><b>Music player</b> · A dot-matrix clock, round keys and a queue you trim in place.</td>
+  </tr>
+  <tr>
+    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-maritime--sea-traffic"><img src="src/lib/foundations/assets/welcome-sea.jpg" alt="Sea traffic: A drawn sea chart with weather and ships that move."></a><br><b>Sea traffic</b> · A drawn sea chart with weather and ships that move.</td>
+    <td width="50%"><a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-programming--code-review"><img src="src/lib/foundations/assets/welcome-review.jpg" alt="Code review: A diff with comments at the line, in the dark theme."></a><br><b>Code review</b> · A diff with comments at the line, in the dark theme.</td>
+  </tr>
+</table>
+
 ## Install
 
 BonbonUI installs from a release tag; each tag carries the built package, so nothing is built
