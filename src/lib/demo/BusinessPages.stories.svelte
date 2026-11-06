@@ -1,5 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { storyTint } from './tint';
   import Application from '../patterns/templates/Application.svelte';
   import Invoicing from './Invoicing.svelte';
   import SalesPipeline from './SalesPipeline.svelte';
@@ -50,8 +51,8 @@ lands, and a won deal throws a few sprinkles. "Add deal" opens at the end of Lea
 leaves with Undo in a toast. Below: this week's next steps and the forecast per owner.
 -->
 <Story name="Sales pipeline" args={{ view: 'everyone', open: 'none', empty: false }}>
-  {#snippet template(args)}
-    <Application tint="#007aff">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#007aff')}>
       {#key `${args.view}-${args.open}-${args.empty}`}
         <SalesPipeline
           view={args.view === 'mine' ? 'mine' : 'everyone'}
@@ -71,8 +72,8 @@ eight weeks of money expected in against what goes out. The invoice table is the
 offers Undo, and an overdue invoice is reminded from its own row.
 -->
 <Story name="Invoicing" args={{ filter: 'open', creating: false, settled: false }}>
-  {#snippet template(args)}
-    <Application tint="#af52de">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#af52de')}>
       {#key `${args.filter}-${args.creating}-${args.settled}`}
         <Invoicing
           filter={args.filter ?? 'open'}

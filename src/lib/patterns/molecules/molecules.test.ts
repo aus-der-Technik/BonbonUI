@@ -977,7 +977,7 @@ describe('design polish behaviours', () => {
     expect(byText(host, 'Cancel')).toBeUndefined();
   });
 
-  it('slides one indicator once items have a layout', async () => {
+  it('flows one indicator once items have a layout', async () => {
     const width = vi
       .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
       .mockImplementation(function (this: HTMLElement) {
@@ -997,7 +997,10 @@ describe('design polish behaviours', () => {
     expect(track.style.getPropertyValue('--ind-w')).toBe('60px');
     click(byText(host, '30 days'));
     await tick();
-    expect(track.dataset.indicator).toBe('moving');
+    await Promise.resolve();
+    // The liquid drop takes over from here, one frame at a time; the box stays measured.
+    expect(track.dataset.indicator).toBe('ready');
+    expect(track.style.getPropertyValue('--ind-w')).not.toBe('');
     width.mockRestore();
   });
 

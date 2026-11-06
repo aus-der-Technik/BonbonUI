@@ -11,7 +11,29 @@
   import Page from '../patterns/templates/Page.svelte';
   import Button from '../patterns/atoms/Button.svelte';
   import CodeBlock from '../patterns/molecules/CodeBlock.svelte';
+  import NavRail from '../patterns/organisms/NavRail.svelte';
   import { layersCode } from './snippets';
+
+  let railAt = $state('home');
+  const railItems = [
+    { id: 'home', label: 'Overview', icon: 'home' as const },
+    { id: 'calendar', label: 'Schedule', icon: 'calendar' as const },
+    { id: 'settings', label: 'Settings', icon: 'settings' as const },
+  ];
+  const touch = [
+    {
+      layer: 'Ground',
+      rule: 'Is the page. A press here sends a soft ripple through all of it, outwards from the finger — except the glass, which floats above.',
+    },
+    {
+      layer: 'Panel',
+      rule: 'Lies on the page, like a tile on a soft floor. A press dips that panel, and the panels right beside it give a little. The rest of the page stays still.',
+    },
+    {
+      layer: 'Glass',
+      rule: 'Floats above the page and does not touch it. A press moves only the glass — it squeezes and swells under the finger — and the page below stays still.',
+    },
+  ];
 
   const layers = [
     {
@@ -107,6 +129,43 @@
     </div>
   </Section>
 
+  <Section
+    title="Pressing: what a touch moves"
+    description="Every press is answered with a little give — and what gives depends on what you pressed on, because each layer touches the page differently. Try the three below and watch what moves."
+  >
+    <Grid min="15rem" gap="lg">
+      {#each touch as t (t.layer)}
+        <div class="touch-rule">
+          <h3>{t.layer}</h3>
+          <p>{t.rule}</p>
+        </div>
+      {/each}
+    </Grid>
+    <div class="touch-demo">
+      <div class="touch-row">
+        <Button variant="soft" icon="sun" label="On the ground" />
+        <span class="muted">Press: the whole page ripples.</span>
+      </div>
+      <div class="touch-row">
+        <Layer level="panel" padding="lg" class="touch-panel"><strong>Beside</strong></Layer>
+        <Layer level="panel" padding="lg" gap="sm" class="touch-panel">
+          <strong>On a panel</strong>
+          <Button variant="soft" icon="moon" label="Press me" />
+        </Layer>
+        <Layer level="panel" padding="lg" class="touch-panel"><strong>Beside</strong></Layer>
+      </div>
+      <div class="touch-row">
+        <NavRail
+          items={railItems}
+          bind:current={railAt}
+          orientation="horizontal"
+          label="Glass demo"
+        />
+        <span class="muted">Press: only the glass gives.</span>
+      </div>
+    </div>
+  </Section>
+
   <Section title="In code">
     <CodeBlock label="One component for all four" code={layersCode} />
     <p>
@@ -175,5 +234,27 @@
     overflow: hidden;
     border: 1px solid var(--border-strong);
     box-shadow: var(--glass-shadow);
+  }
+  .touch-rule h3 {
+    font-size: var(--fs-lg);
+  }
+  .touch-rule p {
+    color: var(--text-2);
+  }
+  .touch-demo {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-4);
+  }
+  .touch-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .touch-row :global(.touch-panel) {
+    flex: 1 1 10rem;
+    min-height: 7rem;
+    justify-content: center;
   }
 </style>

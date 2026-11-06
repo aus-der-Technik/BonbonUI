@@ -15,7 +15,8 @@
    *   <Layer level="panel" gap="md">…</Layer>
    *   <Layer level="front" direction="horizontal">…filters…</Layer>
    *
-   * Front layers are thick glass (`lens`, see GlassLens); `lens={false}` keeps them frosted.
+   * Front layers are frosted glass; `lens={{ refraction: true }}` opts into refraction (see
+   * GlassLens).
    */
   import type { Snippet } from 'svelte';
   import type { HTMLAttributes } from 'svelte/elements';
@@ -52,7 +53,8 @@
     collapse?: Breakpoint | undefined;
     grow?: boolean;
     class?: string;
-    /** Front only: refraction (magnify, rim, rimBend, chroma, blur, saturate); `false` = frosted. */
+    /** Front only: glass options (blur, saturate; with `refraction: true` also magnify, rim,
+     *  rimBend, chroma); `false` = plain frost. */
     lens?: LensOptions | false | undefined;
     children?: Snippet | undefined;
   }
@@ -146,7 +148,7 @@
   }
 
   .layer--panel {
-    background: var(--layer-panel-bg);
+    background: var(--light, none), var(--layer-panel-bg);
     border-width: 1px;
     border-color: var(--layer-panel-border);
     box-shadow: var(--layer-panel-shadow);
@@ -154,7 +156,7 @@
     -webkit-backdrop-filter: var(--layer-panel-blur);
   }
   .layer--selected {
-    background: var(--layer-selected-bg);
+    background: var(--light, none), var(--layer-selected-bg);
     border-width: 1.5px;
     border-color: var(--layer-selected-border);
     box-shadow: var(--layer-selected-shadow);
@@ -165,7 +167,7 @@
     /* Design rule: front layers always stick. */
     position: sticky;
     z-index: var(--z-front);
-    background: var(--layer-front-bg);
+    background: var(--light, none), var(--layer-front-bg);
     border-width: 0.75px;
     border-color: var(--layer-front-border);
     box-shadow: var(--layer-front-shadow);
@@ -175,7 +177,7 @@
   /* Thick glass: the lens scatters and bends the backdrop, the layer only lends it a thin body. */
   .layer--front.layer--lensed {
     isolation: isolate;
-    background: var(--layer-front-lens-bg);
+    background: var(--light, none), var(--layer-front-lens-bg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

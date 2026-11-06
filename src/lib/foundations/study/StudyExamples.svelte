@@ -44,6 +44,26 @@
           ],
         },
         {
+          name: 'Residence',
+          id: 'pages-website--residence',
+          icon: 'home',
+          what: 'The landing page of one architect-designed house: large serif type, quiet facts and line drawings on the ground, and a single round glass drop that pours down into the menu.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'One piece of glass, because one thing floats: only the sticky drop is glass; bar, facts and footer lie on the ground.',
+            },
+            {
+              principle: 'locality',
+              text: 'The menu pours out of the drop you point at, its top never moves; “Request a date” becomes the form, and the thank-you, where it was pressed.',
+            },
+            {
+              principle: 'cues',
+              text: 'Switching m² / sq ft converts every figure in place with a glow, and the drawings’ dimensions follow.',
+            },
+          ],
+        },
+        {
           name: 'Shop',
           id: 'pages-shop--shop',
           icon: 'bag',
@@ -435,6 +455,26 @@
       title: 'On a device',
       intro: 'A control screen read from across the room and worked with one hand.',
       items: [
+        {
+          name: 'Smart home',
+          id: 'pages-devices--smart-home',
+          icon: 'home',
+          what: 'A smart-home dashboard over a photograph of the house: hotspots pinned to the photo, a near-black energy tile, climate on an arc, devices and a room panel.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'Hotspots sit on the roof, door and window they describe and open that place in the panel beside them; locking the door there changes the door’s pill.',
+            },
+            {
+              principle: 'cues',
+              text: 'Only what is on gives light — lit level bars, the reached arc, the chosen mode, running devices — and every changed value glows once.',
+            },
+            {
+              principle: 'function',
+              text: 'One near-black tile for the figure the house is judged by; over a photo the panels are smoked glass so the words stay legible.',
+            },
+          ],
+        },
         {
           name: 'Climate control',
           id: 'pages-devices--climate-control',

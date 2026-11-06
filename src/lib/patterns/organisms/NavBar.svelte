@@ -13,8 +13,8 @@
    * middle, call-to-action buttons on the right, all on one liquid-glass pill (front layer,
    * sticky). Below 720px of width the links fold into a menu button that opens a sheet under
    * the bar. Like the AppHeader's title pill, the bar catches a one-shot sugar-glass sheen when
-   * the pointer arrives. The bar is thick glass (`lens`, see GlassLens): it magnifies what
-   * scrolls under it and bends it at the rim; `lens={false}` keeps it frosted. Put it in a
+   * the pointer arrives. The bar is frosted glass; `lens={{ refraction: true }}` opts into a
+   * gentle refraction (see GlassLens). Put it in a
    * Page's `header` snippet.
    *
    *   <NavBar brand="Example Planner" links={[{ label: 'Pricing', href: '/pricing', active: true }]}>
@@ -25,6 +25,8 @@
   import GlassLens from '../atoms/GlassLens.svelte';
   import Icon from '../atoms/Icon.svelte';
   import { frostFilter, type LensOptions } from '../../utils/lens';
+  import { indicator } from '../molecules/indicator';
+  import { squeeze } from '../../utils/liquid';
 
   interface Props {
     /** Brand name, set as a wordmark. */
@@ -66,6 +68,8 @@
   let root: HTMLElement | undefined = $state();
   let toggle: HTMLButtonElement | undefined = $state();
   let lensDrawn = $state(false);
+  // Pressing a link pinches the bar around it like a rubber band.
+  $effect(() => (root ? squeeze(root, { selector: '.links a' }) : undefined));
 
   function navigate(link: NavLink, event: MouseEvent) {
     onnavigate?.(link, event);
@@ -100,13 +104,21 @@
 
     {#if links.length}
       <nav class="links" aria-label={label}>
-        <ul>
+        <ul
+          use:indicator={{
+            selector: 'a.active',
+            key: links.find((l) => l.active)?.href,
+            hostSelector: '.navbar',
+            bulge: 0.018,
+          }}
+        >
           {#each links as link (`${link.label}|${link.href}`)}
             <li>
               <a
                 href={link.href}
                 class:active={link.active}
                 aria-current={link.active ? 'page' : undefined}
+                data-emit={link.active ? 'soft' : undefined}
                 onclick={(e) => navigate(link, e)}>{link.label}</a
               >
             </li>
@@ -177,7 +189,7 @@
     min-height: calc(var(--control-lg) + 0.75rem);
     padding: 0.375rem 0.375rem 0.375rem var(--space-5);
     border-radius: var(--radius-pill);
-    background: var(--layer-front-bg);
+    background: var(--light, none), var(--layer-front-bg);
     border: 0.75px solid var(--layer-front-border);
     box-shadow: var(--layer-front-shadow);
     backdrop-filter: var(--layer-front-blur);
@@ -186,7 +198,7 @@
   /* Thick glass: the lens scatters and bends the backdrop, the bar only lends it a thin body. */
   .bar.lensed {
     isolation: isolate;
-    background: var(--layer-front-lens-bg);
+    background: var(--light, none), var(--layer-front-lens-bg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -268,6 +280,30 @@
     color: var(--accent-ink);
     background: var(--accent-soft);
     font-weight: var(--fw-semibold);
+  }
+  /* Once measured, one shared mark flows between the links like thick water (indicator.ts). */
+  .links ul {
+    position: relative;
+  }
+  .links ul::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--ind-w, 0);
+    height: var(--ind-h, 0);
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    transform: translate(var(--ind-x, 0), var(--ind-y, 0));
+    pointer-events: none;
+    opacity: 0;
+  }
+  .links ul:global([data-indicator])::before {
+    opacity: 1;
+  }
+  .links ul:global([data-indicator]) a.active {
+    position: relative;
+    background: transparent;
   }
   a:focus-visible {
     outline: var(--focus-ring);

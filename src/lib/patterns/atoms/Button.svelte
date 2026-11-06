@@ -121,6 +121,19 @@
     }
     (onclick as ((event: MouseEvent) => void) | null | undefined)?.(event);
   }
+  // Light (utils/light.ts): filled actions shine; a pressed toggle glows softly.
+  const pressedOn = $derived(rest['aria-pressed'] === true || rest['aria-pressed'] === 'true');
+  const emit = $derived(
+    disabled || softDisabled
+      ? undefined
+      : variant === 'primary' || variant === 'success'
+        ? ''
+        : variant === 'danger-solid'
+          ? 'danger'
+          : pressedOn
+            ? 'soft'
+            : undefined,
+  );
   const classes = $derived(
     [
       'btn',
@@ -164,6 +177,7 @@
       aria-disabled={disabled ? 'true' : undefined}
       aria-label={ariaLabel ?? (iconOnly || collapse ? text : undefined)}
       aria-busy={busy ? 'true' : undefined}
+      data-emit={emit}
       onclick={click}
       {...rest as Record<string, unknown>}
     >
@@ -176,6 +190,7 @@
       {disabled}
       aria-label={ariaLabel ?? (iconOnly || collapse ? text : undefined)}
       aria-busy={busy ? 'true' : undefined}
+      data-emit={emit}
       onclick={click}
       {...rest}
     >

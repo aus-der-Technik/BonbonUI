@@ -1,5 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { storyTint } from './tint';
   import Application from '../patterns/templates/Application.svelte';
   import MusicPlayer from './MusicPlayer.svelte';
   import { albums } from './mock-fun';
@@ -34,8 +35,8 @@ a tick while the queue count glows. Scroll down and a small glass player floats 
 bottom edge.
 -->
 <Story name="Music player" args={{ playing: true, album: 'quiet-hours', emptyQueue: false }}>
-  {#snippet template(args)}
-    <Application tint="#c2417a">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#c2417a')}>
       {#key `${args.album}-${args.playing}-${args.emptyQueue}`}
         <MusicPlayer
           playing={args.playing ?? true}

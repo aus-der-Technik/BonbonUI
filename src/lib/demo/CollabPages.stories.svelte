@@ -1,5 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { storyTint } from './tint';
   import Application from '../patterns/templates/Application.svelte';
   import TeamWorkspace from './TeamWorkspace.svelte';
 
@@ -32,8 +33,8 @@ day's agenda; events are added on their day — from the "+" in the day under th
 "Add to this day" in the agenda — and the day glows where they land. `view` deep-links a view.
 -->
 <Story name="Team workspace" args={{ view: 'board' }}>
-  {#snippet template(args)}
-    <Application tint="#5b5bd6">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#5b5bd6')}>
       {#key args.view}
         <TeamWorkspace view={args.view ?? 'board'} />
       {/key}

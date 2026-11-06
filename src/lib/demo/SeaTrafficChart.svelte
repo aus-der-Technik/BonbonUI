@@ -457,6 +457,10 @@
     /* its own compositing layer: what moves is repainted alone */
     will-change: transform;
   }
+  /* The still chart is rastered once and then only moved: scrolling must not repaint it. */
+  .base {
+    will-change: transform;
+  }
   .overlay {
     pointer-events: none;
   }

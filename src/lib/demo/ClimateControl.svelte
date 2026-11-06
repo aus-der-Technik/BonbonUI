@@ -122,6 +122,12 @@
 
   const notes: DesignNote[] = [
     {
+      principle: 'cues',
+      title: 'The current place shines through the glass',
+      body: 'The selected rail item is an emitter: its tint glows inside the glass rail around it and follows it to the next place. Pressing an item swells the rail out right there, like a band of water.',
+      target: '[data-note="rail"]',
+    },
+    {
       principle: 'function',
       title: 'The readings sit on the ground, not in cards',
       body: 'Five figures are what this screen is for. On the ground and in dot-matrix digits of one fixed width, they read from across the room and never jump while they tick.',

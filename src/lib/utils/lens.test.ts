@@ -46,7 +46,7 @@ describe('frostFilter', () => {
     expect(frostFilter(false)).toBeUndefined();
     expect(frostFilter({ magnify: 1.5 })).toBeUndefined();
     expect(frostFilter({ blur: 15, saturate: 160 })).toBe('blur(15px) saturate(160%)');
-    expect(frostFilter({ blur: 10 })).toBe('blur(10px) saturate(190%)');
+    expect(frostFilter({ blur: 10 })).toBe('blur(10px) saturate(118%)');
   });
 });
 

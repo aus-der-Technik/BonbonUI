@@ -1,5 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { storyTint } from './tint';
   import Application from '../patterns/templates/Application.svelte';
   import ShopFlow from './ShopFlow.svelte';
   import { products } from './mock-shop';
@@ -31,8 +32,8 @@ confirmation celebrates once and leads back to the shop. `productId` and `cartOp
 the flow starts.
 -->
 <Story name="Shop" args={{ productId: undefined, cartOpen: false }}>
-  {#snippet template(args)}
-    <Application tint="#c0623f">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#c0623f')}>
       {#key `${args.productId}-${args.cartOpen}`}
         <ShopFlow productId={args.productId} cartOpen={args.cartOpen ?? false} />
       {/key}

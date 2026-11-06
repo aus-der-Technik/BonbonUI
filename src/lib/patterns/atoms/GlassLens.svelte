@@ -1,6 +1,8 @@
 <script lang="ts">
   /**
-   * GlassLens atom — turns a frosted glass surface into a solid block of glass: the backdrop is
+   * GlassLens atom — opt-in refraction for a frosted glass surface (`refraction: true` or
+   * `'auto'`; off by default, so glass looks the same and costs the same in every engine).
+   * It turns the surface into a solid block of glass: the backdrop is
    * magnified in the middle, bends at the rim and splits into a colour fringe. Put it first
    * inside the surface and bind `active`; while it is true the surface drops its own
    * `backdrop-filter` (or the backdrop would be scattered twice and the lens would see only the
@@ -35,7 +37,7 @@
   }
 
   let {
-    refraction = 'auto',
+    refraction = false,
     magnify = LENS_DEFAULTS.magnify,
     rim = LENS_DEFAULTS.rim,
     rimBend = LENS_DEFAULTS.rimBend,

@@ -28,7 +28,7 @@ describe('GlassLens', () => {
     expect(filter?.id).toMatch(/^bb-lens-/);
     expect(filter?.querySelectorAll('feDisplacementMap')).toHaveLength(3);
     expect(layer?.getAttribute('style')).toContain(`url(#${filter?.id})`);
-    expect(layer?.getAttribute('style')).toContain('saturate(160%)');
+    expect(layer?.getAttribute('style')).toContain('saturate(112%)');
   });
 
   it('splits the colours by chroma', () => {
@@ -39,6 +39,11 @@ describe('GlassLens', () => {
     );
     expect(scales[0]).toBeCloseTo(scales[1]! * 1.1);
     expect(scales[2]).toBeCloseTo(scales[1]! * 0.9);
+  });
+
+  it('is frosted unless refraction is opted into', () => {
+    sized();
+    expect(render(GlassLens, {}).querySelector('filter')).toBeNull();
   });
 
   it('stays frosted when refraction is off or the surface is tiny', () => {
@@ -82,7 +87,7 @@ describe('lens on front-layer glass', () => {
 
     const frost = render(NavBar, { brand: 'Brand', lens: { refraction: false, blur: 15 } });
     const header = frost.querySelector<HTMLElement>('.navbar');
-    expect(header?.style.getPropertyValue('--layer-front-blur')).toBe('blur(15px) saturate(190%)');
+    expect(header?.style.getPropertyValue('--layer-front-blur')).toBe('blur(15px) saturate(118%)');
   });
 
   it('reaches the title pill, glass pills, menu bar, toolbar, dock and front layers', () => {
@@ -110,6 +115,7 @@ describe('lens on front-layer glass', () => {
     // happy-dom is not Chromium, so the lens mirrors the page here, as it does in Safari.
     const host = render(Toolbar, {
       title: 'Inbox',
+      lens: { refraction: true },
       items: [
         { icon: 'edit', label: 'Compose' },
         { icon: 'trash', label: 'Delete' },

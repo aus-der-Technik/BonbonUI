@@ -5,6 +5,8 @@
    * - `glass`   — the frosted content card every section sits on (panel layer).
    * - `frosted` — the denser liquid-glass surface: sign-in card, chooser tiles, dialogs.
    * - `subtle`  — a flat neutral box inside a card (e.g. a row detail).
+   * - `ink`     — a near-black tile for the one figure that should stand out (an energy
+   *   reading, a balance); it carries the dark theme inside, whatever the page's theme.
    * - `ground`  — no surface at all: the content sits on the ground layer (no padding unless
    *   asked for). Most groups need no box; a heading and some air separate them well enough.
    *
@@ -29,7 +31,7 @@
   import { space, type Space } from '../layout/space';
 
   interface Props extends Omit<HTMLAttributes<HTMLElement>, 'children' | 'class'> {
-    surface?: 'glass' | 'frosted' | 'subtle' | 'ground';
+    surface?: 'glass' | 'frosted' | 'subtle' | 'ground' | 'ink';
     /** Default `md`, or `none` on the ground. */
     padding?: 'none' | 'sm' | 'md' | 'lg' | undefined;
     as?: 'div' | 'section' | 'article' | 'aside' | 'li';
@@ -93,6 +95,12 @@
   this={href && !stretchLink ? 'a' : as}
   href={stretchLink ? undefined : href}
   class="card card--{surface} card--pad-{padding} {extraClass}"
+  data-theme={surface === 'ink' ? 'dark' : undefined}
+  data-reflect={surface === 'ground' || surface === 'subtle'
+    ? undefined
+    : surface === 'frosted'
+      ? 'glass'
+      : 'panel'}
   class:card--stretched={stretched}
   class:card--accent={accent}
   class:card--selected={selected}
@@ -218,7 +226,7 @@
     margin-left: auto;
   }
   .card--glass {
-    background: var(--layer-panel-bg);
+    background: var(--light, none), var(--layer-panel-bg);
     backdrop-filter: var(--layer-panel-blur);
     -webkit-backdrop-filter: var(--layer-panel-blur);
     border: 1px solid var(--layer-panel-border);
@@ -226,12 +234,21 @@
     box-shadow: var(--layer-panel-shadow);
   }
   .card--frosted {
-    background: var(--pill-tint);
+    background: var(--light, none), var(--pill-tint);
     backdrop-filter: var(--blur-pill);
     -webkit-backdrop-filter: var(--blur-pill);
     border: 0.75px solid var(--pill-border);
     border-radius: var(--radius-dialog);
     box-shadow: var(--shadow-frosted);
+  }
+  .card--ink {
+    background: var(--light, none), var(--ink-surface);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: var(--radius-card);
+    box-shadow:
+      0 22px 44px -22px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    color: var(--text);
   }
   .card--ground {
     background: none;
@@ -245,7 +262,7 @@
     border-radius: var(--radius-lg);
   }
   .card--selected {
-    background: var(--layer-selected-bg);
+    background: var(--light, none), var(--layer-selected-bg);
     border-color: var(--layer-selected-border);
     box-shadow: var(--layer-selected-shadow);
   }

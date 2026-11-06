@@ -54,6 +54,7 @@ export { changeCue, flashChanged } from './patterns/atoms/changed';
 export { toneOf, noticeRole, type Tone, type LegacyTone } from './patterns/tone';
 
 // Molecules
+export { default as ArcGauge } from './patterns/molecules/ArcGauge.svelte';
 export { default as Alert } from './patterns/molecules/Alert.svelte';
 export { default as Autocomplete } from './patterns/molecules/Autocomplete.svelte';
 export { default as Breadcrumbs } from './patterns/molecules/Breadcrumbs.svelte';

@@ -1,5 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { storyTint } from './tint';
   import Application from '../patterns/templates/Application.svelte';
   import GameHub from './GameHub.svelte';
   import { games } from './mock-gaming';
@@ -41,8 +42,8 @@ finished achievement throws sprinkles from the button and the coins in the heade
 A deep violet tint; check it in dark theme too.
 -->
 <Story name="Game hub" args={{ game: 'tidecaller', party: 'duo', inMatch: false }}>
-  {#snippet template(args)}
-    <Application tint="#5b3fc4">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#5b3fc4')}>
       {#key `${args.game}-${args.party}-${args.inMatch}`}
         <GameHub
           game={args.game ?? 'tidecaller'}

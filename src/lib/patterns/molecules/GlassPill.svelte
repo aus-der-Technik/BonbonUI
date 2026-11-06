@@ -4,8 +4,8 @@
    * (a list switch, a toolbar of filters). Lighter than the title pill and only slightly
    * blurred, so the page shows through; same specular edge and bloom. `wrap` lets the content
    * break onto several lines, rounding the pill into a card. `gap` spaces its children on the
-   * layout scale, so a toolbar needs no inner wrapper. Thick glass by default (`lens`, see
-   * GlassLens); `lens={false}` keeps it frosted.
+   * layout scale, so a toolbar needs no inner wrapper. Frosted glass; `lens={{ refraction: true }}`
+   * opts into a gentle refraction (see GlassLens).
    *
    *   <GlassPill as="search" label="Filters" grow><SearchField … /><Button … /></GlassPill>
    */
@@ -72,14 +72,17 @@
     min-width: 0;
     padding: 0.45rem 0.55rem;
     border-radius: var(--radius-pill);
-    background: linear-gradient(
-      150deg,
-      color-mix(in srgb, var(--pill-light) 42%, transparent),
-      color-mix(in srgb, var(--pill-light) 12%, transparent) 48%,
-      color-mix(in srgb, var(--pill-light) 32%, transparent)
-    );
-    backdrop-filter: var(--pill-frost, blur(9px) saturate(210%) brightness(1.04));
-    -webkit-backdrop-filter: var(--pill-frost, blur(9px) saturate(210%) brightness(1.04));
+    background:
+      var(--light, none),
+      linear-gradient(
+        175deg,
+        color-mix(in srgb, var(--pill-light) 42%, transparent),
+        color-mix(in srgb, var(--pill-light) 14%, transparent) 55%,
+        color-mix(in srgb, var(--pill-light) 30%, transparent)
+      );
+    /* Glass softens, it does not recolour: saturation near 1 like every other glass. */
+    backdrop-filter: var(--pill-frost, var(--blur-pill));
+    -webkit-backdrop-filter: var(--pill-frost, var(--blur-pill));
     border: 0.75px solid var(--pill-border);
     box-shadow: var(--shadow-header-pill);
     /* Fields inside are glass too. */
@@ -87,7 +90,7 @@
   }
   /* Thick glass: the lens scatters and bends the backdrop, the pill only lends it a thin body. */
   .glass.lensed {
-    background: var(--layer-front-lens-bg);
+    background: var(--light, none), var(--layer-front-lens-bg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

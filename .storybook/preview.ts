@@ -93,6 +93,7 @@ const preview: Preview = {
             'Design language',
             'Getting started',
             'Layers',
+            'Light',
             'Colour & tint',
             'Layout',
             'Recipes',

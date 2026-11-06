@@ -114,6 +114,7 @@
 {#if layer !== 'front'}
   <div
     class="backdrop"
+    data-flow-fixed
     role="presentation"
     onpointerdown={() => (pressedBackdrop = true)}
     onclick={onBackdropClick}
@@ -125,6 +126,7 @@
   data-glass
   bind:this={panel}
   class="panel"
+  data-flow-fixed
   class:behind={layer === 'behind'}
   class:front={layer === 'front'}
   role="dialog"

@@ -25,9 +25,16 @@
    *
    * Without `tint` it inherits (default: #5a9854, the green of ausdertechnik.de). The colours
    * are pure CSS (`color-mix`, relative colours), so changing `tint` re-themes instantly.
+   *
+   * The page flows: pressing any control sinks the page a little around the press and lets it
+   * rise back on a soft spring (`utils/flow.ts`); `flow={false}` keeps it still. And it is lit:
+   * what is on or chosen (`data-emit`) casts its tint onto the surfaces near it — a little on
+   * panels, more inside glass (`utils/light.ts`); `light={false}` turns that off.
    */
   import type { Snippet } from 'svelte';
   import Backdrop from './Backdrop.svelte';
+  import { pressField } from '../../utils/flow';
+  import { lightField } from '../../utils/light';
 
   interface Props {
     /** Any CSS colour. Every accent and the backdrop are computed from it. */
@@ -47,6 +54,10 @@
     animate?: boolean | undefined;
     /** Fills its parent instead of the viewport — for previews, embeds, windows. */
     contained?: boolean | undefined;
+    /** Presses ripple through the page like thick water (default on; off with reduced motion). */
+    flow?: boolean;
+    /** Emitters light the surfaces around them (default on). */
+    light?: boolean;
     class?: string;
     children: Snippet;
   }
@@ -61,18 +72,26 @@
     gradient = true,
     animate = true,
     contained = false,
+    flow = true,
+    light = true,
     class: extraClass = '',
     children,
   }: Props = $props();
+
+  let root = $state<HTMLElement>();
+  $effect(() => (flow && root ? pressField(root) : undefined));
+  $effect(() => (light && root ? lightField(root) : undefined));
 
   const RADIUS = { square: 0.3, soft: 1, round: 1.45 } as const;
   const DENSITY = { compact: 0.86, default: 1, comfortable: 1.14 } as const;
 </script>
 
 <div
+  bind:this={root}
   class="application {extraClass}"
   class:contained
   data-tint=""
+  data-surface={image ? 'photo' : undefined}
   data-theme={theme === 'auto' ? undefined : theme}
   style:--tint={tint}
   style:--radius-scale={radius === 'soft' ? undefined : RADIUS[radius]}

@@ -117,6 +117,7 @@
 
 <div
   class="toasts toasts--{placement}"
+  data-flow-fixed
   style:--toast-offset={offset}
   role="region"
   aria-label={label}

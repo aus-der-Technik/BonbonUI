@@ -184,7 +184,7 @@
   <Section
     eyebrow="Rule 6"
     title="Motion with intent"
-    description="Every animation answers a question: where did it come from, where did it go, did it work? Small things may spring; big things only ease, because a bouncing dialog makes people seasick. With reduced motion, movement becomes a quick fade — the meaning stays."
+    description="Every animation answers a question: where did it come from, where did it go, did it work? The interface moves like thick water: a selection flows to its new place — it stretches, thins and lands with a soft wobble — and the surface it moves in gives a little. Every press gets a little give, and what gives follows the layers: on the ground the whole page ripples, on a panel that panel dips and its neighbours give a little, on glass only the glass squeezes — it floats, so the page below stays still. Big things never travel or bounce on their own: they only give a few pixels and settle. With reduced motion, movement becomes a quick fade — the meaning stays."
   >
     <Grid min="15rem">
       <Layer level="panel" gap="sm" align="start">

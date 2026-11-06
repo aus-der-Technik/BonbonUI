@@ -1,6 +1,6 @@
 {
   "name": "@bonbon-ui/core",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Svelte 5 + TypeScript component library (atomic design) for modern web applications.",
   "type": "module",
   "license": "UNLICENSED",

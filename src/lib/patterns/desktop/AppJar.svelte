@@ -181,6 +181,7 @@
   <div
     bind:this={overlay}
     class="launchpad"
+    data-flow-fixed
     class:in-desktop={inDesktop}
     role="dialog"
     aria-modal="true"

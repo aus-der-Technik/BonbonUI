@@ -67,15 +67,17 @@
     font-size: var(--fs-xl);
     font-weight: var(--fw-semibold);
   }
+  /* Prose rules are for plain text only: lists with a class belong to a component (a rail, a
+     menu) and keep their own layout. */
   .prose :global(p),
-  .prose :global(li) {
+  .prose :global(:is(ul, ol):not([class]) > li) {
     max-width: 68ch;
     color: var(--text-2);
     font-size: var(--fs-base);
     line-height: 1.65;
   }
-  .prose :global(ul),
-  .prose :global(ol) {
+  .prose :global(ul:not([class])),
+  .prose :global(ol:not([class])) {
     padding-left: 1.25rem;
     display: grid;
     gap: var(--space-1);

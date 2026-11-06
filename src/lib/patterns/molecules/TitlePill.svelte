@@ -3,8 +3,8 @@
    * TitlePill molecule — the liquid glass pill with a glowing accent bar and "App — what it
    * does", which opens an app's header. `logo` replaces the bar (an app icon, a mark). A link with
    * `href`, a button with `onclick` (e.g. back to top), plain otherwise; links and buttons catch a
-   * sugar-glass sheen on hover and squish when pressed. Thick glass by default (`lens`, see
-   * GlassLens); `lens={false}` keeps it frosted.
+   * sugar-glass sheen on hover and squish when pressed. Frosted glass; `lens={{ refraction: true }}`
+   * opts into a gentle refraction (see GlassLens).
    *
    *   <TitlePill title="Inventory" subtitle="stock across all stores" href="/" />
    */
@@ -84,7 +84,7 @@
     min-width: 0;
     padding: 0.65rem var(--space-5) 0.65rem 1.1rem;
     border-radius: var(--radius-pill);
-    background: var(--pill-tint);
+    background: var(--light, none), var(--pill-tint);
     backdrop-filter: var(--blur-pill);
     -webkit-backdrop-filter: var(--blur-pill);
     border: 0.75px solid var(--pill-border);

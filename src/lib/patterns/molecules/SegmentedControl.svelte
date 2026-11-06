@@ -130,7 +130,7 @@
     font-weight: var(--fw-semibold);
   }
   /* The thumb: drawn on the item until the track has measured it, then one shared thumb that
-     glides from item to item (see indicator.ts). */
+     flows from item to item like thick water (see indicator.ts). */
   .segmented--glass button[aria-pressed='true'],
   .segmented--glass::before {
     background: linear-gradient(180deg, var(--pill-edge), transparent 70%), var(--glass-strong);
@@ -168,12 +168,6 @@
   .segmented:global([data-indicator])::before {
     opacity: 1;
   }
-  .segmented:global([data-indicator='moving'])::before {
-    transition:
-      transform var(--motion-base) var(--ease-in-out),
-      width var(--motion-base) var(--ease-in-out),
-      height var(--motion-base) var(--ease-in-out);
-  }
   .segmented:global([data-indicator]) button[aria-pressed='true'] {
     background: transparent;
     box-shadow: none;
@@ -205,9 +199,6 @@
   }
   @media (prefers-reduced-motion: reduce) {
     button,
-    .segmented:global([data-indicator='moving'])::before {
-      transition: none;
-    }
     button:active {
       transform: none;
     }

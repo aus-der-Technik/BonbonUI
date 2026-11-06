@@ -1,5 +1,6 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
+  import { storyTint } from './tint';
   import Application from '../patterns/templates/Application.svelte';
   import SeaTraffic from './SeaTraffic.svelte';
   import { ships } from './mock-sea';
@@ -45,8 +46,8 @@ or pick a ship on the chart or in the list: its card rides beside it and its row
 The readout shows wind and waves at the pointer, the ship in focus or the middle of the bay.
 -->
 <Story name="Sea traffic" args={{ weather: 'fresh', hour: 0, selected: '', paused: false }}>
-  {#snippet template(args)}
-    <Application tint="#0f7c9c">
+  {#snippet template(args, context)}
+    <Application tint={storyTint(context, '#0f7c9c')}>
       {#key `${args.weather}-${args.hour}-${args.selected}-${args.paused}`}
         <SeaTraffic
           weather={args.weather ?? 'fresh'}

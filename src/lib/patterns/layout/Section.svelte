@@ -98,7 +98,7 @@
   }
   .section--panel {
     padding: var(--space-5) var(--space-6) var(--space-6);
-    background: var(--layer-panel-bg);
+    background: var(--light, none), var(--layer-panel-bg);
     border: 1px solid var(--layer-panel-border);
     border-radius: var(--radius-card);
     box-shadow: var(--layer-panel-shadow);
@@ -107,7 +107,7 @@
   }
   .section--selected {
     padding: var(--space-5) var(--space-6) var(--space-6);
-    background: var(--layer-selected-bg);
+    background: var(--light, none), var(--layer-selected-bg);
     border: 1.5px solid var(--layer-selected-border);
     border-radius: var(--radius-card);
     box-shadow: var(--layer-selected-shadow);

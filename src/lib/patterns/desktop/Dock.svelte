@@ -194,7 +194,7 @@
     /* A tray holds things, so it is a rounded rect, concentric with the icons inside it. */
     border-radius: calc((var(--dock-size) * 0.225 + var(--tray-pad)) * var(--radius-scale));
     border: 0.75px solid var(--layer-front-border);
-    background: var(--layer-front-bg);
+    background: var(--light, none), var(--layer-front-bg);
     box-shadow: var(--layer-front-shadow);
     backdrop-filter: var(--layer-front-blur);
     -webkit-backdrop-filter: var(--layer-front-blur);
@@ -202,7 +202,7 @@
   /* Thick glass: the lens scatters and bends the backdrop, the tray only lends it a thin body. */
   .dock.lensed {
     isolation: isolate;
-    background: var(--layer-front-lens-bg);
+    background: var(--light, none), var(--layer-front-lens-bg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -326,7 +326,7 @@
     height: var(--dock-size);
     padding: calc(var(--dock-size) * 0.22);
     border-radius: calc(var(--dock-size) * 0.225);
-    background: var(--pill-tint);
+    background: var(--light, none), var(--pill-tint);
     box-shadow:
       var(--shadow-frosted),
       inset 0 0 0 0.75px var(--pill-border);

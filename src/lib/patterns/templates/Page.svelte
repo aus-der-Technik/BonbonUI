@@ -113,6 +113,7 @@
 
 <div
   class="page"
+  data-surface={image ? 'photo' : undefined}
   class:fill
   class:fill-phone={fill && fillOnPhone}
   class:has-sidebar={!!sidebar}

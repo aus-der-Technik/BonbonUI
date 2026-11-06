@@ -45,6 +45,7 @@
     role="switch"
     class="switch"
     aria-checked={checked}
+    data-emit={checked && !disabled ? 'soft' : undefined}
     aria-labelledby={label ? `${id}-label` : undefined}
     aria-label={label ? undefined : ariaLabel}
     aria-describedby={description ? `${id}-desc` : undefined}

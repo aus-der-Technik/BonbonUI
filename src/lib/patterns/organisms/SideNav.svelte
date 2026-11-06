@@ -21,15 +21,18 @@
    * SideNav organism — the section navigation of a multi-page app, on the ground by default
    * (`level="panel"` puts it on a card). The active
    * item (`aria-current="page"`) is lifted onto the selected layer: tinted glass, tint-coloured
-   * text and a small pill marker on its leading edge. When the active item changes, that pill
-   * slides over to it instead of blinking. `orientation="auto"` (default) turns it into a
+   * text and a small pill marker on its leading edge. When the active item changes, the selection
+   * flows over to it like thick water (it stretches, thins and lands with a soft wobble) and
+   * the nav bulges along (`utils/liquid.ts`). `orientation="auto"` (default) turns it into a
    * horizontal strip below 900px, where a Page moves the sidebar on top of the content — but
    * not inside a dialog or drawer, where it is the whole panel and stays a vertical list.
    * `vertical` / `horizontal` fix it either way.
    *
    *   <SideNav groups={[{ label: 'Admin', items: [{ label: 'Users', href: '/users', active: true }] }]} />
    */
+  import { untrack } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
+  import { boxWithin, LiquidDrop } from '../../utils/liquid';
 
   interface Props {
     groups: NavGroup[];
@@ -53,54 +56,65 @@
   // Inside an overlay panel the nav is the panel's content: a list, never a strip.
   const inOverlay = $derived(!!nav?.parentElement?.closest('dialog, [role="dialog"]'));
   const mode = $derived(orientation === 'auto' && inOverlay ? 'vertical' : orientation);
-  let pill: { x: number; y: number; w: number; h: number } | null = $state(null);
-  // The first placement jumps; only later moves slide.
-  let ready = $state(false);
+  /** Is there a measured active link for the pill to sit on? */
+  let hasPill = $state(false);
+  let pillEl = $state<HTMLElement>();
+  // The pill flows from link to link like thick water, and the nav bulges along (liquid.ts).
+  let drop: LiquidDrop | undefined;
+
+  $effect(() => {
+    const el = pillEl;
+    if (!el || !nav) return;
+    drop = new LiquidDrop({
+      render: (box) => {
+        el.style.width = `${box.w}px`;
+        el.style.height = `${box.h}px`;
+        el.style.transform = `translate(${box.x}px, ${box.y}px)`;
+      },
+      host: nav,
+      bulge: 0.02,
+    });
+    place('instant');
+    return () => {
+      drop?.destroy();
+      drop = undefined;
+    };
+  });
+
+  function place(how: 'move' | 'follow' | 'instant') {
+    const active = nav?.querySelector<HTMLElement>('a[aria-current="page"]');
+    hasPill = !!active?.offsetWidth;
+    if (!active || !nav || !hasPill) return;
+    drop?.moveTo(boxWithin(active, nav), how);
+  }
 
   $effect(() => {
     // Track the active flags, not just the array, so in-place updates move the pill too.
     void (groups ?? []).flatMap((group) => group.items.map((item) => item.active));
     if (!nav) return;
-    const place = () => {
-      const active = nav?.querySelector<HTMLElement>('a[aria-current="page"]');
-      pill = active
-        ? {
-            x: active.offsetLeft,
-            y: active.offsetTop,
-            w: active.offsetWidth,
-            h: active.offsetHeight,
-          }
-        : null;
-    };
-    place();
-    const frame = requestAnimationFrame(() => (ready = true));
-    if (typeof ResizeObserver !== 'function') return () => cancelAnimationFrame(frame);
-    const observer = new ResizeObserver(place);
+    untrack(() => place('move'));
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(() => place('follow'));
     observer.observe(nav);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   });
 </script>
 
 <nav
   class="nav nav--{mode} nav--{level}"
-  class:has-pill={pill && pill.w > 0}
+  class:has-pill={hasPill}
   aria-label={label}
   data-orientation={mode}
   bind:this={nav}
 >
-  {#if pill && pill.w > 0}
-    <span
-      class="pill"
-      class:ready
-      aria-hidden="true"
-      style:width="{pill.w}px"
-      style:height="{pill.h}px"
-      style:transform="translate({pill.x}px, {pill.y}px)"
-    ></span>
-  {/if}
+  <!-- Always there (so the drop keeps its element), drawn only once an active link is found. -->
+  <span
+    class="pill"
+    class:pill--on={hasPill}
+    aria-hidden="true"
+    data-emit={hasPill ? 'soft' : undefined}
+    bind:this={pillEl}
+  ></span>
   {#each groups as group, index (group.label ?? index)}
     <div class="group">
       {#if group.label}<div class="heading">{group.label}</div>{/if}
@@ -215,11 +229,8 @@
     box-shadow: var(--glass-inset);
     pointer-events: none;
   }
-  .pill.ready {
-    transition:
-      transform var(--motion-slow) var(--ease-in-out),
-      width var(--motion-slow) var(--ease-in-out),
-      height var(--motion-slow) var(--ease-in-out);
+  .pill:not(.pill--on) {
+    display: none;
   }
   .has-pill a[aria-current='page'] {
     background: transparent;
@@ -311,7 +322,6 @@
   }
   @media (prefers-reduced-motion: reduce) {
     a,
-    .pill.ready,
     a[aria-current='page']::before,
     .pill::before {
       transition: none;

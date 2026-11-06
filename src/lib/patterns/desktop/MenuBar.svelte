@@ -280,7 +280,7 @@
     gap: var(--space-4);
     height: calc(var(--control-sm) + 6px);
     padding: 0 var(--space-3);
-    background: var(--layer-front-bg);
+    background: var(--light, none), var(--layer-front-bg);
     border-bottom: 0.75px solid var(--layer-front-border);
     box-shadow:
       inset 0 -1px 0 var(--pill-bloom),
@@ -294,7 +294,7 @@
   /* Thick glass: the lens scatters and bends the backdrop, the shelf only lends it a thin body. */
   .lensed {
     isolation: isolate;
-    background: var(--layer-front-lens-bg);
+    background: var(--light, none), var(--layer-front-lens-bg);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }

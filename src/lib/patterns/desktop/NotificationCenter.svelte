@@ -95,6 +95,7 @@
 
 <section
   class="center"
+  data-flow-fixed
   class:in-desktop={inDesktop}
   aria-label={label}
   aria-live="polite"

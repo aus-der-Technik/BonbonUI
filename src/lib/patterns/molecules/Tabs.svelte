@@ -236,7 +236,7 @@
   .tabs--line .tab:is([aria-selected='true'], [aria-current='page'])::after {
     transform: none;
   }
-  /* Once measured, one shared indicator glides between tabs (see indicator.ts); until then each
+  /* Once measured, one shared indicator flows between tabs like thick water (see indicator.ts); until then each
      tab draws its own. */
   .list::before {
     content: '';
@@ -247,11 +247,6 @@
   }
   .list:global([data-indicator])::before {
     opacity: 1;
-  }
-  .list:global([data-indicator='moving'])::before {
-    transition:
-      transform var(--motion-base) var(--ease-in-out),
-      width var(--motion-base) var(--ease-in-out);
   }
   .tabs--line .list::before {
     bottom: 0;
@@ -370,9 +365,6 @@
     .tab,
     .tabs--pill .tab,
     .tabs--line .tab::after,
-    .list:global([data-indicator='moving'])::before {
-      transition: none;
-    }
     .tabs--pill .tab:active:not(:disabled) {
       transform: none;
     }

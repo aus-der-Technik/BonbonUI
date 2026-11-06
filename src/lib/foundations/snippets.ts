@@ -54,13 +54,13 @@ export const welcomeExample = `<Application tint="#007aff">
 export const layersCode = `<!-- 1 ground: no wrapper at all — text and figures sit on the backdrop -->
 <Section title="Revenue" description="Last 30 days" />
 
-<!-- 2 panel: frosted glass -->
+<!-- 2 panel: a solid tile (glass only over a photo) -->
 <Layer level="panel">…a table, a form…</Layer>
 
 <!-- 3 selected: the chosen thing, tinted -->
 <Layer level="selected">…the current plan…</Layer>
 
-<!-- 4 front: liquid glass, always sticky -->
+<!-- 4 front: glass, always sticky -->
 <Layer level="front" direction="horizontal">…filters…</Layer>
 <Layer level="front" edge="bottom" direction="horizontal">…bulk actions…</Layer>`;
 
@@ -251,3 +251,22 @@ export const recipeDesktopApp = `<script lang="ts">
 
   <div>…message list…</div>
 </Page>`;
+
+export const lightCode = `<!-- Emitters: library parts mark themselves (primary buttons, the current
+     navigation item, pressed toggles, switches that are on, a gauge's lit arc). -->
+<div data-emit>…full light in the tint…</div>
+<div data-emit="soft">…a gentle glow…</div>
+<div data-emit="danger">…status light: also "ok"…</div>
+
+<!-- Reflectors: layers are reflectors already. Your own surface opts in like this: -->
+<div data-reflect="panel" class="my-tile">…</div>  <!-- or data-reflect="glass" -->
+
+<style>
+  .my-tile {
+    /* --light is written by the Application for each lit surface */
+    background: var(--light, none), var(--layer-panel-bg);
+  }
+</style>
+
+<!-- On by default in every Application; turn it off for a page that must stay still: -->
+<Application light={false}>…</Application>`;

@@ -13,7 +13,8 @@
 
 /** How a glass surface refracts; every value is optional and falls back to `LENS_DEFAULTS`. */
 export interface LensOptions {
-  /** `false` keeps the glass frosted; `true` and `'auto'` refract (see GlassLens). */
+  /** Off by default: glass is frosted, drawn the same in every engine. `true` / `'auto'` opt in
+   *  to refraction (see GlassLens) — native in Chromium, a page mirror elsewhere. */
   refraction?: boolean | 'auto' | undefined;
   /** Magnification inside the glass (1 = none). */
   magnify?: number | undefined;
@@ -29,17 +30,18 @@ export interface LensOptions {
   saturate?: number | undefined;
 }
 
-/** The front layer's thick glass. */
+/** A gentle lens for when refraction is opted into: a slight bend at the rim, no colour
+ *  fringe, barely any extra saturation — glass, not an effect. */
 export const LENS_DEFAULTS = {
-  magnify: 1.3,
-  rim: 31,
-  rimBend: 45,
-  chroma: 0.07,
-  saturate: 160,
+  magnify: 1.06,
+  rim: 20,
+  rimBend: 14,
+  chroma: 0,
+  saturate: 112,
 } as const;
 
 /** What `--blur-pill` uses, for a frost where only one of blur / saturate is given. */
-const FROST_DEFAULTS = { blur: 32, saturate: 190 } as const;
+const FROST_DEFAULTS = { blur: 18, saturate: 118 } as const;
 
 /**
  * A `backdrop-filter` for the frosted fallback when the caller set `blur` or `saturate`;

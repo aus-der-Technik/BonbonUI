@@ -265,6 +265,19 @@ export const corrections: { title: string; intro: string; items: Correction[] }[
     ],
   },
   {
+    title: 'Effect over design',
+    intro:
+      'Glass should look like glass: a little softer behind it, a little light on its edge — not a show.',
+    items: [
+      {
+        was: 'Front-layer glass was a thick lens: it magnified, bent the rim, split colours into fringes and pushed saturation to 160–190 %. Safari and Firefox faked it with a live copy of the page.',
+        now: 'Glass is frosted CSS everywhere — gentle blur, saturation near 1, one crisp edge of light — so it looks and costs the same in every engine. Refraction is opt-in, gentle and without a colour fringe.',
+        breaks: ['function'],
+        where: 'GlassLens · Layer · NavBar · TitlePill · tokens (--blur-pill, --pill-tint)',
+      },
+    ],
+  },
+  {
     title: 'Fewer, better pages',
     intro: 'Forty-seven example stories became a handful of complete applications.',
     items: [

@@ -184,6 +184,7 @@
     bind:this={root}
     class="cc"
     class:floating
+    data-flow-fixed={floating ? '' : undefined}
     class:in-desktop={inDesktop}
     aria-label={label}
     role={floating ? 'dialog' : undefined}
