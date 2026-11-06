@@ -30,6 +30,28 @@ Real screens from the example pages; each opens its story in Storybook.
   </tr>
 </table>
 
+## In detail
+
+The ideas in small groups: how a selection flows, how a press gives, where light and glass go.
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/cards/the-liquid-drop.jpg" alt="The liquid drop: the selection glides like thick water"></td>
+    <td width="33%"><img src="docs/cards/squeeze-settings.jpg" alt="The squeeze: a pressed glass bar swells under the finger"></td>
+    <td width="33%"><img src="docs/cards/presses-by-layer.jpg" alt="Presses by layer: ground ripples, panels sink, glass gives"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/light-from-what-is-on.jpg" alt="Light comes from what is on"></td>
+    <td width="33%"><img src="docs/cards/soft-touch-keys.jpg" alt="Soft-touch keys"></td>
+    <td width="33%"><img src="docs/cards/glass-only-where-it-floats.jpg" alt="Glass only where it floats"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/arc-gauge-current.jpg" alt="Two numbers, one arc: the setting and where the room is now"></td>
+    <td width="33%"><img src="docs/cards/music-transport.jpg" alt="Playback in dot-matrix figures"></td>
+    <td width="33%"><img src="docs/cards/pill-rounded-circle.jpg" alt="Pill acts, rounded holds, circle is someone"></td>
+  </tr>
+</table>
+
 ## Install
 
 BonbonUI installs from a release tag; each tag carries the built package, so nothing is built
