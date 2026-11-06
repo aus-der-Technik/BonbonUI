@@ -65,7 +65,8 @@
     color: var(--text-3);
     font-size: var(--fs-xs);
   }
-  @container inspector (max-width: 24rem) {
+  /* Side by side down to a typical inspector width (~18rem); stacked below that. */
+  @container inspector (max-width: 17rem) {
     .row {
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-1);

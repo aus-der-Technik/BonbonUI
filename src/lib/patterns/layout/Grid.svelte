@@ -39,7 +39,7 @@
   let {
     as = 'div',
     columns,
-    min = '16rem',
+    min: minProp,
     gap = 'md',
     align,
     collapse = 'md',
@@ -50,6 +50,8 @@
   }: Props = $props();
 
   const literal = $derived(typeof columns === 'string');
+  // With a column count the count leads: narrow tiles are fine, so they collapse later.
+  const min = $derived(minProp ?? (typeof columns === 'number' ? '10rem' : '16rem'));
 </script>
 
 <svelte:element

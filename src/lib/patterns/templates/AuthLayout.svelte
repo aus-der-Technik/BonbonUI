@@ -113,7 +113,8 @@
 <style>
   .auth {
     position: relative;
-    min-height: 100dvh;
+    /* The Application's height: the viewport, or its frame when contained. */
+    min-height: var(--app-height, 100dvh);
     display: flex;
     flex-direction: column;
     color: var(--text);

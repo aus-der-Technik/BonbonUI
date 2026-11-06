@@ -91,6 +91,15 @@ describe('errors show where they happened', () => {
     expect(host.querySelector('.alert')).toBeNull();
   });
 
+  it('CommentThread prefills the reply box from its draft prop', () => {
+    const host = render(CommentThread, {
+      comments: [{ id: '1', author: 'Ada', time: new Date(), text: 'Hi' }],
+      onreply: vi.fn(),
+      draft: 'Half a thought',
+    });
+    expect(host.querySelector('textarea')!.value).toBe('Half a thought');
+  });
+
   it('ResultPanel reports its error with the Alert molecule', () => {
     const host = render(ResultPanel, { status: 'error', error: 'Closed' });
     expect(host.querySelector('.alert [role="alert"]')).not.toBeNull();

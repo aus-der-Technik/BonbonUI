@@ -507,7 +507,8 @@
       display: none;
     }
   }
-  @media (max-width: 640px) {
+  /* The status items give way before the menus can run into them. */
+  @media (max-width: 760px) {
     .extra {
       display: none;
     }

@@ -309,7 +309,8 @@
     display: grid;
     grid-template-rows: auto 1fr auto;
     grid-template-columns: minmax(0, 1fr);
-    height: 100dvh;
+    /* The Application's height: the viewport, or its frame when contained. */
+    height: var(--app-height, 100dvh);
     overflow: hidden;
     color: var(--text);
     font-family: var(--font-sans);

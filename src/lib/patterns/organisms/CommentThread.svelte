@@ -38,6 +38,8 @@
     /** The passage the thread is about, shown as a quote on top. */
     quote?: string | undefined;
     resolved?: boolean;
+    /** The reply box's text (bindable): set it to prefill, read it to keep a draft. */
+    draft?: string;
     /** Shows the reply box (default when `onreply` is set). */
     canReply?: boolean | undefined;
     now?: Date | undefined;
@@ -72,6 +74,7 @@
     comments,
     quote,
     resolved = $bindable(false),
+    draft = $bindable(''),
     canReply,
     now,
     locale = 'en',
@@ -97,7 +100,6 @@
   // Reactions change inside the thread; the `comments` prop stays the parent's.
   let reacted = $state<Record<string, Reaction[]>>({});
 
-  let draft = $state('');
   let busy = $state(false);
   let failed = $state(false);
   let expanded = $state(false);

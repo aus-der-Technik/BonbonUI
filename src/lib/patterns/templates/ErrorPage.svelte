@@ -99,7 +99,8 @@
 
 <style>
   .error-page {
-    min-height: 100vh;
+    /* The Application's height: the viewport, or its frame when contained. */
+    min-height: var(--app-height, 100dvh);
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: center;

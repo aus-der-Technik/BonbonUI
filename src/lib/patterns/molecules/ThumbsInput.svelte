@@ -75,6 +75,8 @@
     justify-content: center;
     gap: var(--space-2);
     height: var(--control-xl);
+    padding: 0 var(--space-5);
+    white-space: nowrap;
     border-radius: var(--radius-xl);
     border: 1px solid var(--border-strong);
     background: var(--input-bg);

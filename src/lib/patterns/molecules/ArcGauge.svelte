@@ -255,8 +255,10 @@
     gap: var(--space-2);
     width: 100%;
     max-width: 26rem;
-    /* The figure sizes itself to the gauge, so a narrow card does not crowd it. */
+    /* The figure sizes itself to the gauge, so a narrow card does not crowd it. Inline-size
+       containment gives the gauge no width of its own, so in a flex row it keeps a minimum. */
     container-type: inline-size;
+    min-width: min(16rem, 100%);
   }
   /* With buttons at its ends, the arc keeps clear of them. */
   .gauge--buttons .dial {
