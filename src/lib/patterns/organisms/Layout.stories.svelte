@@ -32,8 +32,8 @@
   let failing = $state(false);
 </script>
 
-<!-- The section navigation. The current page sits on the selected layer: tinted glass, tint text
-     and a pill marker. Click an item: the selected pill slides over to it instead of blinking.
+<!-- The section navigation. The current page sits on the selected layer: tinted glass, a tint rim
+     and tint text. Click an item: the selection slides over to it instead of blinking.
      Below 900px the list turns into a horizontal strip. -->
 <Story name="SideNav" asChild>
   <Stack style="max-width:16rem">
@@ -45,6 +45,27 @@
       }}
     />
   </Stack>
+</Story>
+
+<!-- Three ways to mark the current page (`selection`): a frame (the selected layer, default),
+     the tint alone, or a slim tint bar beside it. Each one flows from item to item. -->
+<Story name="SideNav selection" asChild>
+  <Grid min="13rem" gap="xl">
+    {#each ['frame', 'tint', 'bar'] as const as selection (selection)}
+      <Stack gap="sm">
+        <code>selection="{selection}"</code>
+        <SideNav
+          {selection}
+          label="Main ({selection})"
+          groups={navGroups(page)}
+          onnavigate={(item, event) => {
+            event.preventDefault();
+            page = item.href.slice(1);
+          }}
+        />
+      </Stack>
+    {/each}
+  </Grid>
 </Story>
 
 <!-- A drawer glides in from the end edge on liquid glass, a little off the viewport edges. The

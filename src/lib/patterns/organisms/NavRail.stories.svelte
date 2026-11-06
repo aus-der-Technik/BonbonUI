@@ -18,6 +18,8 @@
     args: { items, current: 'overview', orientation: 'vertical' },
     argTypes: {
       orientation: { control: 'inline-radio', options: ['vertical', 'horizontal'] },
+      frame: { control: 'boolean' },
+      frameWidth: { control: 'text' },
     },
   });
 </script>
@@ -47,4 +49,17 @@ button: its name opens beside it. Narrow the canvas below 900px and the rail lie
       {#snippet bottom()}<Avatar name="Robin Example" size={36} />{/snippet}
     </NavRail>
   {/snippet}
+</Story>
+
+<!-- The white frame inside the glass's edge: on (default), wider (`frameWidth`, any CSS length,
+     or `--rail-frame` from outside) or off (`frame={false}`), leaving the hairline only. -->
+<Story name="Frame" asChild>
+  <div style="display: flex; gap: 2.5rem; height: 24rem">
+    <NavRail items={items.slice(0, 3)} current="overview" label="Frame on" />
+    <NavRail items={items.slice(0, 3)} current="overview" label="Wide frame" frameWidth="0.9rem" />
+    <div style="--rail-frame: 4px; display: flex">
+      <NavRail items={items.slice(0, 3)} current="overview" label="Thin frame" />
+    </div>
+    <NavRail items={items.slice(0, 3)} current="overview" label="No frame" frame={false} />
+  </div>
 </Story>

@@ -115,6 +115,15 @@ describe('NavRail', () => {
     expect(first?.hasAttribute('aria-current')).toBe(false);
   });
 
+  it('takes its frame width from outside and can drop the frame', () => {
+    const wide = render(NavRail, { items, frameWidth: '0.75rem' }).querySelector('nav');
+    expect(wide?.style.getPropertyValue('--rail-frame')).toBe('0.75rem');
+    expect(wide?.classList.contains('rail--frameless')).toBe(false);
+    const bare = render(NavRail, { items, frame: false }).querySelector('nav');
+    expect(bare?.classList.contains('rail--frameless')).toBe(true);
+    expect(bare?.style.getPropertyValue('--rail-frame')).toBe('');
+  });
+
   it('lies down horizontally with its tooltips below, and renders its ends', () => {
     const host = render(NavRail, {
       items,

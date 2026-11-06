@@ -20,7 +20,7 @@
  * inherited, so a nested surface never shows its parent's light.
  */
 
-import { SURFACE_SELECTOR, surfaceKind, type SurfaceKind } from './surfaces';
+import { SURFACE_SELECTOR, nestedPanel, surfaceKind, type SurfaceKind } from './surfaces';
 
 const EMITTERS = '[data-emit]';
 
@@ -118,6 +118,7 @@ export function lightField(root: HTMLElement): () => void {
     const seen = new Set<HTMLElement>();
     if (emitters.length) {
       for (const el of root.querySelectorAll<HTMLElement>(SURFACE_SELECTOR)) {
+        if (nestedPanel(el)) continue;
         const r = el.getBoundingClientRect();
         if (!r.width || r.bottom < 0 || r.top > vh() || r.right < 0 || r.left > vw()) continue;
         const value = lightFor(el, r, emitters);

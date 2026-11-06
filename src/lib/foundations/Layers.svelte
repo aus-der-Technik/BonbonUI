@@ -232,12 +232,19 @@
         'Keep front elements few and small: they cover content.',
       ]}
       donts={[
-        'Nest panels in panels. Inside a panel, use `Card surface="subtle"`.',
+        'Put a panel on a panel. Inside a panel, group with hairlines or `Card surface="subtle"`.',
         'Make a front element that scrolls away. Front means sticky, always.',
         'Use glass for a group that does not float.',
         'Use the accent for errors: destructive and failed states are `--danger`.',
       ]}
     />
+    <p>
+      <strong>Never a panel on a panel.</strong> A panel says "this group needs a box"; a second box
+      inside it says nothing new, it only adds a rim, a shadow and less room. If it happens anyway
+      (a <code>Card</code> or a <code>ChartCard level="panel"</code> dropped into a panel), the inner
+      one turns into a quiet well by itself: the subtle fill, no rim, no shadow, and it catches no light.
+      The same happens over a photo, where panels are glass.
+    </p>
     <p>
       Overlays, such as dialogs, drawers, menus, tooltips and toasts, are not layers. They appear on
       demand above all four, in the front layer's glass.

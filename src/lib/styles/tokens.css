@@ -519,6 +519,20 @@
   --layer-selected-bg: color-mix(in srgb, var(--tint) 22%, var(--photo-glass));
 }
 
+/*
+ * Never a panel on a panel: two tiles stacked are two borders, two shadows and a box that says
+ * nothing. A panel that ends up inside another one is no tile of its own — it becomes a quiet
+ * well (the `Card surface="subtle"` fill) without rim, shadow or blur, and catches no light
+ * (utils/surfaces.ts `nestedPanel`). After the photo rule, so it wins over a photo too.
+ */
+:is([data-layer='panel'], [data-reflect='panel']:not(.card--selected))
+  :is([data-layer='panel'], [data-reflect='panel']:not(.card--selected)) {
+  --layer-panel-bg: var(--fill-subtle);
+  --layer-panel-border: transparent;
+  --layer-panel-shadow: none;
+  --layer-panel-blur: none;
+}
+
 /* ── Theme-independent scales ────────────────────────────────────────────────────────────── */
 :root {
   /* Neutral fills (they sit on whatever surface is below) */

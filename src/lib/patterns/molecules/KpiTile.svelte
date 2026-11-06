@@ -115,7 +115,9 @@
 </Card>
 
 <style>
-  :global(.kpi--ground) {
+  /* Three classes: Card's scoped `.card--pad-none` (two) would otherwise reset the padding and
+     put the figures right against the hairline. */
+  :global(.card.kpi.kpi--ground) {
     padding-left: var(--space-4);
     border-left: 1px solid var(--border-strong) !important;
     border-radius: 0 !important;

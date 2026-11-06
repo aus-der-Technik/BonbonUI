@@ -31,8 +31,8 @@
     min?: number;
     /** Top of the scale. Default: the data's own maximum, rounded up to a readable value. */
     max?: number | undefined;
-    /** Gridline values; default: every integer from min to max when `max` is given, else five
-     *  evenly spaced lines. */
+    /** Gridline values; default: every integer from min to max for a small given scale (up to
+     *  ten steps, e.g. a 1–5 rating), else five evenly spaced lines. */
     ticks?: number[] | undefined;
     tickFormat?: (value: number) => string;
     valueFormat?: (value: number) => string;
@@ -87,11 +87,12 @@
   const max = $derived(
     maxProp ?? niceMax(Math.max(min + 1, ...data.map((d) => d.value ?? Number.NEGATIVE_INFINITY))),
   );
+  // Integers only for a small given scale: 0–60 as integers would be 61 lines and labels.
   const gridValues = $derived(
     ticks ??
-      (maxProp === undefined
-        ? Array.from({ length: 5 }, (_, n) => min + ((max - min) * n) / 4)
-        : Array.from({ length: Math.floor(max - min) + 1 }, (_, n) => min + n)),
+      (maxProp !== undefined && max - min <= 10
+        ? Array.from({ length: Math.floor(max - min) + 1 }, (_, n) => min + n)
+        : Array.from({ length: 5 }, (_, n) => min + ((max - min) * n) / 4)),
   );
   // The y labels and the x labels decide how much room they need, so "€25K" is never clipped.
   const m = $derived({

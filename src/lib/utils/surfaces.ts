@@ -26,6 +26,14 @@ export function isGlass(el: Element): boolean {
   );
 }
 
+/** Plain panel tiles (not selected ones): what tokens.css turns into a well when nested. */
+const TILE_SELECTOR = '[data-layer="panel"], [data-reflect="panel"]:not(.card--selected)';
+
+/** A panel inside another panel: drawn as a quiet well (tokens.css), so it catches no light. */
+export function nestedPanel(el: Element): boolean {
+  return el.matches(TILE_SELECTOR) && !!el.parentElement?.closest(TILE_SELECTOR);
+}
+
 /** What kind of surface an element is; anything that is not glass reflects like a panel. */
 export function surfaceKind(el: Element): SurfaceKind {
   const declared = el.getAttribute('data-reflect');

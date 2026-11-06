@@ -257,6 +257,12 @@ export const corrections: { title: string; intro: string; items: Correction[] }[
         where: 'Layers · Button (glass, ghost) · ProductCard',
       },
       {
+        was: 'A panel could sit on a panel: a tile inside a tile, two rims and two shadows around one figure.',
+        now: 'Never a panel on a panel. A panel inside another one becomes a quiet well by itself (subtle fill, no rim, no shadow, no light).',
+        breaks: ['function'],
+        where: 'Layers · Card · Layer · tokens.css',
+      },
+      {
         was: 'Chart tooltips inside a panel opened far from the pointer and under the next panel.',
         now: 'They open in the top layer, beside the pointer, above everything.',
         breaks: ['locality'],

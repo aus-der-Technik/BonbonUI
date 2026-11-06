@@ -290,6 +290,11 @@
     -webkit-backdrop-filter: var(--blur-pill);
     animation: bb-pop var(--motion-base) var(--ease-out);
   }
+  /* A little air between rows, so two chosen options read as two, not one block. */
+  .group {
+    display: grid;
+    gap: 2px;
+  }
   .group + .group {
     border-top: 1px solid var(--border-strong);
     margin-top: var(--space-1);

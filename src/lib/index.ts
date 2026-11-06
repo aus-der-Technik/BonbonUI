@@ -268,7 +268,7 @@ export type { Box, LiquidOptions, SqueezeOptions } from './utils/liquid';
 export { flowBlocks, pressField, pressLayer } from './utils/flow';
 export type { FlowOptions, PressLayer } from './utils/flow';
 export { LIGHT_MODELS, lightField, lightFor } from './utils/light';
-export { isGlass, surfaceKind, type SurfaceKind } from './utils/surfaces';
+export { isGlass, nestedPanel, surfaceKind, type SurfaceKind } from './utils/surfaces';
 
 // Collaboration types and helpers
 export type { Participant, Presence } from './patterns/molecules/AvatarStack.svelte';

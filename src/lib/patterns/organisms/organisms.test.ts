@@ -551,6 +551,15 @@ describe('design polish', () => {
     expect(host.querySelector('.nav.has-pill')).toBeNull();
   });
 
+  it('SideNav marks the active item with a frame by default, or the tint, or a bar', () => {
+    const groups = [{ items: [{ label: 'One', href: '#1', active: true }] }];
+    expect(render(SideNav, { groups }).querySelector('.nav')?.className).toContain('sel--frame');
+    for (const selection of ['tint', 'bar'] as const) {
+      const nav = render(SideNav, { groups, selection }).querySelector('.nav');
+      expect(nav?.className).toContain(`sel--${selection}`);
+    }
+  });
+
   it('Toaster sprinkles for a success toast only when asked, never for others', () => {
     vi.useFakeTimers();
     const ok = [{ id: 1, tone: 'ok' as const, message: 'Saved' }];

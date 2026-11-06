@@ -34,6 +34,11 @@
     /** Accessible name of the navigation landmark. */
     label?: string;
     orientation?: 'vertical' | 'horizontal';
+    /** The soft white frame inside the glass's edge (default on); off leaves the hairline only. */
+    frame?: boolean;
+    /** How wide the frame is, any CSS length (`6px`, `0.75rem`). Default `8px`; the
+     *  `--rail-frame` custom property sets it from outside as well. */
+    frameWidth?: string | undefined;
     top?: Snippet | undefined;
     bottom?: Snippet | undefined;
   }
@@ -44,6 +49,8 @@
     onselect,
     label = 'Main',
     orientation = 'vertical',
+    frame = true,
+    frameWidth,
     top,
     bottom,
   }: Props = $props();
@@ -152,7 +159,13 @@
   });
 </script>
 
-<nav class="rail rail--{orientation}" aria-label={label} bind:this={nav}>
+<nav
+  class="rail rail--{orientation}"
+  class:rail--frameless={!frame}
+  aria-label={label}
+  style:--rail-frame={frameWidth}
+  bind:this={nav}
+>
   <!-- Shadow and rim light are drawn from the glass's own outline, so they follow its morph. -->
   {#if outline}
     <svg
@@ -250,9 +263,11 @@
         </linearGradient>
       </defs>
       <!-- The pane's inner glow along its edge (what inset shadows did before the morph). -->
-      <g clip-path="url(#{uid}-inside)">
-        <path class="glow-in" d={outline} filter="url(#{uid}-soft)" />
-      </g>
+      {#if frame}
+        <g clip-path="url(#{uid}-inside)">
+          <path class="glow-in" d={outline} filter="url(#{uid}-soft)" />
+        </g>
+      {/if}
       <path class="edge" d={outline} stroke="url(#{uid}-rim)" />
     </svg>
   {/if}
@@ -306,9 +321,10 @@
   .rail__rim .edge {
     stroke-width: 1;
   }
+  /* The stroke is centred on the outline and clipped to the inside, so half of it shows. */
   .rail__rim .glow-in {
     stroke: var(--pill-rim);
-    stroke-width: 16;
+    stroke-width: calc(2 * var(--rail-frame, 8px));
     opacity: 0.75;
   }
   .rim-top {

@@ -20,8 +20,9 @@
   /**
    * SideNav organism — the section navigation of a multi-page app, on the ground by default
    * (`level="panel"` puts it on a card). The active
-   * item (`aria-current="page"`) is lifted onto the selected layer: tinted glass, tint-coloured
-   * text and a small pill marker on its leading edge. When the active item changes, the selection
+   * item (`aria-current="page"`) is marked by `selection`: `frame` (default) lifts it onto the
+   * selected layer (tinted glass, tint rim, tint text), `tint` only colours its text and icon,
+   * `bar` adds a slim tint bar beside it (under it in the strip). When the active item changes, the selection
    * flows over to it like thick water (it stretches, thins and lands with a soft wobble) and
    * the nav bulges along (`utils/liquid.ts`). `orientation="auto"` (default) turns it into a
    * horizontal strip below 900px, where a Page moves the sidebar on top of the content — but
@@ -42,6 +43,9 @@
     onnavigate?: ((item: NavItem, event: MouseEvent) => void) | undefined;
     /** `ground` (default) sits on the backdrop; `panel` is a card. */
     level?: 'ground' | 'panel';
+    /** How the active item is marked: `frame` (default, the selected layer), `tint` (its text
+     *  and icon in the tint) or `bar` (a tint bar beside it). All three flow between items. */
+    selection?: 'frame' | 'tint' | 'bar';
   }
 
   let {
@@ -50,6 +54,7 @@
     orientation = 'auto',
     onnavigate,
     level = 'ground',
+    selection = 'frame',
   }: Props = $props();
 
   let nav: HTMLElement | undefined = $state();
@@ -101,7 +106,7 @@
 </script>
 
 <nav
-  class="nav nav--{mode} nav--{level}"
+  class="nav nav--{mode} nav--{level} sel--{selection}"
   class:has-pill={hasPill}
   aria-label={label}
   data-orientation={mode}
@@ -112,7 +117,7 @@
     class="pill"
     class:pill--on={hasPill}
     aria-hidden="true"
-    data-emit={hasPill ? 'soft' : undefined}
+    data-emit={hasPill && selection === 'frame' ? 'soft' : undefined}
     bind:this={pillEl}
   ></span>
   {#each groups as group, index (group.label ?? index)}
@@ -194,7 +199,7 @@
   a:active {
     transform: scale(0.98);
   }
-  /* The selected layer: tinted glass, tint rim and a pill marker on the leading edge. */
+  /* The selected layer (`frame`): tinted glass, a tint rim and tint text. */
   a[aria-current='page'] {
     background: var(--layer-selected-bg);
     border-color: var(--layer-selected-border);
@@ -204,19 +209,6 @@
   }
   a[aria-current='page'] :global(.icon) {
     color: var(--accent-ink);
-  }
-  a[aria-current='page']::before,
-  .pill::before {
-    content: '';
-    position: absolute;
-    left: -1px;
-    top: 50%;
-    width: 3px;
-    height: 1rem;
-    border-radius: var(--radius-pill);
-    background: var(--accent);
-    transform: translate(-50%, -50%);
-    animation: marker-in var(--motion-base) var(--ease-spring);
   }
   /* The sliding selected layer: once measured it carries the tinted glass for the active link. */
   .pill {
@@ -239,6 +231,29 @@
   }
   .has-pill a[aria-current='page']::before {
     display: none;
+  }
+  /* `tint` and `bar`: no layer at all, the tint alone says which one it is. */
+  .sel--tint a[aria-current='page'],
+  .sel--bar a[aria-current='page'],
+  .sel--tint .pill,
+  .sel--bar .pill {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  /* `bar`: a slim tint bar in the nav's margin beside the item; the pill carries it, so it
+     flows with the selection. In the strip it lies under the item. */
+  .sel--bar a[aria-current='page']::before,
+  .sel--bar .pill::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-2) * -0.5 - 1px);
+    top: 22%;
+    bottom: 22%;
+    width: 3px;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    transform: translateX(-50%);
   }
   a:focus-visible {
     outline: var(--focus-ring);
@@ -264,11 +279,6 @@
     background: var(--accent);
     color: var(--on-accent);
   }
-  @keyframes marker-in {
-    from {
-      transform: translate(-50%, -50%) scaleY(0);
-    }
-  }
   /* The strip: groups side by side in one scrolling row of pills. */
   .nav--horizontal {
     grid-auto-flow: column;
@@ -290,9 +300,12 @@
   .nav--horizontal .pill {
     border-radius: var(--radius-pill);
   }
-  .nav--horizontal a[aria-current='page']::before,
-  .nav--horizontal .pill::before {
-    display: none;
+  .nav--horizontal.sel--bar a[aria-current='page']::before,
+  .nav--horizontal.sel--bar .pill::before {
+    inset: auto 30% calc(var(--space-2) * -0.5 - 1px);
+    width: auto;
+    height: 3px;
+    transform: translateY(50%);
   }
   @media (max-width: 900px) {
     .nav--auto {
@@ -315,17 +328,17 @@
     .nav--auto .pill {
       border-radius: var(--radius-pill);
     }
-    .nav--auto a[aria-current='page']::before,
-    .nav--auto .pill::before {
-      display: none;
+    .nav--auto.sel--bar a[aria-current='page']::before,
+    .nav--auto.sel--bar .pill::before {
+      inset: auto 30% calc(var(--space-2) * -0.5 - 1px);
+      width: auto;
+      height: 3px;
+      transform: translateY(50%);
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    a,
-    a[aria-current='page']::before,
-    .pill::before {
+    a {
       transition: none;
-      animation: none;
     }
   }
 </style>
