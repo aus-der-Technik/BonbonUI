@@ -32,7 +32,8 @@ Real screens from the example pages; each opens its story in Storybook.
 
 ## In detail
 
-The ideas in small groups: how a selection flows, how a press gives, where light and glass go.
+The ideas in small groups: how a selection flows, how a press gives, where light and glass go,
+and how feedback stays where you act.
 
 <table>
   <tr>
@@ -49,6 +50,31 @@ The ideas in small groups: how a selection flows, how a press gives, where light
     <td width="33%"><img src="docs/cards/arc-gauge-current.jpg" alt="Two numbers, one arc: the setting and where the room is now"></td>
     <td width="33%"><img src="docs/cards/music-transport.jpg" alt="Playback in dot-matrix figures"></td>
     <td width="33%"><img src="docs/cards/pill-rounded-circle.jpg" alt="Pill acts, rounded holds, circle is someone"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/figures-on-the-ground.jpg" alt="Figures on the ground, no box around them"></td>
+    <td width="33%"><img src="docs/cards/dot-matrix-figures.jpg" alt="Figures in lit dots"></td>
+    <td width="33%"><img src="docs/cards/charts.jpg" alt="Charts that keep quiet"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/a-form-that-answers.jpg" alt="A form that answers at the field"></td>
+    <td width="33%"><img src="docs/cards/toasts-with-undo.jpg" alt="Toasts with Undo instead of "are you sure?""></td>
+    <td width="33%"><img src="docs/cards/popups-grow-from-their-trigger.jpg" alt="Menus grow from their trigger"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/create-on-the-collection.jpg" alt="Create sits on what it adds to"></td>
+    <td width="33%"><img src="docs/cards/a-chat-thread.jpg" alt="A conversation in place"></td>
+    <td width="33%"><img src="docs/cards/delight-at-the-end.jpg" alt="A small cheer at the end"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/a-calendar.jpg" alt="A month at a glance"></td>
+    <td width="33%"><img src="docs/cards/a-kanban-card.jpg" alt="Work you can hold: a kanban board"></td>
+    <td width="33%"><img src="docs/cards/dock-and-windows.jpg" alt="A desk of your own: windows, dock and menu bar"></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="docs/cards/product-and-cart.jpg" alt="From card to cart"></td>
+    <td width="33%"><img src="docs/cards/pricing-cards.jpg" alt="Plans, side by side"></td>
+    <td width="33%"><img src="docs/cards/sign-in-card.jpg" alt="A door, not a wall: a sign-in card"></td>
   </tr>
 </table>
 
