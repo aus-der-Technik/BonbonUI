@@ -119,6 +119,9 @@
     rowClass?: ((row: T) => string | undefined) | undefined;
     /** Glows that row once each time this changes to its key, and scrolls it into view. */
     highlight?: string | undefined;
+    /** A full-width first row in the body, e.g. a draft row for "New …": create sits on the
+     *  collection it adds to. It shows even while the table is empty. */
+    leading?: Snippet | undefined;
   }
 
   let {
@@ -156,6 +159,7 @@
     clearSelectionLabel = 'Clear',
     rowClass,
     highlight,
+    leading,
   }: Props = $props();
 
   // 1.x passed the one current row as `selected="key"`; arrays are the picked rows.
@@ -393,6 +397,11 @@
       </tr>
     </thead>
     <tbody>
+      {#if leading}
+        <tr class="leading">
+          <td colspan={span}>{@render leading()}</td>
+        </tr>
+      {/if}
       {#if !rows.length}
         <tr>
           <td colspan={span} class="empty">

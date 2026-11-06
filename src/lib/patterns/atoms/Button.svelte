@@ -104,6 +104,7 @@
     class: extraClass = '',
     leading,
     children,
+    'aria-label': ariaLabel,
     ...rest
   }: Props = $props();
 
@@ -161,7 +162,7 @@
       class:btn--link-disabled={disabled}
       role={disabled ? 'link' : undefined}
       aria-disabled={disabled ? 'true' : undefined}
-      aria-label={iconOnly || collapse ? text : undefined}
+      aria-label={ariaLabel ?? (iconOnly || collapse ? text : undefined)}
       aria-busy={busy ? 'true' : undefined}
       onclick={click}
       {...rest as Record<string, unknown>}
@@ -173,7 +174,7 @@
       {type}
       class={classes}
       {disabled}
-      aria-label={iconOnly || collapse ? text : undefined}
+      aria-label={ariaLabel ?? (iconOnly || collapse ? text : undefined)}
       aria-busy={busy ? 'true' : undefined}
       onclick={click}
       {...rest}

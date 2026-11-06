@@ -15,6 +15,10 @@
     disabled?: boolean;
     format?: (value: number) => string;
     onchange?: ((value: number) => void) | undefined;
+    /** The label is only the input's accessible name, not printed. */
+    hideLabel?: boolean;
+    /** Prints the current value next to the label (default on). */
+    showValue?: boolean;
   }
 
   let {
@@ -27,6 +31,8 @@
     disabled = false,
     format = (v) => String(v),
     onchange,
+    hideLabel = false,
+    showValue = true,
   }: Props = $props();
 
   const id = $props.id();
@@ -34,10 +40,14 @@
 </script>
 
 <div class="slider" class:disabled>
-  <div class="head">
-    <label for={id} title={hint}>{label}</label>
-    <output for={id}>{format(value)}</output>
-  </div>
+  {#if !hideLabel || showValue}
+    <div class="head">
+      <label for={id} title={hint} class:sr-only={hideLabel}>{label}</label>
+      {#if showValue}<output for={id}>{format(value)}</output>{/if}
+    </div>
+  {:else}
+    <label for={id} class="sr-only">{label}</label>
+  {/if}
   <input
     {id}
     type="range"
@@ -58,12 +68,20 @@
     /* The knob: a white bead lit from above, with an accent core that says "grab me". */
     --_knob:
       radial-gradient(circle, var(--accent) 0 3px, transparent 3.5px),
-      linear-gradient(180deg, #fff 40%, #f1f1f4);
+      linear-gradient(180deg, var(--knob-top) 40%, var(--knob-bottom));
     --_knob-shadow:
       0 2px 6px rgba(12, 12, 22, 0.2), 0 0 0 0.5px rgba(12, 12, 22, 0.14),
       inset 0 -1px 0 rgba(12, 12, 22, 0.04);
     display: grid;
     gap: var(--space-2);
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
   .head {
     display: flex;

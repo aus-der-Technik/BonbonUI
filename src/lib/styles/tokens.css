@@ -35,6 +35,9 @@
   --danger-strong: #b42318;
   --ok: #16a34a;
   --ok-dark: #0e7a36;
+  /* The bead of a slider: white, lit from above. */
+  --knob-top: #fff;
+  --knob-bottom: #f1f1f4;
   --warn: #eda100;
   --draft: #a15c00;
   --info: #2a78d6;
@@ -144,6 +147,10 @@
     --text-2: #c3c2b7;
     --text-3: #8f8e86;
     --draft: #f2b84b;
+    /* Readable green text on the dark ground (light uses a darker green). */
+    --ok-dark: #4ade80;
+    --knob-top: #f4f4f6;
+    --knob-bottom: #d9d9de;
     --bg-base: #121313;
     --ground-light: rgba(255, 255, 255, 0.03);
     --border: rgba(255, 255, 255, 0.08);
@@ -225,6 +232,10 @@
   --text-2: #c3c2b7;
   --text-3: #8f8e86;
   --draft: #f2b84b;
+  /* Readable green text on the dark ground (light uses a darker green). */
+  --ok-dark: #4ade80;
+  --knob-top: #f4f4f6;
+  --knob-bottom: #d9d9de;
   --bg-base: #121313;
   --ground-light: rgba(255, 255, 255, 0.03);
   --border: rgba(255, 255, 255, 0.08);

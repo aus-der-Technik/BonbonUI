@@ -3,7 +3,8 @@
    * ProgressBar atom — a determinate candy bar (uploads, quotas, imports). `tone` colours the
    * fill (`accent` follows the tint; `brand` is its old name), `showValue` prints the
    * percentage next to the label, `size` sets the thickness. The printed value glows briefly
-   * when it changes.
+   * when it changes. `hideLabel` keeps the label for assistive tech only (the head then shows
+   * just the value). Built from spans, so it may sit inside a button or a link.
    *
    *   <ProgressBar value={64} label="Storage used" showValue />
    */
@@ -20,6 +21,8 @@
     size?: 'sm' | 'md' | 'lg';
     /** Replaces the percentage, e.g. "3 of 7" or "1.2 GB of 5 GB". */
     valueLabel?: string | undefined;
+    /** The label is only the bar's accessible name, not printed. */
+    hideLabel?: boolean;
   }
 
   let {
@@ -30,19 +33,22 @@
     tone = 'accent',
     size = 'md',
     valueLabel,
+    hideLabel = false,
   }: Props = $props();
 
   const ratio = $derived(max > 0 ? Math.max(0, Math.min(1, value / max)) : 0);
   const shown = $derived(valueLabel ?? percentFormat.format(ratio));
 </script>
 
-<div class="progress progress--{size}">
+<span class="progress progress--{size}">
   {#if showValue}
-    <div class="head">
-      <span>{label}</span><span class="value" use:changeCue={shown}>{shown}</span>
-    </div>
+    <span class="head" class:head--value-only={hideLabel}>
+      {#if !hideLabel}<span>{label}</span>{/if}<span class="value" use:changeCue={shown}
+        >{shown}</span
+      >
+    </span>
   {/if}
-  <div
+  <span
     class="track"
     role="progressbar"
     aria-label={label}
@@ -56,10 +62,19 @@
       class:fill--empty={ratio === 0}
       style:width="{ratio * 100}%"
     ></span>
-  </div>
-</div>
+  </span>
+</span>
 
 <style>
+  /* Spans laid out as blocks: valid inside a button, same box as before. */
+  .progress,
+  .head,
+  .track {
+    display: block;
+  }
+  .head--value-only {
+    justify-content: flex-end;
+  }
   .progress {
     --_h: 8px;
     display: grid;

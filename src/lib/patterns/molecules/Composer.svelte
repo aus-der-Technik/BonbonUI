@@ -36,6 +36,8 @@
     /** Key caps of the hint; `mod` defaults to ⌘ on Apple devices, "Ctrl" elsewhere. */
     keyLabels?: Partial<Record<'mod' | 'enter' | 'shift', string>>;
     layout?: 'stacked' | 'inline';
+    /** Look of the send button: `soft` for a reply box on a screen whose primary is elsewhere. */
+    sendVariant?: 'primary' | 'soft' | 'tinted';
     onsubmit: (value: string) => void;
   }
 
@@ -58,6 +60,7 @@
     newlineHint = 'for a new line',
     keyLabels = {},
     layout = 'stacked',
+    sendVariant = 'primary',
     onsubmit,
   }: Props = $props();
 
@@ -121,7 +124,7 @@
       </span>
     {/if}
     <Button
-      variant="primary"
+      variant={sendVariant}
       shape="pill"
       size={layout === 'inline' ? 'lg' : 'md'}
       {icon}

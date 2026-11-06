@@ -23,6 +23,8 @@
     actionLabel?: string | undefined;
     actionIcon?: IconName | undefined;
     onaction?: (() => void) | undefined;
+    /** Look of the `actionLabel` button: `soft` where the screen already has its primary. */
+    actionVariant?: 'primary' | 'soft' | 'secondary' | 'tinted';
     /** A single quiet line with little padding, for inside cards. */
     compact?: boolean;
     children?: Snippet | undefined;
@@ -36,6 +38,7 @@
     actionLabel,
     actionIcon,
     onaction,
+    actionVariant = 'primary',
     compact = false,
     children,
   }: Props = $props();
@@ -50,7 +53,7 @@
   {#if action}<div class="action">{@render action()}</div>
   {:else if actionLabel && onaction}<div class="action">
       <Button
-        variant="primary"
+        variant={actionVariant}
         shape="pill"
         icon={actionIcon}
         label={actionLabel}

@@ -20,6 +20,7 @@
     '%': ['11000', '11001', '00010', '00100', '01000', '10011', '00011'],
     '/': ['00001', '00001', '00010', '00100', '01000', '10000', '10000'],
     '°': ['010', '101', '010', '000', '000', '000', '000'],
+    '€': ['00111', '01000', '11110', '01000', '11110', '01000', '00111'],
     ' ': ['00', '00', '00', '00', '00', '00', '00'],
   };
   const ROWS = 7;
@@ -55,7 +56,7 @@
   /**
    * DotMatrix atom — a number drawn in round dots, like the readout of an instrument. For the
    * figures a screen is read for (a temperature, a countdown, a level), never for running text.
-   * It draws digits and `: . , - + % / °` and a space; other characters are left out of the
+   * It draws digits and `: . , - + % / ° €` and a space; other characters are left out of the
    * picture but stay in the accessible text. Every digit has the same width, so a value that
    * ticks does not move. Sizes follow the type scale (`inherit` takes the surrounding size); the
    * dots take the text colour, `unlit` shows the dark dots too, like a panel that is switched on.

@@ -157,6 +157,281 @@
       ],
     },
     {
+      title: 'Business and enterprise',
+      intro:
+        'Money, deals and tickets: figures that must be right, and actions that answer where they are taken.',
+      items: [
+        {
+          name: 'Sales pipeline',
+          id: 'pages-business--sales-pipeline',
+          icon: 'target',
+          what: 'A small team’s deals by stage, with a weighted forecast against the quarter’s target.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'A deal moves from where it is: its round key, its menu or a drag; “Add deal” opens at the end of Lead.',
+            },
+            {
+              principle: 'cues',
+              text: 'The moved deal glides to its new column; both stage totals and the forecast glow once.',
+            },
+            {
+              principle: 'function',
+              text: 'Forecast, figures and columns on the ground with no panel; only the open deal is lifted.',
+            },
+          ],
+        },
+        {
+          name: 'Invoicing',
+          id: 'pages-business--invoicing',
+          icon: 'receipt',
+          what: 'A studio’s open, overdue and paid invoices with an eight-week cash-flow forecast.',
+          shows: [
+            {
+              principle: 'locality',
+              text: '“New invoice” opens a draft row at the top of the table; Mark paid and its Undo share one cell.',
+            },
+            {
+              principle: 'cues',
+              text: 'One payment moves Outstanding, Paid this month, the cash-flow bars and the client’s line, each glowing once.',
+            },
+            {
+              principle: 'friendly',
+              text: 'Late is said in days (“6 days late”) and chased from the row, which answers “Reminded today”.',
+            },
+          ],
+        },
+        {
+          name: 'Service desk',
+          id: 'pages-enterprise--service-desk',
+          icon: 'headphones',
+          what: 'An internal IT ticket queue with live SLA timers, assignment and replies.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'The queue is sorted by time left on its service level, said in words, with a priority stripe.',
+            },
+            {
+              principle: 'locality',
+              text: 'Picking up happens in the row or the ticket, and the answer shows there: your face replaces the key.',
+            },
+            {
+              principle: 'cues',
+              text: 'The SLA timer counts down in dot-matrix digits, turns amber then red, and the first reply stops it.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Programming and data',
+      intro:
+        'Tools for people who build: dense, exact, and every result shown next to what caused it.',
+      items: [
+        {
+          name: 'Deployments',
+          id: 'pages-programming--deployments',
+          icon: 'rocket',
+          what: 'A team’s pipelines per branch, the live log of a run, and staging and production with deploy and rollback where they run.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'Promote and Roll back sit on the environment they change; the confirmation and the rollout appear right there.',
+            },
+            {
+              principle: 'cues',
+              text: 'When main’s deploy stage ends, staging’s version flips and glows — the cause in the list, the effect where it lands.',
+            },
+            {
+              principle: 'function',
+              text: 'Environments and pipelines sit on the ground; the one panel is the run you are reading, its log following the running step.',
+            },
+          ],
+        },
+        {
+          name: 'Code review',
+          id: 'pages-programming--code-review',
+          icon: 'git-merge',
+          what: 'A change request under review: files, a unified diff with line comments, checks, and approve or request changes.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'A comment opens under the line it is about; reply and resolve happen in the thread, which folds where it was.',
+            },
+            {
+              principle: 'cues',
+              text: '“Approve” shimmers only once every file is viewed and the checks have passed.',
+            },
+            {
+              principle: 'function',
+              text: 'The diff is the one panel; files, checks and reviewers sit on the ground beside it.',
+            },
+          ],
+        },
+        {
+          name: 'Query explorer',
+          id: 'pages-data--query-explorer',
+          icon: 'database',
+          what: 'An analyst’s workbench: tables and columns, a query editor, the result table and a chart that picks its own shape.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'A mistake is explained on its line under the editor, with the likely fix one click away.',
+            },
+            {
+              principle: 'cues',
+              text: 'Each run lights up the row count and the time at the head of the result; Run shimmers while the query is unrun.',
+            },
+            {
+              principle: 'function',
+              text: 'The schema sits on the ground and a click writes a column name where the cursor is.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'At home',
+      intro:
+        'Private, everyday pages: warm words, big readable figures, and nothing that feels like work.',
+      items: [
+        {
+          name: 'Household budget',
+          id: 'pages-private--household-budget',
+          icon: 'wallet',
+          what: 'A household’s month, payday to payday: what is left, spending by category, a shared balance and the bills to come.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'What is left until payday is one big dot-matrix figure on the ground, with the days to go and a daily amount under it.',
+            },
+            {
+              principle: 'locality',
+              text: '“Add expense” is the first row of the newest-first list, so the form opens where the expense will land; settling up has its Undo in the same sentence.',
+            },
+            {
+              principle: 'cues',
+              text: 'A saved expense glows in the list, and the remaining amount, money out and the category bar glow with it.',
+            },
+          ],
+        },
+        {
+          name: 'Meal planner',
+          id: 'pages-private--meal-planner',
+          icon: 'utensils',
+          what: 'A week of meals, recipes that scale with servings, a cooking timer and a shopping list built from the plan.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'An empty slot’s “+” opens a recipe menu that grows out of it, and a timer starts and counts down inside the step that needs it.',
+            },
+            {
+              principle: 'cues',
+              text: 'Changing servings makes each recipe amount and the matching shopping-list line glow as it changes.',
+            },
+            {
+              principle: 'friendly',
+              text: 'Pantry staples start ticked, pieces round up to what you can buy, and finishing the list ends in “Happy cooking!” and a few sprinkles.',
+            },
+          ],
+        },
+        {
+          name: 'Training',
+          id: 'pages-private--training',
+          icon: 'activity',
+          what: 'A runner’s and rider’s week: a distance goal ring, planned sessions, a live workout and twelve weeks of history.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'Clock, distance and pace are fixed-width dot-matrix readouts with three big round keys: lap, start or pause, finish.',
+            },
+            {
+              principle: 'locality',
+              text: 'The goal’s minus and plus flank the ring they change, and a planned session is started or ticked off on its own line.',
+            },
+            {
+              principle: 'cues',
+              text: 'Finishing glows the session row, fills the ring and raises the history line; reaching the goal throws sprinkles from the ring.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Fun and games',
+      intro:
+        'Pages people open because they want to: playful, but every control still says what it does.',
+      items: [
+        {
+          name: 'Music player',
+          id: 'pages-fun--music-player',
+          icon: 'music',
+          what: 'A listening room: now playing, an up-next queue you trim in place, and a library of albums.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'The playback time is dot-matrix digits on the ground, readable from across the room and steady while it counts.',
+            },
+            {
+              principle: 'locality',
+              text: 'Move and remove sit on the queued track; a removed track leaves an undo in its own row instead of a toast.',
+            },
+            {
+              principle: 'cues',
+              text: 'Adding an album turns its plus into a tick and makes the up-next count glow; the visualiser moves only while music plays.',
+            },
+          ],
+        },
+        {
+          name: 'Game hub',
+          id: 'pages-gaming--game-hub',
+          icon: 'gamepad',
+          what: 'A player’s hub: a library of invented games, friends, a party you invite into, achievements and Play.',
+          shows: [
+            {
+              principle: 'locality',
+              text: 'An invite answers at the friend — asking, then a short line, or their avatar moving into a party seat.',
+            },
+            {
+              principle: 'cues',
+              text: 'Play turns into a dot-matrix countdown where it was pressed, then into the match clock.',
+            },
+            {
+              principle: 'friendly',
+              text: 'Claiming a finished achievement throws a few sprinkles and makes the coins glow — delight once, at the end of a task.',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Out at sea',
+      intro:
+        'A live picture of the world: weather and traffic on one chart, list and map always in step.',
+      items: [
+        {
+          name: 'Sea traffic',
+          id: 'pages-maritime--sea-traffic',
+          icon: 'ship',
+          what: 'A sea chart with a scrubbable weather forecast and live ship traffic, chart and vessel list in sync.',
+          shows: [
+            {
+              principle: 'function',
+              text: 'The chart is the one panel; layer keys, readout, forecast slider and vessel list sit on the ground around it.',
+            },
+            {
+              principle: 'locality',
+              text: 'A ship’s details ride beside the ship on the chart while its row lights up; hovering either side lights the other.',
+            },
+            {
+              principle: 'cues',
+              text: 'Scrubbing the forecast moves the wind streaks, wave shading and rain cell to that hour, and the readout glows.',
+            },
+          ],
+        },
+      ],
+    },
+    {
       title: 'On a device',
       intro: 'A control screen read from across the room and worked with one hand.',
       items: [

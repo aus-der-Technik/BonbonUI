@@ -75,7 +75,6 @@
   textarea {
     width: 100%;
     resize: vertical;
-    min-height: 6rem;
     padding: 0.6rem var(--space-3);
     border-radius: var(--radius-lg);
     border: 1px solid var(--input-border);
@@ -117,6 +116,10 @@
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
     line-height: 1.55;
+  }
+  /* Plain sets a reading size; mono (code, prompts) keeps its own. */
+  .wrap--plain textarea.mono {
+    font-size: var(--fs-sm);
   }
   .autogrow {
     resize: none;

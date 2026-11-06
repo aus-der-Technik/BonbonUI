@@ -39,7 +39,8 @@
 
 <style>
   .select {
-    min-width: 9rem;
+    /* A narrow grid cell wins over the comfortable minimum. */
+    min-width: min(9rem, 100%);
     height: var(--control-md);
     padding: 0 2rem 0 var(--space-3);
     border-radius: var(--radius-md);
