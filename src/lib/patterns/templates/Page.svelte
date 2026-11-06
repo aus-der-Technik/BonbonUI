@@ -225,13 +225,13 @@
     margin-inline: auto;
     padding: var(--space-6) var(--content-gutter) var(--space-12);
   }
-  .has-sidebar .body {
+  .has-sidebar > .body {
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   }
-  .has-aside .body {
+  .has-aside > .body {
     grid-template-columns: minmax(0, 1fr) var(--aside-w);
   }
-  .has-sidebar.has-aside .body {
+  .has-sidebar.has-aside > .body {
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--aside-w);
   }
 
@@ -286,22 +286,22 @@
     min-height: 0;
     overflow: hidden;
   }
-  .fill .body {
+  .fill > .body {
     min-height: 0;
     grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
     padding-block: var(--space-4);
   }
-  .fill .main {
+  .fill > .body > .main {
     position: relative;
     min-height: 0;
   }
-  .fill .main > :global(:last-child) {
+  .fill > .body > .main > :global(:last-child) {
     flex: 1 1 auto;
     min-height: 0;
   }
-  .fill .sidebar,
-  .fill .aside {
+  .fill > .body > .sidebar,
+  .fill > .body > .aside {
     position: static;
     max-height: none;
   }
@@ -311,19 +311,19 @@
     bottom: var(--space-4);
     margin: 0;
   }
-  .fill .footer {
+  .fill > .footer {
     padding-bottom: var(--space-4);
   }
 
   @media (max-width: 1100px) {
-    .has-aside .body,
-    .has-sidebar.has-aside .body {
+    .has-aside > .body,
+    .has-sidebar.has-aside > .body {
       grid-template-columns: minmax(0, 1fr);
     }
-    .has-sidebar.has-aside .body {
+    .has-sidebar.has-aside > .body {
       grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
     }
-    .has-sidebar.has-aside .aside {
+    .has-sidebar.has-aside > .body > .aside {
       grid-column: 2;
     }
     .aside {
@@ -332,11 +332,11 @@
     }
   }
   @media (max-width: 900px) {
-    .has-sidebar .body,
-    .has-sidebar.has-aside .body {
+    .has-sidebar > .body,
+    .has-sidebar.has-aside > .body {
       grid-template-columns: minmax(0, 1fr);
     }
-    .has-sidebar.has-aside .aside {
+    .has-sidebar.has-aside > .body > .aside {
       grid-column: auto;
     }
     .sidebar {
@@ -348,22 +348,22 @@
   /* Fill mode once sidebar/aside fold into rows: main keeps the stretching row, the folded
      columns get a capped, scrollable auto row. */
   @media (max-width: 1100px) {
-    .fill.has-aside .body {
+    .fill.has-aside > .body {
       grid-template-rows: minmax(0, 1fr) auto;
     }
-    .fill .aside {
+    .fill > .body > .aside {
       max-height: 34dvh;
       overflow: auto;
     }
   }
   @media (max-width: 900px) {
-    .fill.has-sidebar .body {
+    .fill.has-sidebar > .body {
       grid-template-rows: auto minmax(0, 1fr);
     }
-    .fill.has-sidebar.has-aside .body {
+    .fill.has-sidebar.has-aside > .body {
       grid-template-rows: auto minmax(0, 1fr) auto;
     }
-    .fill .sidebar {
+    .fill > .body > .sidebar {
       max-height: 30dvh;
       overflow: auto;
     }

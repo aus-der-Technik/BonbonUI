@@ -101,7 +101,7 @@
   }
 </script>
 
-<div class="demo" bind:this={panel}>
+<div class="demo" data-reflect="panel" bind:this={panel}>
   <header class="bar">
     {#if mode === 'far'}
       <Button

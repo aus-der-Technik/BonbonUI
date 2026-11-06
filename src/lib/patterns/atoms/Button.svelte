@@ -126,13 +126,15 @@
   const emit = $derived(
     disabled || softDisabled
       ? undefined
-      : variant === 'primary' || variant === 'success'
+      : variant === 'primary'
         ? ''
-        : variant === 'danger-solid'
-          ? 'danger'
-          : pressedOn
-            ? 'soft'
-            : undefined,
+        : variant === 'success'
+          ? 'ok'
+          : variant === 'danger-solid'
+            ? 'danger'
+            : pressedOn
+              ? 'soft'
+              : undefined,
   );
   const classes = $derived(
     [

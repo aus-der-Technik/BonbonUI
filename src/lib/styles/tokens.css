@@ -4,7 +4,7 @@
  * Three groups, in this order:
  *
  *   1. The tint      — one colour (`--tint`) that every accent, surface glow and the animated
- *                      backdrop is computed from. Default: the green of ausdertechnik.de.
+ *                      backdrop is computed from. Default: the house green.
  *   2. Theme values  — raw light values; the dark values follow twice (once for "follow the OS",
  *                      once for the `data-theme="dark"` pin). `data-theme` works on any element.
  *   3. Derived       — tokens computed from 1 + 2 (accent family, focus, gradients, the four
@@ -489,6 +489,17 @@
   --blob-red: var(--blob-1);
   --blob-blue: var(--blob-2);
   --series-1: var(--accent);
+}
+
+/* Less transparency asked for: every glass fallback (`--glass-strong`) becomes the solid panel
+ * tile, so nothing turns see-through — before, a solid panel's fallback was the more
+ * transparent of the two. */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  [data-tint],
+  [data-theme] {
+    --glass-strong: var(--layer-panel-bg);
+  }
 }
 
 /*

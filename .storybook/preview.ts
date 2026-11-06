@@ -100,6 +100,8 @@ const preview: Preview = {
             'Design tokens',
             'Conventions',
           ],
+          'Explore',
+          ['Component catalogue', 'Motion & light lab', 'Token playground'],
           'Design study',
           [
             'Overview',

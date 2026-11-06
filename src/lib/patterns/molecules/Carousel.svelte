@@ -6,6 +6,7 @@
    *
    *   <Carousel label="Featured">{#each items as item}<Card>…</Card>{/each}</Carousel>
    */
+  import { prefersReducedMotion } from '../../utils/motion';
   import type { Snippet } from 'svelte';
   import Icon from '../atoms/Icon.svelte';
   import { space, type Space } from '../layout/space';
@@ -123,7 +124,7 @@
     const to = loop ? (target + pages) % pages : Math.max(0, Math.min(target, last));
     const slide = slides()[to];
     if (!slide) return;
-    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const reduce = prefersReducedMotion();
     track.scrollTo?.({
       left: slide.offsetLeft - track.offsetLeft,
       behavior: reduce ? 'auto' : 'smooth',

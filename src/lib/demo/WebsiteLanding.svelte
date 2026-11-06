@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Example page: the landing website of a team app, built only from library parts — NavBar
-   * (thick glass), Hero, LogoCloud, FeatureGrid, PricingTable, testimonials, Faq, CallToAction
+   * (frosted glass, sticky), Hero, LogoCloud, FeatureGrid, PricingTable, testimonials, Faq, CallToAction
    * and SiteFooter on one wide Page. The calls to action answer where they were pressed: the
    * sign-up opens in place of the button, a plan's button says what happened (Storybook only).
    */
@@ -113,8 +113,8 @@
     },
     {
       principle: 'cues',
-      title: 'Thick glass shows what is underneath',
-      body: 'The navigation bar bends and magnifies the page as it slides under it, so you can feel there is more above and below — depth as orientation.',
+      title: 'The bar floats, so it is glass',
+      body: 'Only the navigation bar floats over the page, so only it is glass: the page softens as it slides underneath, and you can feel there is more above and below — depth as orientation. Its current link flows to the section you scroll to.',
       target: '[data-note="nav"]',
     },
     {

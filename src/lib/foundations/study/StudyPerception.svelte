@@ -6,8 +6,10 @@
   import StudyPage from './StudyPage.svelte';
   import Quote from './Quote.svelte';
   import InSystem from './InSystem.svelte';
+  import StudyDemo from './StudyDemo.svelte';
+  import StudyList from './StudyList.svelte';
+  import StudyItem from './StudyItem.svelte';
   import Section from '../../patterns/layout/Section.svelte';
-  import Layer from '../../patterns/layout/Layer.svelte';
   import Grid from '../../patterns/layout/Grid.svelte';
   import Row from '../../patterns/layout/Row.svelte';
   import Spacer from '../../patterns/layout/Spacer.svelte';
@@ -15,6 +17,32 @@
   import Slider from '../../patterns/atoms/Slider.svelte';
   import Switch from '../../patterns/atoms/Switch.svelte';
   import Kbd from '../../patterns/atoms/Kbd.svelte';
+  import SegmentedControl from '../../patterns/molecules/SegmentedControl.svelte';
+
+  const laws: [string, string, string][] = [
+    ['Proximity', 'Close things belong together.', 'Tight spacing inside a group, wider between.'],
+    ['Similarity', 'Alike things belong together.', 'Every pill acts, every circle is someone.'],
+    [
+      'Common region',
+      'Things inside one area belong together.',
+      'A panel only where a group needs one.',
+    ],
+    [
+      'Figure and ground',
+      'We separate a shape from its background.',
+      'Glass floats over a tinted ground.',
+    ],
+    [
+      'Continuity',
+      'The eye follows lines and edges.',
+      'Shared left edges let the eye run down a page.',
+    ],
+    [
+      'Common fate',
+      'Things that move together belong together.',
+      'A selection mark flows as one drop.',
+    ],
+  ];
 
   // Gestalt: proximity.
   let gap = $state(28);
@@ -42,6 +70,7 @@
     armed = null;
   }
   function switchTrial(t: Trial) {
+    if (t === trial) return;
     trial = t;
     reaches = [];
     armed = null;
@@ -93,14 +122,15 @@
 <StudyPage
   slug="perception-and-laws"
   title="Perception and laws"
-  lead="Underneath taste there is measurement. Psychologists have studied for a century how people see groups, how long it takes to hit a target and to make a choice. These findings are the reasons behind many small rules in the system."
+  lead="Underneath taste there is measurement: a century of research on how people see groups, hit targets and make choices."
 >
   <Section
     eyebrow="Gestalt"
     title="We see groups before we see things"
-    description="The Gestalt psychologists in Berlin (Wertheimer, Koffka, Köhler) found a handful of rules the eye follows without asking. Interfaces use them to say “these belong together” without drawing a single line."
+    description="The Gestalt psychologists in Berlin found a handful of rules the eye follows without asking."
+    gap="lg"
   >
-    <Layer level="panel" gap="md">
+    <StudyDemo caption="Widen the space between the groups until twelve dots become three groups.">
       <Row gap="md" wrap>
         <div class="slider">
           <Slider
@@ -121,36 +151,39 @@
           >
         {/each}
       </div>
-    </Layer>
-    <Grid min="13rem" columns={3}>
-      {#each [['Proximity', 'Close things belong together.', 'Spacing tokens: tight inside a group, wider between groups.'], ['Similarity', 'Alike things belong together.', 'Every pill acts, every circle is someone; one look per meaning.'], ['Common region', 'Things inside one area belong together.', 'Panels (layers) group content instead of lines and boxes.'], ['Figure and ground', 'We separate a shape from its background.', 'Glass panels float over a tinted ground; depth separates.'], ['Continuity', 'The eye follows lines and edges.', 'Shared left edges and a grid let the eye run down a page.'], ['Common fate', 'Things that move together belong together.', 'A selection moves, highlights and is dragged as one.']] as [law, idea, here] (law)}
-        <Layer level="ground" gap="xs">
-          <strong>{law}</strong>
-          <p>{idea}</p>
-          <p class="here">{here}</p>
-        </Layer>
+    </StudyDemo>
+    <p>
+      Interfaces use these rules to say “these belong together” without drawing a single line —
+      which is why most of this system groups by space rather than by boxes.
+    </p>
+    <StudyList min="13rem">
+      {#each laws as [law, idea, here] (law)}
+        <StudyItem term={law} text={idea} note={here} />
       {/each}
-    </Grid>
+    </StudyList>
   </Section>
 
   <Section
     eyebrow="Fitts’s law, 1954"
     title="Big and close is fast"
-    description="Paul Fitts measured how long people take to hit a target. The time grows with the distance and shrinks with the size, roughly as log₂(distance ÷ width + 1) — the “index of difficulty”. Press the start pad, then the target, five times; then switch."
+    description="Paul Fitts measured that the time to hit a target grows with its distance and shrinks with its size."
+    gap="lg"
   >
-    <Layer level="panel" gap="md">
+    <p>
+      Roughly, time follows log₂(distance ÷ width + 1), the “index of difficulty” in bits. Press the
+      start pad, then the target, five times; then switch and compare.
+    </p>
+    <StudyDemo>
       <Row gap="sm" wrap>
-        <Button
+        <SegmentedControl
+          label="Target"
           size="sm"
-          variant={trial === 'small-far' ? 'tinted' : 'plain'}
-          label="Small and far"
-          onclick={() => switchTrial('small-far')}
-        />
-        <Button
-          size="sm"
-          variant={trial === 'big-near' ? 'tinted' : 'plain'}
-          label="Big and near"
-          onclick={() => switchTrial('big-near')}
+          value={trial}
+          onchange={switchTrial}
+          options={[
+            { value: 'small-far', label: 'Small and far' },
+            { value: 'big-near', label: 'Big and near' },
+          ]}
         />
         <Spacer />
         <span class="muted"
@@ -172,20 +205,17 @@
           onclick={hit}
         ></button>
       </div>
-    </Layer>
+    </StudyDemo>
     <InSystem>
       <ul>
         <li>
           Every target is at least 32 px (44 px on touch); small icons get an invisible hit area
           that reaches 32 px.
         </li>
+        <li>The primary action sits next to the work — locality and Fitts agree.</li>
         <li>
-          The primary action sits next to the work, not across the screen — locality and Fitts
-          agree.
-        </li>
-        <li>
-          Screen edges are infinitely deep: bars that touch the edge are easy to hit, so the
-          desktop’s shelf and tray hug the edges.
+          Screen edges are infinitely deep, so bars that touch them are easy to hit: the desktop’s
+          shelf and tray hug the edges.
         </li>
       </ul>
     </InSystem>
@@ -194,9 +224,14 @@
   <Section
     eyebrow="Hick’s law, 1952"
     title="More choices, slower decisions — unless they are grouped"
-    description="William Hick found that choosing takes longer the more options there are, growing with the logarithm of their number. In real menus what matters most is whether people can skip: grouped, labelled options let the eye jump to the right family first."
+    description="William Hick found that choosing takes longer the more options there are, growing with the logarithm of their number."
+    gap="lg"
   >
-    <Layer level="panel" gap="md">
+    <p>
+      In real menus what matters most is whether people can skip: grouped, labelled options let the
+      eye jump to the right family first. Ask for a word and find it, a few times in each list.
+    </p>
+    <StudyDemo>
       <Row gap="sm" wrap>
         <Button
           size="sm"
@@ -228,66 +263,68 @@
           {/each}
         </div>
       </Grid>
-    </Layer>
+    </StudyDemo>
     <p>
-      Do it a few times in each list. Most people are clearly faster in the grouped one, although it
-      has the same 24 items. That is why menus here are short, grouped and labelled — and why a
-      search field (<Kbd>⌘</Kbd>
-      <Kbd>K</Kbd>) takes over when the list gets long. A note on a popular myth: George Miller’s
-      “seven, plus or minus two” is about short-term memory, not menu length. Nobody has to remember
-      a menu; they read it.
+      Most people are clearly faster in the grouped list, although it has the same 24 items. So
+      menus here are short, grouped and labelled, and a search (<Kbd>⌘</Kbd>
+      <Kbd>K</Kbd>) takes over when a list gets long. Miller’s “seven, plus or minus two” is about
+      short-term memory, not menu length: nobody has to remember a menu, they read it.
     </p>
   </Section>
 
   <Section
     eyebrow="Jakob’s law, 2000"
     title="People expect what they already know"
-    description="Jakob Nielsen observed that users spend most of their time on other sites, so they expect yours to work the same way. Familiarity is a gift you can spend only once — on something that is genuinely better."
+    description="Users spend most of their time on other sites, so they expect yours to work the same way."
+    gap="lg"
   >
     <Quote
       text="Users spend most of their time on other sites."
       author="Jakob Nielsen"
       source="Jakob’s Law of Internet User Experience"
     />
-    <Grid min="16rem" columns={2}>
-      <Layer level="panel" gap="xs">
-        <strong>Kept familiar</strong>
+    <p>Familiarity is a gift you can spend only once — on something that is genuinely better.</p>
+    <StudyList min="17rem">
+      <StudyItem term="Kept familiar">
         <ul>
           <li>The logo goes home; the cart lives at the top end of a shop.</li>
           <li>Search has a magnifier; <Kbd>⌘</Kbd> <Kbd>K</Kbd> opens the command palette.</li>
           <li>Links are underlined in text; Escape closes; Tab moves forward.</li>
-          <li>Windows can be dragged by their title and closed with an ×.</li>
+          <li>Windows are dragged by their title and closed with an ×.</li>
         </ul>
-      </Layer>
-      <Layer level="panel" gap="xs">
-        <strong>New on purpose</strong>
+      </StudyItem>
+      <StudyItem term="New on purpose">
         <ul>
           <li>
-            The desktop has its own look — no copied traffic lights, no magnifying dock that moves
-            targets while you aim.
+            The desktop has its own look: no copied window dots, no dock that moves its targets.
           </li>
           <li>Feedback appears at the control, not in a corner toast.</li>
           <li>Status badges are not pills, so pills mean one thing: press me.</li>
+          <li>Selection flows and presses give: familiar controls, a little more physical.</li>
         </ul>
-      </Layer>
-    </Grid>
+      </StudyItem>
+    </StudyList>
   </Section>
 
   <Section
     eyebrow="Swiss style"
     title="A grid and a type scale do the ordering"
-    description="The Swiss designers of the 1950s — Josef Müller-Brockmann, Armin Hofmann, Emil Ruder — arranged text and images on strict grids with one sans-serif family in a few sizes. The result reads as calm and objective, and it lets content of any kind share a page."
+    description="The Swiss designers of the 1950s set text and images on strict grids, in one sans-serif family and a few sizes."
+    gap="lg"
   >
-    <Grid min="16rem" columns={2}>
-      <Layer level="panel" gap="xs">
-        <strong>The type scale</strong>
+    <p>
+      Josef Müller-Brockmann, Armin Hofmann and Emil Ruder made pages that read as calm and
+      objective, and let content of any kind share one page.
+    </p>
+    <div class="swiss">
+      <div class="scale" aria-label="The type scale">
         {#each scale as token (token)}
           <span class="specimen" style:font-size="var({token})"
             >Aa <span class="tok">{token}</span></span
           >
         {/each}
-      </Layer>
-      <Layer level="panel" gap="sm">
+      </div>
+      <StudyDemo>
         <Row gap="sm"
           ><strong>The grid</strong><Spacer /><Switch
             size="sm"
@@ -307,8 +344,8 @@
           >
           <span class="s-a"></span><span class="s-b"></span><span class="s-c"></span>
         </div>
-      </Layer>
-    </Grid>
+      </StudyDemo>
+    </div>
     <Quote
       text="The grid system is an aid, not a guarantee."
       author="Josef Müller-Brockmann"
@@ -317,14 +354,14 @@
     <InSystem>
       <ul>
         <li>
-          One family, eight sizes, four weights. Headings tight, body generous (line height
-          1.5–1.65).
+          Components use one sans-serif family on one type scale: headings tight, body generous. The
+          serif is kept for long reading — this handbook, a document, a house’s own page.
         </li>
         <li>
-          Text is left-aligned with a ragged right edge; paragraphs stop at about 68 characters.
+          Text is left-aligned with a ragged right edge; paragraphs stop at about 66 characters.
         </li>
         <li>Figures in tables and prices are tabular, so columns of numbers line up.</li>
-        <li>Seven spacing steps; a page uses the same gutters everywhere.</li>
+        <li>One spacing scale; a page uses the same gutters everywhere.</li>
       </ul>
     </InSystem>
   </Section>
@@ -353,10 +390,6 @@
     height: 14px;
     border-radius: 50%;
     background: var(--text-2);
-  }
-  .here {
-    font-size: var(--fs-sm);
-    color: var(--accent-ink);
   }
   .arena {
     position: relative;
@@ -438,6 +471,21 @@
   }
   .family:first-child {
     margin-top: 0;
+  }
+  .swiss {
+    display: grid;
+    grid-template-columns: minmax(0, 14rem) 1fr;
+    align-items: start;
+    gap: var(--space-8);
+  }
+  @media (max-width: 640px) {
+    .swiss {
+      grid-template-columns: 1fr;
+    }
+  }
+  .scale {
+    display: grid;
+    gap: var(--space-1);
   }
   .specimen {
     display: flex;

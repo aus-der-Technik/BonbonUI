@@ -5,9 +5,9 @@
    * | level      | looks like                                   | use for                          |
    * | ---------- | -------------------------------------------- | -------------------------------- |
    * | `ground`   | nothing — sits directly on the backdrop      | headings, KPI rows, hero text    |
-   * | `panel`    | frosted glass                                | cards, tables, forms             |
-   * | `selected` | tinted glass with a tint rim and glow        | the chosen plan, the open item   |
-   * | `front`    | liquid glass, floating, **always sticky**    | toolbars, bulk-action bars, docks|
+   * | `panel`    | a solid tile (glass only over a photo)       | tables, forms, results           |
+   * | `selected` | the tile washed in tint, a tint rim and glow | the chosen plan, the open item   |
+   * | `front`    | frosted glass, floating, **always sticky**   | toolbars, bulk-action bars, docks|
    *
    * Front layers stick to the top (below the page header) or, with `edge="bottom"`, to the
    * bottom of the viewport. That is a design rule, so there is no prop to turn it off.

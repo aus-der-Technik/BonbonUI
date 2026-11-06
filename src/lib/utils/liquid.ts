@@ -12,6 +12,9 @@
  * wobbles.
  */
 
+import { prefersReducedMotion } from './motion';
+import { frameTime, settled, spring, step } from './spring';
+
 export interface Box {
   x: number;
   y: number;
@@ -28,23 +31,6 @@ export interface LiquidOptions {
   bulge?: number;
 }
 
-interface Spring {
-  x: number;
-  v: number;
-  to: number;
-}
-
-const spring = (x: number): Spring => ({ x, v: 0, to: x });
-
-/** One semi-implicit Euler step: stable at frame rates from 30 to 120 Hz. */
-function step(s: Spring, k: number, c: number, dt: number): void {
-  const a = -k * (s.x - s.to) - c * s.v;
-  s.v += a * dt;
-  s.x += s.v * dt;
-}
-
-const settled = (s: Spring, eps = 0.05) => Math.abs(s.x - s.to) < eps && Math.abs(s.v) < eps * 4;
-
 // Leading edge: quick and nearly critically damped. Trailing edge: slower and a little under-
 // damped, so it lets go late and wobbles once. Sides: in between.
 const LEAD = { k: 520, c: 34 };
@@ -53,12 +39,8 @@ const SIDE = { k: 380, c: 26 };
 // The host: a soft jelly that rings out.
 const JELLY = { k: 160, c: 9 };
 
-export function reducedMotion(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-  );
-}
+/** Whether the user asked for reduced motion (the library's one check, see motion.ts). */
+export const reducedMotion = prefersReducedMotion;
 
 /** An element's box relative to an ancestor, from offsets: unaffected by running transforms. */
 export function boxWithin(el: HTMLElement, ancestor: HTMLElement): Box {
@@ -158,24 +140,24 @@ export class LiquidDrop {
   }
 
   #tick = (now: number): void => {
-    const dt = Math.min(1 / 30, Math.max(0, (now - this.#last) / 1000));
+    const dt = frameTime(now, this.#last);
     this.#last = now;
     const horizontal = this.#axis === 'x';
     // Which edge leads depends on the direction of travel.
     const [leadX, trailX] = this.#forward ? [this.#r, this.#l] : [this.#l, this.#r];
     const [leadY, trailY] = this.#forward ? [this.#b, this.#t] : [this.#t, this.#b];
     if (horizontal) {
-      step(leadX, LEAD.k, LEAD.c, dt);
-      step(trailX, TRAIL.k, TRAIL.c, dt);
-      step(this.#t, SIDE.k, SIDE.c, dt);
-      step(this.#b, SIDE.k, SIDE.c, dt);
+      step(leadX, LEAD, dt);
+      step(trailX, TRAIL, dt);
+      step(this.#t, SIDE, dt);
+      step(this.#b, SIDE, dt);
     } else {
-      step(leadY, LEAD.k, LEAD.c, dt);
-      step(trailY, TRAIL.k, TRAIL.c, dt);
-      step(this.#l, SIDE.k, SIDE.c, dt);
-      step(this.#r, SIDE.k, SIDE.c, dt);
+      step(leadY, LEAD, dt);
+      step(trailY, TRAIL, dt);
+      step(this.#l, SIDE, dt);
+      step(this.#r, SIDE, dt);
     }
-    step(this.#jelly, JELLY.k, JELLY.c, dt);
+    step(this.#jelly, JELLY, dt);
     this.#paint();
     this.#paintHost();
     const done =
@@ -276,10 +258,9 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
   };
 
   const tick = (now: number) => {
-    const dt = Math.min(1 / 30, Math.max(0, (now - last) / 1000));
+    const dt = frameTime(now, last);
     last = now;
-    const { k, c } = s.to ? PINCH_IN : PINCH_OUT;
-    step(s, k, c, dt);
+    step(s, s.to ? PINCH_IN : PINCH_OUT, dt);
     paint();
     if (s.to || !settled(s, 0.003)) frame = requestAnimationFrame(tick);
     else {

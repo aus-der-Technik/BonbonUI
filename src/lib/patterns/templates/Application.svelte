@@ -23,7 +23,7 @@
    *     <Page title="Orders">…</Page>
    *   </Application>
    *
-   * Without `tint` it inherits (default: #5a9854, the green of ausdertechnik.de). The colours
+   * Without `tint` it inherits (default: #5a9854, the house green). The colours
    * are pure CSS (`color-mix`, relative colours), so changing `tint` re-themes instantly.
    *
    * The page flows: pressing any control sinks the page a little around the press and lets it

@@ -260,6 +260,15 @@ export { formatBytes, uploadFile, UploadError, type UploadOptions } from './util
 export { every, poll, type PollOptions } from './utils/poll';
 export { renderMarkdown } from './utils/markdown';
 export { buildLens, canRefract, frostFilter, LENS_DEFAULTS, type LensOptions } from './utils/lens';
+// The motion and light engine (see Introduction › Layers and › Light, and Explore › Motion &
+// light lab). Application runs the press field and the light for every page; these are for
+// your own surfaces and selection marks.
+export { boxWithin, LiquidDrop, pillPath, squeeze } from './utils/liquid';
+export type { Box, LiquidOptions, SqueezeOptions } from './utils/liquid';
+export { flowBlocks, pressField, pressLayer } from './utils/flow';
+export type { FlowOptions, PressLayer } from './utils/flow';
+export { LIGHT_MODELS, lightField, lightFor } from './utils/light';
+export { isGlass, surfaceKind, type SurfaceKind } from './utils/surfaces';
 
 // Collaboration types and helpers
 export type { Participant, Presence } from './patterns/molecules/AvatarStack.svelte';

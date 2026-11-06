@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from './motion';
 /**
  * Delight — small, optional moments of joy. Rule of thumb: delight shows up at the *end* of a
  * task (done, saved, sent) or where nothing else happens (empty states, idle), never in the way
@@ -50,8 +51,7 @@ export function greeting(date: Date = new Date(), name?: string): Greeting {
   return { text: name ? `${base}, ${name}` : base, wink };
 }
 
-const reducedMotion = (): boolean =>
-  typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = prefersReducedMotion;
 
 /**
  * A tiny burst of candy sprinkles from the centre of `origin` — for a completed task, a saved

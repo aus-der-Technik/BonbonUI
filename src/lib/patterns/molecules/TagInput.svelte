@@ -11,6 +11,7 @@
    *
    *   <TagInput label="Topics" placeholder="Add a topic" bind:value={topics} />
    */
+  import { prefersReducedMotion } from '../../utils/motion';
   import { untrack } from 'svelte';
   import Tag from '../atoms/Tag.svelte';
   import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
@@ -84,7 +85,7 @@
     notice = duplicateLabel(tag);
     const index = value.indexOf(tag);
     const el = root?.querySelectorAll<HTMLElement>(':scope > .tag')[index];
-    if (!el || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    if (!el || prefersReducedMotion()) return;
     el.style.animation = 'none';
     void el.offsetWidth;
     el.style.animation = 'bb-nope var(--motion-slow) var(--ease-out)';

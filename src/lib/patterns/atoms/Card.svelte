@@ -2,7 +2,8 @@
   /**
    * Card atom — a surface of the panel layer, with an optional header row.
    *
-   * - `glass`   — the frosted content card every section sits on (panel layer).
+   * - `glass`   — the content card (panel layer): a solid tile, glass only over a photo. Use it
+   *   for what needs a box (a table, a form, a result); most groups need `ground`.
    * - `frosted` — the denser liquid-glass surface: sign-in card, chooser tiles, dialogs.
    * - `subtle`  — a flat neutral box inside a card (e.g. a row detail).
    * - `ink`     — a near-black tile for the one figure that should stand out (an energy

@@ -360,9 +360,6 @@
     top: var(--sticky-gap);
     display: flex;
   }
-  .rail :global(.layer) {
-    min-height: min(40rem, calc(var(--app-height, 100dvh) - 2 * var(--sticky-gap)));
-  }
   .logo {
     display: grid;
     place-items: center;
@@ -597,9 +594,6 @@
     }
     .rail {
       z-index: var(--z-front);
-    }
-    .rail :global(.layer) {
-      min-height: 0;
     }
   }
   @media (max-width: 520px) {

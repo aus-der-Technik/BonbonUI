@@ -1,8 +1,10 @@
 <script lang="ts">
   /** Storybook-only: the tint playground — pick a colour, see everything recompute, copy the code. */
   import DocPage from './DocPage.svelte';
+  import IntroDemo from './IntroDemo.svelte';
+  import IntroList, { type IntroItem } from './IntroList.svelte';
+  import IntroRules from './IntroRules.svelte';
   import Section from '../patterns/layout/Section.svelte';
-  import Layer from '../patterns/layout/Layer.svelte';
   import Grid from '../patterns/layout/Grid.svelte';
   import Row from '../patterns/layout/Row.svelte';
   import Stack from '../patterns/layout/Stack.svelte';
@@ -13,6 +15,7 @@
   import Switch from '../patterns/atoms/Switch.svelte';
   import Slider from '../patterns/atoms/Slider.svelte';
   import Card from '../patterns/atoms/Card.svelte';
+  import DotMatrix from '../patterns/atoms/DotMatrix.svelte';
   import SegmentedControl from '../patterns/molecules/SegmentedControl.svelte';
   import Tabs from '../patterns/molecules/Tabs.svelte';
   import SearchField from '../patterns/molecules/SearchField.svelte';
@@ -26,6 +29,7 @@
   let notify = $state(true);
   let volume = $state(60);
   let query = $state('');
+  let tab = $state('a');
 
   const derived = [
     ['--accent', 'buttons, links, focus'],
@@ -58,76 +62,96 @@
     ['--warn', 'attention'],
     ['--info', 'neutral info'],
   ];
+
+  const families: IntroItem[] = [
+    {
+      term: 'Accent family',
+      text: '`--accent`, `--accent-strong`, `--accent-ink`, `--accent-soft`, `--accent-faint`, `--accent-border`, and `--on-accent`: black or white, whichever reads on the tint.',
+    },
+    {
+      term: 'Tint scale',
+      text: '`--tint-50` to `--tint-900`, light to dark, for tinted sections, charts and badges.',
+    },
+    {
+      term: 'Light',
+      text: 'What is on or chosen shines in `--accent`, so the glow on nearby surfaces follows the tint too.',
+    },
+    {
+      term: 'Backdrop',
+      text: '`--bg` is a whisper of the tint; `--blob-1` to `--blob-3` use the tint and two hues turned around it, so any tint gets a harmonious mesh.',
+    },
+  ];
+
+  const nested = ['#007aff', '#ff9500', '#af52de'];
 </script>
 
 <DocPage
   title="Colour & tint"
-  lead="One colour themes everything. Pick a tint — every accent, selection, focus ring, glow, the tint scale and the slowly drifting backdrop are computed from it in pure CSS. Status colours stay fixed, so danger is always red."
+  lead="One colour themes everything. Pick a tint and every accent, selection, focus ring, glow and the backdrop follow; status colours stay put."
 >
   <Section title="Try it">
-    <Layer level="panel" gap="md">
-      <Row gap="md" align="end">
-        <Stack gap="xs">
-          <span class="label">Tint</span>
-          <Row gap="xs">
-            <input class="picker" type="color" bind:value={tint} aria-label="Custom tint" />
-            {#each tintPresets as p (p.value)}
-              <button
-                type="button"
-                class="preset"
-                class:on={p.value === tint}
-                style:background={p.value}
-                title={p.name}
-                aria-label={p.name}
-                aria-pressed={p.value === tint}
-                onclick={() => (tint = p.value)}
-              ></button>
-            {/each}
-          </Row>
-        </Stack>
-        <Stack gap="xs">
-          <span class="label">Theme</span>
-          <SegmentedControl
-            label="Theme"
-            size="sm"
-            bind:value={theme}
-            options={[
-              { value: 'auto', label: 'Auto' },
-              { value: 'light', label: 'Light' },
-              { value: 'dark', label: 'Dark' },
-            ]}
-          />
-        </Stack>
-        <Stack gap="xs">
-          <span class="label">Radius</span>
-          <SegmentedControl
-            label="Radius"
-            size="sm"
-            bind:value={radius}
-            options={[
-              { value: 'square', label: 'Square' },
-              { value: 'soft', label: 'Soft' },
-              { value: 'round', label: 'Round' },
-            ]}
-          />
-        </Stack>
-        <Stack gap="xs">
-          <span class="label">Density</span>
-          <SegmentedControl
-            label="Density"
-            size="sm"
-            bind:value={density}
-            options={[
-              { value: 'compact', label: 'Compact' },
-              { value: 'default', label: 'Default' },
-              { value: 'comfortable', label: 'Comfortable' },
-            ]}
-          />
-        </Stack>
-      </Row>
-    </Layer>
+    <p>Pick a tint, a theme, a radius and a density. The window below is a real Application.</p>
+    <div class="controls">
+      <Stack gap="xs">
+        <span class="label">Tint</span>
+        <Row gap="xs">
+          <input class="picker" type="color" bind:value={tint} aria-label="Custom tint" />
+          {#each tintPresets as p (p.value)}
+            <button
+              type="button"
+              class="preset"
+              class:on={p.value === tint}
+              style:background={p.value}
+              title={p.name}
+              aria-label={p.name}
+              aria-pressed={p.value === tint}
+              onclick={() => (tint = p.value)}
+            ></button>
+          {/each}
+        </Row>
+      </Stack>
+      <Stack gap="xs">
+        <span class="label">Theme</span>
+        <SegmentedControl
+          label="Theme"
+          size="sm"
+          bind:value={theme}
+          options={[
+            { value: 'auto', label: 'Auto' },
+            { value: 'light', label: 'Light' },
+            { value: 'dark', label: 'Dark' },
+          ]}
+        />
+      </Stack>
+      <Stack gap="xs">
+        <span class="label">Radius</span>
+        <SegmentedControl
+          label="Radius"
+          size="sm"
+          bind:value={radius}
+          options={[
+            { value: 'square', label: 'Square' },
+            { value: 'soft', label: 'Soft' },
+            { value: 'round', label: 'Round' },
+          ]}
+        />
+      </Stack>
+      <Stack gap="xs">
+        <span class="label">Density</span>
+        <SegmentedControl
+          label="Density"
+          size="sm"
+          bind:value={density}
+          options={[
+            { value: 'compact', label: 'Compact' },
+            { value: 'default', label: 'Default' },
+            { value: 'comfortable', label: 'Comfortable' },
+          ]}
+        />
+      </Stack>
+    </div>
 
-    <div class="stage">
+    <IntroDemo kind="window" height="31rem">
       <Application {tint} {theme} {radius} {density} contained>
         <Stack gap="lg" padding="lg">
           <Row gap="sm">
@@ -136,38 +160,38 @@
             <Button label="Cancel" />
             <Button variant="primary" icon="check" label="Save" />
           </Row>
-          <Grid min="15rem">
-            <Card title="Panel">
-              <Stack gap="sm">
-                <Switch bind:checked={notify} label="Notifications" />
-                <Slider bind:value={volume} min={0} max={100} label="Volume" />
-              </Stack>
-            </Card>
-            <Card title="Selected" selected>
-              <Stack gap="sm">
-                <Row gap="xs">
-                  <Badge tone="brand" label="Accent" />
-                  <Badge tone="live" label="Live" />
-                  <Badge tone="danger" label="Danger" />
-                  <Badge tone="info" label="Info" />
-                </Row>
-                <Button variant="danger" icon="trash" label="Delete project" />
-              </Stack>
-            </Card>
-          </Grid>
           <Tabs
             label="Demo tabs"
+            bind:value={tab}
             tabs={[
               { value: 'a', label: 'Overview' },
               { value: 'b', label: 'Activity', count: 4 },
               { value: 'c', label: 'Settings' },
             ]}
           />
+          <Grid min="13rem">
+            <Card title="Panel" headingLevel={4} gap="sm">
+              <Switch bind:checked={notify} label="Notifications" />
+              <Slider bind:value={volume} min={0} max={100} label="Volume" />
+            </Card>
+            <Card title="Selected" headingLevel={4} selected gap="sm">
+              <Row gap="xs">
+                <Badge tone="brand" label="Accent" />
+                <Badge tone="live" label="Live" />
+                <Badge tone="danger" label="Danger" />
+              </Row>
+              <Button variant="danger" icon="trash" label="Delete project" />
+            </Card>
+            <Card surface="ink" gap="xs">
+              <span class="ink-label">Volume</span>
+              <span class="ink-value"><DotMatrix value="{volume}%" size="xl" /></span>
+            </Card>
+          </Grid>
           <div class="swatches">
             {#each derived as [name, use] (name)}
               <figure>
                 <span class="chip" style:background="var({name})"></span>
-                <figcaption><code>{name}</code><small>{use}</small></figcaption>
+                <figcaption><span class="mono">{name}</span><small>{use}</small></figcaption>
               </figure>
             {/each}
           </div>
@@ -178,70 +202,81 @@
           </div>
         </Stack>
       </Application>
-    </div>
+    </IntroDemo>
     <CodeBlock label="Your theme" code={tintCode(tint, theme, radius, density)} />
   </Section>
 
-  <Section
-    title="How it works"
-    description="Application sets --tint (plus --radius-scale and --density) on its element. tokens.css re-declares every derived token on any element with data-tint or data-theme, so the colours are computed where the tint is set — nested Applications can even use different tints."
-  >
-    <Grid min="15rem">
-      <Layer level="panel" gap="xs">
-        <h3>Accent family</h3>
-        <p>
-          <code>--accent</code>, <code>--accent-strong</code>, <code>--accent-ink</code>,
-          <code>--accent-soft</code>, <code>--accent-faint</code>, <code>--accent-border</code>,
-          <code>--on-accent</code> (black or white, whichever reads on the tint).
-        </p>
-      </Layer>
-      <Layer level="panel" gap="xs">
-        <h3>Tint scale</h3>
-        <p>
-          <code>--tint-50</code> … <code>--tint-900</code> for tinted sections, charts and badges — light
-          to dark, always in tune with the tint.
-        </p>
-      </Layer>
-      <Layer level="panel" gap="xs">
-        <h3>Backdrop</h3>
-        <p>
-          <code>--bg</code> is a whisper of the tint; <code>--blob-1…3</code> use the tint and two hues
-          rotated around it, so any tint gets a harmonic mesh.
-        </p>
-      </Layer>
-    </Grid>
+  <Section title="How it works">
+    <p>
+      <code>Application</code> sets <code>--tint</code> on its element, and tokens.css computes the
+      rest there in pure CSS. Every element with <code>data-tint</code> or <code>data-theme</code>
+      re-declares the derived tokens, so a nested Application can carry a tint of its own.
+    </p>
+    <IntroList items={families} />
+    <div class="nested">
+      {#each nested as t (t)}
+        <IntroDemo kind="window" height="7.5rem">
+          <Application tint={t} contained>
+            <div class="nested-inner">
+              <Button variant="primary" label="Save" />
+              <Badge tone="brand" label={t} />
+            </div>
+          </Application>
+        </IntroDemo>
+      {/each}
+    </div>
   </Section>
 
-  <Section
-    title="Fixed colours"
-    description="Status colours do not follow the tint, so meaning never changes: delete is always red. The candy palette is for categories, tags, charts and app icons."
-  >
-    <Stack gap="md">
-      <div class="swatches">
-        {#each status as [name, use] (name)}
-          <figure>
-            <span class="chip" style:background="var({name})"></span>
-            <figcaption><code>{name}</code><small>{use}</small></figcaption>
-          </figure>
-        {/each}
-      </div>
-      <div class="palette">
-        {#each palette as c (c)}
-          <figure>
-            <span class="dot" style:background="var(--color-{c})"></span>
-            <figcaption><code>--color-{c}</code></figcaption>
-          </figure>
-        {/each}
-      </div>
-    </Stack>
+  <Section title="Fixed colours">
+    <p>
+      Status colours never follow the tint, so meaning never changes: delete is always red. The
+      candy palette is for categories, tags, charts and app icons.
+    </p>
+    <div class="swatches">
+      {#each status as [name, use] (name)}
+        <figure>
+          <span class="chip" style:background="var({name})"></span>
+          <figcaption><span class="mono">{name}</span><small>{use}</small></figcaption>
+        </figure>
+      {/each}
+    </div>
+    <div class="palette">
+      {#each palette as c (c)}
+        <figure>
+          <span class="dot" style:background="var(--color-{c})"></span>
+          <figcaption><span class="mono">--color-{c}</span></figcaption>
+        </figure>
+      {/each}
+    </div>
+  </Section>
+
+  <Section title="Rules">
+    <IntroRules
+      dos={[
+        'Spend the accent on the main action and the current selection.',
+        'Keep about 90 % of a screen neutral.',
+        'Use the candy palette for categories, never for state.',
+      ]}
+      donts={[
+        'Use the accent for errors or destructive actions: those are `--danger`.',
+        'Write a literal colour in a component. Use a token, so tint and theme follow.',
+        'Let colour carry meaning alone: pair it with an icon or a word.',
+      ]}
+    />
   </Section>
 </DocPage>
 
 <style>
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4) var(--space-8);
+  }
   .label {
-    font-size: var(--fs-xs);
+    font-size: var(--fs-2xs);
     font-weight: var(--fw-semibold);
-    letter-spacing: var(--tracking-caps);
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-3);
   }
@@ -266,9 +301,9 @@
     height: 26px;
     border-radius: var(--radius-pill);
     border: 2px solid var(--pill-light);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--panel-shadow);
     cursor: pointer;
-    transition: transform var(--duration-fast) cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform var(--motion-quick) var(--ease-spring);
   }
   .preset:hover {
     transform: scale(1.12);
@@ -277,12 +312,17 @@
     outline: 2px solid var(--text);
     outline-offset: 2px;
   }
-  .stage {
-    height: 560px;
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    border: 1px solid var(--border-strong);
-    box-shadow: var(--glass-shadow);
+  .preset:focus-visible {
+    outline: var(--focus-ring);
+  }
+  .ink-label {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .ink-value {
+    color: var(--accent);
   }
   .swatches {
     display: grid;
@@ -299,7 +339,7 @@
     display: grid;
     line-height: 1.25;
   }
-  figcaption code {
+  figcaption .mono {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     color: var(--text);
@@ -319,17 +359,17 @@
     display: grid;
     grid-template-columns: repeat(10, minmax(0, 1fr));
     border-radius: var(--radius-lg);
-    overflow: hidden;
+    overflow: clip;
   }
   .scale span {
     padding: var(--space-4) 0 var(--space-1);
     text-align: center;
     font-size: var(--fs-2xs);
     font-weight: var(--fw-semibold);
-    color: rgba(0, 0, 0, 0.55);
+    color: var(--tint-900);
   }
   .scale span:nth-child(n + 6) {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--tint-50);
   }
   .palette {
     display: grid;
@@ -340,13 +380,19 @@
     width: 28px;
     height: 28px;
     border-radius: var(--radius-pill);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 1px 0 var(--pill-light);
   }
-  h3 {
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-semibold);
+  .nested {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: var(--space-4);
   }
-  p {
-    font-size: var(--fs-md);
+  .nested-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    height: 100%;
   }
 </style>

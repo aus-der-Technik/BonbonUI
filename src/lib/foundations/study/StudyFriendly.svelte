@@ -1,21 +1,24 @@
 <script lang="ts">
   /**
    * Storybook-only: principle 2 — friendly, always. Norman's three levels of emotional design,
-   * curved shapes, a voice that stays plain when it matters, forgiveness over warnings, and the
-   * proof that "professional" and "friendly" are not opposites.
+   * curved shapes, two moods with one warmth, plain errors, forgiveness over warnings, and
+   * delight kept for the end of a task.
    */
   import StudyPage from './StudyPage.svelte';
   import Quote from './Quote.svelte';
   import InSystem from './InSystem.svelte';
+  import StudyDemo from './StudyDemo.svelte';
+  import StudyList from './StudyList.svelte';
+  import StudyItem from './StudyItem.svelte';
   import Section from '../../patterns/layout/Section.svelte';
-  import Layer from '../../patterns/layout/Layer.svelte';
-  import Grid from '../../patterns/layout/Grid.svelte';
   import Row from '../../patterns/layout/Row.svelte';
   import Spacer from '../../patterns/layout/Spacer.svelte';
   import Button from '../../patterns/atoms/Button.svelte';
   import Badge from '../../patterns/atoms/Badge.svelte';
   import Icon from '../../patterns/atoms/Icon.svelte';
+  import Checkbox from '../../patterns/atoms/Checkbox.svelte';
   import SegmentedControl from '../../patterns/molecules/SegmentedControl.svelte';
+  import { celebrate, greeting } from '../../utils/delight';
 
   let mood = $state<'professional' | 'casual'>('professional');
   const copy = $derived(
@@ -25,14 +28,12 @@
           empty: 'No invoices for this quarter yet.',
           hint: 'New invoices appear here as soon as they are issued.',
           action: 'Create invoice',
-          saved: 'Saved',
         }
       : {
           title: 'Party budget',
           empty: 'Nothing spent yet — the cake is still a dream.',
           hint: 'Add the first expense and we’ll keep the tally.',
           action: 'Add expense',
-          saved: 'Saved. Nice.',
         },
   );
 
@@ -51,11 +52,25 @@
     lastRemoved = null;
   }
 
+  // Delight at the end: the last tick throws a few sprinkles from the list it finished.
+  const hello = greeting();
+  let tasks = $state([
+    { label: 'Book the venue', done: true },
+    { label: 'Order the cake', done: false },
+    { label: 'Send the invitations', done: false },
+  ]);
+  let list = $state<HTMLElement | undefined>();
+  const finished = $derived(tasks.every((t) => t.done));
+  function tick(i: number, done: boolean) {
+    tasks[i]!.done = done;
+    if (done && tasks.every((t) => t.done) && list) celebrate(list, 14);
+  }
+
   const errors = [
     {
       cold: 'Error 422: Unprocessable entity.',
       warm: 'That date is in the past. Pick today or later.',
-      why: 'Says what is wrong in the user’s words and what to do — no codes.',
+      why: 'What is wrong, in the user’s words, and what to do. No codes.',
     },
     {
       cold: 'Invalid input!',
@@ -65,7 +80,7 @@
     {
       cold: 'Oops! Something went wrong 🙈',
       warm: 'Couldn’t save — the server didn’t answer. Your text is kept; try again.',
-      why: 'No jokes when something failed. Reassure, then offer the next step.',
+      why: 'No jokes when something failed: reassure, then offer the next step.',
     },
   ];
 </script>
@@ -84,35 +99,25 @@
 <StudyPage
   slug="friendly-always"
   title="Friendly, always"
-  lead="Principle 2. Whether it runs payroll or a party list, an interface should feel approachable: it speaks plainly, forgives mistakes, and never makes anyone feel stupid. Friendly is not the same as cute."
+  lead="Principle 2. Whether it runs payroll or a party list, an interface speaks plainly, forgives mistakes and never makes anyone feel stupid."
 >
   <Section
-    eyebrow="The idea in plain words"
+    eyebrow="The idea"
     title="People bring feelings to every screen"
-    description="Don Norman describes three levels at which we respond to a designed thing. A friendly interface works on all three — and the deepest one, being treated well, matters most."
+    description="Don Norman describes three levels at which we respond to a designed thing; a friendly interface works on all three."
+    gap="lg"
   >
-    <Grid min="14rem" columns={3}>
-      <Layer level="panel" gap="xs">
-        <span class="level">Visceral</span>
-        <strong>The first glance</strong>
-        <p>
-          Soft light, rounded shapes, calm colour. Before reading a word you feel safe or tense.
-        </p>
-      </Layer>
-      <Layer level="panel" gap="xs">
-        <span class="level">Behavioural</span>
-        <strong>The use</strong>
-        <p>
-          Things respond at once, where you look, and every mistake can be undone. Ease is a
-          feeling.
-        </p>
-      </Layer>
-      <Layer level="panel" gap="xs">
-        <span class="level">Reflective</span>
-        <strong>The memory</strong>
-        <p>Did it make you feel capable? People remember being helped — and being blamed.</p>
-      </Layer>
-    </Grid>
+    <StudyList min="13rem">
+      <StudyItem term="The first glance" meta="Visceral">
+        Soft light, rounded shapes, calm colour. Before reading a word you feel safe or tense.
+      </StudyItem>
+      <StudyItem term="The use" meta="Behavioural">
+        Things respond at once, where you look, and every mistake can be undone. Ease is a feeling.
+      </StudyItem>
+      <StudyItem term="The memory" meta="Reflective">
+        Did it make you feel capable? People remember being helped — and being blamed.
+      </StudyItem>
+    </StudyList>
     <Quote
       text="Attractive things work better."
       author="Don Norman"
@@ -123,37 +128,38 @@
   <Section
     eyebrow="Rule"
     title="Rounded, because people prefer it"
-    description="Bar and Neta (2006) showed people ordinary objects drawn with sharp or curved contours; the curved versions were liked more, and brain scans suggested sharp angles register faintly as a threat. BonbonUI rounds everything that holds or acts — and keeps type sharp, so the screen stays serious."
+    description="In Bar and Neta’s study (2006), people liked objects with curved contours more than the same objects drawn sharp."
+    gap="lg"
   >
-    <Row gap="lg" justify="center" wrap>
-      <div class="shape sharp">Sharp</div>
-      <div class="shape soft">Soft</div>
-      <div class="shape pill">Pill</div>
-    </Row>
+    <div class="shapes" aria-hidden="true">
+      <div class="shape sharp"><span>Sharp</span></div>
+      <div class="shape soft"><span>Rounded</span></div>
+      <div class="shape pill"><span>Pill</span></div>
+    </div>
     <p>
-      Use the <strong>Radius</strong> control in the toolbar above to switch the whole system between
-      Square, Soft and Round. Every corner follows one scale, so a team can make it stricter or friendlier
-      without breaking anything.
+      A follow-up brain-imaging study (2007) suggested sharp angles register faintly as a threat. So
+      everything that holds or acts is rounded, and the type stays crisp, so the screen stays
+      serious. Try the
+      <strong>Radius</strong> control in the toolbar: every corner follows one scale, from Square to Round.
     </p>
   </Section>
 
   <Section
     eyebrow="Try it"
     title="Professional and casual are both friendly"
-    description="The same component in two moods. Only the words change; the warmth comes from clarity, space and forgiveness — which both keep."
+    description="Only the words change between the two moods; the warmth comes from clarity, space and forgiveness, which both keep."
+    gap="lg"
   >
-    <Layer level="panel" gap="md">
-      <Row gap="sm" wrap>
-        <SegmentedControl
-          label="Mood"
-          size="sm"
-          bind:value={mood}
-          options={[
-            { value: 'professional', label: 'Professional' },
-            { value: 'casual', label: 'Casual' },
-          ]}
-        />
-      </Row>
+    <StudyDemo caption="Switch the mood: the layout, the help and the action stay.">
+      <SegmentedControl
+        label="Mood"
+        size="sm"
+        bind:value={mood}
+        options={[
+          { value: 'professional', label: 'Professional' },
+          { value: 'casual', label: 'Casual' },
+        ]}
+      />
       <Row gap="sm"
         ><Icon name={mood === 'professional' ? 'file-text' : 'gift'} size={18} /><strong
           >{copy.title}</strong
@@ -164,32 +170,39 @@
         <span>{copy.hint}</span>
         <Button variant="primary" shape="pill" icon="plus" label={copy.action} />
       </div>
-    </Layer>
+    </StudyDemo>
   </Section>
 
   <Section
     eyebrow="Rule"
     title="Errors stay plain"
-    description="A wink is welcome where nothing is at stake — an empty list, a finished task. When something fails, friendliness means clarity: what happened, in the user’s words, and what to do next."
+    description="When something fails, friendliness means clarity: what happened, in the user’s words, and what to do next."
+    gap="lg"
   >
-    <Layer level="panel" padding="none">
-      <table class="voice">
-        <thead><tr><th>Not like this</th><th>Like this</th><th>Why</th></tr></thead>
-        <tbody>
-          {#each errors as e (e.cold)}
-            <tr><td class="cold">{e.cold}</td><td>{e.warm}</td><td class="why">{e.why}</td></tr>
-          {/each}
-        </tbody>
-      </table>
-    </Layer>
+    <table class="voice">
+      <thead><tr><th>Not like this</th><th>Like this</th><th>Why</th></tr></thead>
+      <tbody>
+        {#each errors as e (e.cold)}
+          <tr
+            ><td class="cold">{e.cold}</td><td class="warm">{e.warm}</td><td class="why">{e.why}</td
+            ></tr
+          >
+        {/each}
+      </tbody>
+    </table>
+    <p>
+      A wink is welcome where nothing is at stake — an empty list, a finished task. Never in an
+      error.
+    </p>
   </Section>
 
   <Section
     eyebrow="Rule"
     title="Forgive instead of warn"
-    description="“Are you sure?” trains people to click Yes without reading. Letting them undo is kinder and safer. Delete an item below — the undo appears in the list, where the item was."
+    description="“Are you sure?” trains people to click Yes without reading; letting them undo is kinder and safer."
+    gap="lg"
   >
-    <Layer level="panel" gap="xs">
+    <StudyDemo caption="Delete an item: the undo appears in the list, where the item was." gap="xs">
       {#each items as item, i (item)}
         {#if lastRemoved && lastRemoved.at === i}{@render undoRow(lastRemoved)}{/if}
         <Row gap="sm">
@@ -205,7 +218,7 @@
       {/each}
       {#if lastRemoved && lastRemoved.at >= items.length}{@render undoRow(lastRemoved)}{/if}
       {#if !items.length && !lastRemoved}<span class="muted">All clear.</span>{/if}
-    </Layer>
+    </StudyDemo>
     <InSystem>
       <ul>
         <li>
@@ -214,16 +227,40 @@
         </li>
         <li>Input is never thrown away on an error — fields keep what was typed.</li>
         <li>
-          Delight (sprinkles, greetings) only at the end of a task or in empty and idle moments —
-          never inside an error.
-        </li>
-        <li>
           Accessibility is friendliness: contrast of at least 4.5:1, visible focus, targets of at
           least 32 px, motion and transparency that follow the user’s settings.
         </li>
       </ul>
     </InSystem>
     <Quote text="Don’t make me think." author="Steve Krug" source="book title, 2000" />
+  </Section>
+
+  <Section
+    eyebrow="Rule"
+    title="Delight comes last"
+    description="A little joy belongs at the end of a task or in an empty, idle moment — never in the middle of work."
+    gap="lg"
+  >
+    <StudyDemo caption="Tick off the last task." gap="sm">
+      <div class="hello">
+        <span class="greet">{hello.text}.</span>
+        {#if hello.wink}<span class="muted">{hello.wink}</span>{/if}
+      </div>
+      <div class="tasks" bind:this={list}>
+        {#each tasks as t, i (t.label)}
+          <Checkbox label={t.label} checked={t.done} oncheckedchange={(c) => tick(i, c)} />
+        {/each}
+      </div>
+      <span class="muted" aria-live="polite"
+        >{finished
+          ? 'All done — enjoy the party.'
+          : `${tasks.filter((t) => !t.done).length} to go.`}</span
+      >
+    </StudyDemo>
+    <p>
+      A greeting that knows the time of day, a few sprinkles when the list is done: small, short and
+      earned. With reduced motion the sprinkles stay away; the words still say well done.
+    </p>
   </Section>
 </StudyPage>
 
@@ -232,21 +269,20 @@
     color: var(--text-3);
     font-size: var(--fs-sm);
   }
-  .level {
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--accent-ink);
+  .shapes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
   }
   .shape {
     display: grid;
-    place-items: center;
-    width: 140px;
-    height: 88px;
-    background: var(--glass-strong);
-    box-shadow: var(--layer-panel-shadow);
-    font-weight: var(--fw-semibold);
+    place-items: end start;
+    width: 176px;
+    height: 84px;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-strong);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
   }
   .sharp {
     border-radius: 0;
@@ -256,6 +292,7 @@
   }
   .pill {
     border-radius: var(--radius-pill);
+    padding-inline: var(--space-6);
   }
   .empty {
     display: grid;
@@ -273,30 +310,50 @@
   .voice {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--fs-sm);
+    font-size: var(--fs-md);
+    line-height: 1.5;
   }
   .voice th,
   .voice td {
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-4) var(--space-3) 0;
     text-align: left;
     vertical-align: top;
-    border-bottom: 1px solid var(--border-strong);
+    border-top: 1px solid var(--border-strong);
   }
   .voice th {
-    font-size: var(--fs-xs);
-    color: var(--text-3);
+    font-size: var(--fs-2xs);
     font-weight: var(--fw-semibold);
-  }
-  .voice tr:last-child td {
-    border-bottom: 0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    border-top: 0;
   }
   .cold {
     color: var(--text-3);
     text-decoration: line-through;
     text-decoration-color: var(--danger);
   }
+  .warm {
+    color: var(--text);
+  }
   .why {
     color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+  @media (max-width: 640px) {
+    .voice thead {
+      display: none;
+    }
+    .voice tr {
+      display: grid;
+      gap: var(--space-1);
+      padding: var(--space-3) 0;
+      border-top: 1px solid var(--border-strong);
+    }
+    .voice td {
+      padding: 0;
+      border: 0;
+    }
   }
   .undo {
     display: flex;
@@ -307,5 +364,19 @@
     background: var(--accent-faint);
     font-size: var(--fs-sm);
     animation: bb-rise var(--motion-base) var(--ease-out);
+  }
+  .hello {
+    display: grid;
+    gap: 2px;
+  }
+  .greet {
+    font-family: var(--font-serif);
+    font-size: var(--fs-3xl);
+    line-height: 1.2;
+  }
+  .tasks {
+    display: grid;
+    gap: var(--space-2);
+    width: fit-content;
   }
 </style>

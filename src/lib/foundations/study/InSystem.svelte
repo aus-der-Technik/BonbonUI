@@ -1,7 +1,8 @@
 <script lang="ts">
   /**
    * Storybook-only: "how BonbonUI does it" — the concrete rule a principle turns into, so every
-   * idea in the study ends in something you can check in a screen.
+   * idea in the study ends in something you can check in a screen. It lies on the ground under
+   * a hairline; the list inside is plain prose.
    */
   import type { Snippet } from 'svelte';
   import Icon from '../../patterns/atoms/Icon.svelte';
@@ -14,40 +15,25 @@
 </script>
 
 <aside class="in-system">
-  <span class="mark"><Icon name="check-circle" size={18} /></span>
-  <div>
-    <strong>{title}</strong>
-    <div class="body">{@render children()}</div>
-  </div>
+  <span class="label"><Icon name="check-circle" size={15} /> {title}</span>
+  <div class="body">{@render children()}</div>
 </aside>
 
 <style>
   .in-system {
     display: grid;
-    grid-template-columns: auto 1fr;
     gap: var(--space-3);
-    padding: var(--space-4);
-    border-radius: var(--radius-lg);
-    background: var(--fill-muted);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-strong);
   }
-  .mark {
+  .label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-2xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
     color: var(--accent-ink);
-    padding-top: 2px;
-  }
-  strong {
-    display: block;
-    margin-bottom: var(--space-1);
-  }
-  .body :global(p),
-  .body :global(li) {
-    font-size: var(--fs-sm);
-    color: var(--text-2);
-    line-height: 1.6;
-  }
-  .body :global(ul) {
-    display: grid;
-    gap: var(--space-1);
-    padding-left: 1.1rem;
-    margin: 0;
   }
 </style>

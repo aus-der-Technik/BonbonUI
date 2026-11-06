@@ -1,51 +1,92 @@
 <script lang="ts">
   /**
-   * Storybook-only: the study's first page — what it is, who it is for, the four principles at
-   * a glance, the schools of thought it stands on, a glossary and the sources.
+   * Storybook-only: the study's first page — the four principles, what is new in this edition,
+   * how the rest is built, the traditions it stands on, a glossary and the sources.
    */
   import StudyPage from './StudyPage.svelte';
   import Quote from './Quote.svelte';
+  import StudyList from './StudyList.svelte';
+  import StudyItem from './StudyItem.svelte';
   import Section from '../../patterns/layout/Section.svelte';
-  import Layer from '../../patterns/layout/Layer.svelte';
-  import Grid from '../../patterns/layout/Grid.svelte';
   import Icon from '../../patterns/atoms/Icon.svelte';
-  import type { IconName } from '../../patterns/atoms/icons';
-  import { chapterHref, chapters } from './links';
+  import { chapterHref, type ChapterSlug } from './links';
 
-  const principles: {
-    n: number;
-    slug: (typeof chapters)[number]['slug'];
-    title: string;
-    text: string;
-    icon: IconName;
-  }[] = [
+  const principles: { slug: ChapterSlug; title: string; text: string }[] = [
     {
-      n: 1,
       slug: 'function-first',
       title: 'Function first — and beautiful because of it',
-      text: 'An interface earns its looks by being effortless. When every element has a job and does it well, the calm that results is the beauty.',
-      icon: 'compass',
+      text: 'When every element has a job and does it well, the calm that results is the beauty.',
     },
     {
-      n: 2,
       slug: 'friendly-always',
       title: 'Friendly, always',
-      text: 'Whether it runs a warehouse or a birthday list, the interface speaks plainly, forgives mistakes and never makes anyone feel stupid.',
-      icon: 'heart',
+      text: 'Plain words, forgiven mistakes, and nobody made to feel stupid — at work or at home.',
     },
     {
-      n: 3,
       slug: 'act-where-you-look',
       title: 'Act where you look',
-      text: 'Every control sits exactly where its effect happens. You change the thing you are looking at — never something in a far corner.',
-      icon: 'bolt',
+      text: 'A control sits where its effect happens, and the answer appears right there.',
     },
     {
-      n: 4,
       slug: 'cause-and-effect',
       title: 'Show cause and effect',
-      text: 'Motion, depth and gradients answer "where did that come from, where did it go, did it work?" — so people always know where they are.',
-      icon: 'sparkles',
+      text: 'Motion, depth and light say where things came from, where they went, and that it worked.',
+    },
+  ];
+
+  const edition: { term: string; text: string; slug: ChapterSlug; where: string }[] = [
+    {
+      term: 'Ground first',
+      text: 'Most groups need a heading and some air, not a box. Panels are solid tiles, kept for tables, forms and results.',
+      slug: 'function-first',
+      where: 'Function first',
+    },
+    {
+      term: 'Gentle glass',
+      text: 'Only what floats is glass: a little blur, saturation near one, one crisp edge of light. No lens show.',
+      slug: 'function-first',
+      where: 'Function first',
+    },
+    {
+      term: 'Liquid selection',
+      text: 'The mark under the current tab or rail item flows to the next like thick water, so the eye can follow it.',
+      slug: 'cause-and-effect',
+      where: 'Cause and effect',
+    },
+    {
+      term: 'Presses by layer',
+      text: 'A press on the ground ripples the page, a panel dips with its neighbours, glass moves nothing below it.',
+      slug: 'cause-and-effect',
+      where: 'Cause and effect',
+    },
+    {
+      term: 'Light from what is on',
+      text: 'The primary action, the current place and every switch that is on give light to the surfaces around them.',
+      slug: 'cause-and-effect',
+      where: 'Cause and effect',
+    },
+  ];
+
+  const rest: { slug: ChapterSlug; title: string; text: string }[] = [
+    {
+      slug: 'perception-and-laws',
+      title: 'Perception and laws',
+      text: 'The science underneath: Gestalt, Fitts, Hick, Jakob and the Swiss grid, each with an experiment.',
+    },
+    {
+      slug: 'element-by-element',
+      title: 'Element by element',
+      text: 'Every building block, the rules it must follow, and why.',
+    },
+    {
+      slug: 'corrections',
+      title: 'Corrections',
+      text: 'What the study found wrong in the system, and what changed.',
+    },
+    {
+      slug: 'the-examples',
+      title: 'The examples',
+      text: 'Twenty-three complete pages, searchable by principle and kind.',
     },
   ];
 
@@ -53,180 +94,200 @@
     {
       name: 'Bauhaus',
       when: 'Germany, 1919–1933',
-      idea: 'Art and industry belong together; an object’s form grows out of its purpose and its material.',
-      takes:
-        'Components are honest about what they are made of: glass looks like glass, a button looks pressable, nothing is decoration for its own sake.',
+      idea: 'An object’s form grows out of its purpose and its material.',
+      takes: 'Honest surfaces: a button looks pressable, glass only where something floats.',
     },
     {
-      name: 'Swiss / International Typographic Style',
+      name: 'Swiss typographic style',
       when: 'Switzerland, 1950s–60s',
-      idea: 'Clarity through grids, asymmetric layouts, sans-serif type and generous white space; the content speaks, not the designer.',
+      idea: 'Clarity through grids, sans-serif type and generous white space; the content speaks.',
       takes:
-        'A spacing scale and grid that every page shares, one sans-serif family in a strict type scale, left-aligned text, tabular figures.',
+        'One spacing scale and one type scale on every page, left-aligned text, tabular figures.',
     },
     {
-      name: 'Dieter Rams’ ten principles',
-      when: 'Braun, 1970s',
-      idea: 'Good design is innovative, useful, aesthetic, understandable, unobtrusive, honest, long-lasting, thorough, environmentally friendly — and as little design as possible.',
+      name: 'Dieter Rams',
+      when: 'Ten principles, 1970s',
+      idea: 'Good design is useful, understandable, unobtrusive, honest — and as little design as possible.',
       takes:
-        'A short list of tokens instead of one-off values; neutral surfaces with colour spent sparingly; details (focus rings, tabular figures) done everywhere.',
+        'A short list of tokens; neutral surfaces, colour spent sparingly; details done everywhere.',
     },
     {
       name: 'Gestalt psychology',
       when: 'Berlin, 1910s–30s',
-      idea: 'People see wholes before parts: things that are close, alike, enclosed or moving together are read as one group.',
-      takes:
-        'Grouping is done with space and surfaces (layers) rather than lines and boxes; what belongs together sits together.',
+      idea: 'People see wholes first: what is close, alike or moving together reads as one group.',
+      takes: 'Grouping by space and a fine rule rather than boxes; a selection moves as one mark.',
     },
     {
-      name: 'Cognitive engineering (Don Norman)',
-      when: 'USA, 1988 onwards',
-      idea: 'Good design makes what is possible discoverable and what happened understandable: signifiers, mapping, feedback, a clear conceptual model.',
+      name: 'Cognitive engineering',
+      when: 'Don Norman, 1988 onwards',
+      idea: 'Make what is possible discoverable and what happened understandable.',
       takes:
-        'Shapes signal what can be done; controls map spatially to their effect; every action answers at the place it happened.',
+        'Shapes signal what can be done; controls map to their effect; answers appear in place.',
     },
     {
-      name: 'Human–computer interaction laws',
+      name: 'Interaction laws',
       when: '1950s onwards',
-      idea: 'Measured regularities: big, close targets are faster (Fitts); more choices take longer (Hick); people expect what they know (Jakob).',
-      takes:
-        'Targets of at least 32 px (44 px on touch), primary actions close to the work, short grouped menus, familiar patterns kept familiar.',
+      idea: 'Big, close targets are faster (Fitts); more choices take longer (Hick); people expect what they know (Jakob).',
+      takes: 'Targets of at least 32 px, primary actions next to the work, short grouped menus.',
     },
     {
       name: 'Platform guidelines',
       when: '2007 onwards',
-      idea: 'Apple’s Human Interface Guidelines (clarity, deference, depth) and Google’s Material Design (surfaces, elevation, meaningful motion).',
+      idea: 'Clarity, deference and depth; surfaces, elevation and meaningful motion.',
       takes:
-        'Content first and chrome deferential; elevation (four layers) carries hierarchy; motion always shows origin and destination.',
+        'Content first, chrome deferential; four layers carry hierarchy; motion shows origin and destination.',
     },
   ];
 
   const glossary: [string, string][] = [
-    [
-      'Affordance',
-      'What an object lets you do — a handle affords pulling. On screens we mostly design the next word instead.',
-    ],
+    ['Affordance', 'What an object lets you do — a handle affords pulling.'],
     [
       'Signifier',
-      'The visible hint that an affordance exists: the pill shape that says “press me”, the grip dots that say “drag me”.',
+      'The visible hint that it can: the pill that says “press me”, the grip dots that say “drag me”.',
     ],
     [
       'Mapping',
-      'How controls relate to their effects in space. Natural mapping means the control sits where, or arranged like, the thing it changes.',
+      'How controls relate to their effects in space. Natural mapping puts the control on, or arranged like, what it changes.',
     ],
-    [
-      'Feedback',
-      'The answer to an action: immediate, at the right place, and in proportion to what happened.',
-    ],
+    ['Feedback', 'The answer to an action: immediate, in the right place, in proportion.'],
     [
       'Hierarchy',
-      'The order in which the eye reads a screen — size, weight, colour, position and depth decide it.',
+      'The order in which the eye reads a screen; size, weight, colour and depth set it.',
     ],
     [
       'Layer',
-      'One of four depths a surface can sit at here: ground, panel, selected, front. Higher means closer to you and more important now.',
+      'One of four depths a surface sits at: ground, panel, selected, front. Higher is closer and more important now.',
+    ],
+    [
+      'Glass',
+      'A surface that floats above the page — front bars and overlays. Gently frosted; a panel is never glass.',
+    ],
+    [
+      'Emitter',
+      'Something that is on or chosen and therefore gives light: the primary action, the current place, a switch that is on.',
     ],
     [
       'Token',
-      'A named design value (a colour, a space, a duration) used instead of a raw number, so the whole system changes together.',
+      'A named design value used instead of a raw number, so the whole system changes together.',
     ],
     [
       'Tint',
-      'The one colour a BonbonUI app is made from; every accent, glow and backdrop is computed from it.',
+      'The one colour an app is made from; every accent, glow and backdrop is computed from it.',
     ],
   ];
 
   const sources: [string, string][] = [
-    ['Dieter Rams', '“Ten principles for good design”, c. 1976–1980'],
-    [
-      'Donald A. Norman',
-      'The Design of Everyday Things, revised and expanded edition, Basic Books, 2013',
-    ],
-    [
-      'Donald A. Norman',
-      'Emotional Design: Why We Love (or Hate) Everyday Things, Basic Books, 2004',
-    ],
-    ['Josef Müller-Brockmann', 'Grid Systems in Graphic Design, Niggli, 1981'],
-    ['Jan Tschichold', 'Die neue Typographie (The New Typography), 1928'],
-    [
-      'Louis H. Sullivan',
-      '“The Tall Office Building Artistically Considered”, Lippincott’s Magazine, 1896',
-    ],
-    [
-      'Max Wertheimer',
-      '“Untersuchungen zur Lehre von der Gestalt” (Laws of organisation in perceptual forms), 1923',
-    ],
+    ['Louis H. Sullivan', '“The Tall Office Building Artistically Considered”, 1896'],
+    ['Max Wertheimer', '“Untersuchungen zur Lehre von der Gestalt”, 1923'],
+    ['Jan Tschichold', 'Die neue Typographie, 1928'],
     ['Kurt Koffka', 'Principles of Gestalt Psychology, 1935'],
+    ['Albert Michotte', 'La perception de la causalité, 1946'],
+    ['William E. Hick', '“On the rate of gain of information”, 1952'],
     [
       'Paul M. Fitts',
       '“The information capacity of the human motor system in controlling the amplitude of movement”, 1954',
     ],
-    ['William E. Hick', '“On the rate of gain of information”, 1952'],
-    ['Jakob Nielsen', '“Jakob’s Law of Internet User Experience”, Nielsen Norman Group, 2017'],
-    [
-      'Ben Shneiderman',
-      '“Direct Manipulation: A Step Beyond Programming Languages”, IEEE Computer, 1983',
-    ],
+    ['George A. Miller', '“The magical number seven, plus or minus two”, 1956'],
+    ['Dieter Rams', '“Ten principles for good design”, c. 1976–1980'],
+    ['Josef Müller-Brockmann', 'Grid Systems in Graphic Design, 1981'],
+    ['Ben Shneiderman', '“Direct Manipulation: A Step Beyond Programming Languages”, 1983'],
+    ['V. S. Ramachandran', '“Perception of shape from shading”, Nature, 1988'],
     ['Masaaki Kurosu, Kaori Kashimura', '“Apparent usability vs. inherent usability”, CHI 1995'],
     [
-      'Moshe Bar, Maital Neta',
-      '“Humans prefer curved visual objects”, Psychological Science, 2006',
+      'Ronald A. Rensink, J. Kevin O’Regan, James J. Clark',
+      '“To see or not to see: the need for attention to perceive changes in scenes”, 1997',
     ],
-    ['Steve Krug', 'Don’t Make Me Think, New Riders, 2000'],
-    ['Google', 'Material Design guidelines, motion and elevation, 2014 onwards'],
-    ['Apple', 'Human Interface Guidelines, 2013 onwards'],
-    ['Web Content Accessibility Guidelines (WCAG) 2.2', 'W3C, 2023'],
+    ['Steve Krug', 'Don’t Make Me Think, 2000'],
+    ['Donald A. Norman', 'Emotional Design, 2004'],
+    ['Moshe Bar, Maital Neta', '“Humans prefer curved visual objects”, 2006'],
+    [
+      'Moshe Bar, Maital Neta',
+      '“Visual elements of subjective preference modulate amygdala activation”, 2007',
+    ],
+    ['Donald A. Norman', 'The Design of Everyday Things, revised edition, 2013'],
+    ['Jakob Nielsen', '“Jakob’s Law of Internet User Experience”, 2017'],
+    ['Platform guidelines', 'Human Interface Guidelines; Material Design motion and elevation'],
+    ['W3C', 'Web Content Accessibility Guidelines (WCAG) 2.2, 2023'],
   ];
 </script>
 
 <StudyPage
   slug="overview"
   title="Why it looks like this"
-  lead="A design study of BonbonUI, written for people who are not designers. It explains how every part of the system has to work, why — with the principles and research it rests on — and where you can see it in action."
+  lead="A design study of BonbonUI for people who are not designers: how each part has to work, and why."
 >
   <Section
-    eyebrow="How to read this"
-    title="Four principles, nine short chapters"
-    description="Each chapter starts with an idea in plain words, shows where it comes from in design history or research, turns it into a rule you can check on any screen, and ends with something to try. Nothing here is taste for taste’s sake: if a rule cannot say why, it is not in the system."
+    title="Four principles, one filter"
+    description="Every change has to pass all four; a pretty screen that fails one is not finished."
+    gap="lg"
   >
-    <Grid min="13rem" columns={4}>
-      {#each principles as p (p.n)}
-        <a class="principle" href={chapterHref(p.slug)} target="_top">
-          <span class="num">{p.n}</span>
-          <span class="icon"><Icon name={p.icon} size={20} /></span>
-          <strong>{p.title}</strong>
-          <span class="text">{p.text}</span>
-        </a>
+    <ol class="principles">
+      {#each principles as p, i (p.slug)}
+        <li>
+          <a href={chapterHref(p.slug)} target="_top">
+            <span class="n">{i + 1}</span>
+            <span class="p-body">
+              <span class="p-title">{p.title}</span>
+              <span class="p-text">{p.text}</span>
+            </span>
+            <Icon name="arrow-right" size={16} />
+          </a>
+        </li>
       {/each}
-    </Grid>
+    </ol>
     <Quote
       text="Good design is as little design as possible."
       author="Dieter Rams"
-      source="tenth of his ten principles"
+      source="the tenth of his ten principles"
     />
-    <p>
-      The four principles are not equal partners with everything else — they are the filter. A
-      component that looks good but makes you act in one place and look for the result in another
-      fails principle 3, however pretty it is. A screen that works but feels cold fails principle 2.
-      The rest of the study is about how to pass all four at once.
-    </p>
   </Section>
 
   <Section
-    eyebrow="Standing on shoulders"
-    title="Where the ideas come from"
-    description="BonbonUI is new, but almost none of its ideas are. Seven traditions shaped it; each card says what the tradition taught and what the system took from it."
+    title="New in this edition"
+    description="The system grew calmer and more physical; five changes run through every chapter."
+    gap="lg"
   >
-    <Grid min="18rem">
-      {#each schools as s (s.name)}
-        <Layer level="panel" gap="xs">
-          <span class="when">{s.when}</span>
-          <strong>{s.name}</strong>
-          <p class="idea">{s.idea}</p>
-          <p class="takes"><span>Taken into BonbonUI:</span> {s.takes}</p>
-        </Layer>
+    <StudyList min="15rem">
+      {#each edition as e (e.term)}
+        <StudyItem term={e.term}>
+          {e.text}
+          <a class="more" href={chapterHref(e.slug)} target="_top">{e.where}</a>
+        </StudyItem>
       {/each}
-    </Grid>
+    </StudyList>
+  </Section>
+
+  <Section
+    title="How the study is built"
+    description="Each principle chapter goes from an idea in plain words to its roots, a rule you can check, and something to try."
+    gap="lg"
+  >
+    <p>
+      Nothing here is taste for its own sake: if a rule cannot say why, it is not in the system.
+      After the principles come four chapters that support them.
+    </p>
+    <ul class="rest">
+      {#each rest as c (c.slug)}
+        <li>
+          <a href={chapterHref(c.slug)} target="_top">
+            <span class="r-title">{c.title}</span>
+            <span class="r-text">{c.text}</span>
+          </a>
+        </li>
+      {/each}
+    </ul>
+  </Section>
+
+  <Section
+    title="Where the ideas come from"
+    description="BonbonUI is new, but almost none of its ideas are."
+    gap="lg"
+  >
+    <StudyList min="18rem">
+      {#each schools as s (s.name)}
+        <StudyItem term={s.name} meta={s.when} text={s.idea} note={s.takes} />
+      {/each}
+    </StudyList>
     <Quote
       text="The whole is other than the sum of its parts."
       author="Kurt Koffka"
@@ -235,174 +296,144 @@
   </Section>
 
   <Section
-    eyebrow="The chapters"
-    title="Contents"
-    description="Read them in order, or jump to what you need. Every page ends with a link to the next."
-  >
-    <ol class="toc">
-      {#each chapters.slice(1) as c, i (c.slug)}
-        <li>
-          <a href={chapterHref(c.slug)} target="_top">
-            <span class="toc-n">{i + 1}</span>
-            <span class="toc-t"><strong>{c.title}</strong><span>{c.blurb}</span></span>
-            <Icon name="arrow-right" size={16} />
-          </a>
-        </li>
-      {/each}
-    </ol>
-  </Section>
-
-  <Section
-    eyebrow="Words designers use"
     title="A small glossary"
-    description="Eight terms come up again and again. They are everyday ideas with precise names."
+    description="Ten words come up again and again; they are everyday ideas with precise names."
+    gap="lg"
   >
-    <dl class="glossary">
+    <StudyList min="17rem">
       {#each glossary as [term, meaning] (term)}
-        <div>
-          <dt>{term}</dt>
-          <dd>{meaning}</dd>
-        </div>
+        <StudyItem {term} text={meaning} />
       {/each}
-    </dl>
+    </StudyList>
   </Section>
 
   <Section
-    eyebrow="Sources"
-    title="Literature and guidelines"
-    description="Quotes in the study are short and attributed; the ideas are explained in our own words. These are the works to read for the full argument."
+    title="Sources"
+    description="Quotes are short and attributed; the ideas are explained in our own words."
+    gap="lg"
   >
     <ul class="sources">
       {#each sources as [who, what] (who + what)}
-        <li><strong>{who}</strong> — {what}</li>
+        <li><span class="who">{who}</span><span class="what">{what}</span></li>
       {/each}
     </ul>
   </Section>
 </StudyPage>
 
 <style>
-  .principle {
-    position: relative;
+  .principles,
+  .rest,
+  .sources {
     display: grid;
-    gap: var(--space-2);
-    align-content: start;
-    padding: var(--space-5);
-    border-radius: var(--radius-card);
-    background: var(--layer-panel-bg);
-    border: 0.75px solid var(--layer-panel-border);
-    box-shadow: var(--layer-panel-shadow);
-    backdrop-filter: var(--layer-panel-blur);
-    -webkit-backdrop-filter: var(--layer-panel-blur);
-    color: var(--text);
-    text-decoration: none;
-    overflow: hidden;
-    transition: transform var(--motion-quick) var(--ease-out);
-  }
-  .principle:hover {
-    transform: translateY(-2px);
-  }
-  .principle:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-  .num {
-    position: absolute;
-    right: var(--space-4);
-    top: calc(-1 * var(--space-2));
-    font-size: 5rem;
-    font-weight: var(--fw-heavy);
-    line-height: 1;
-    color: var(--accent-faint);
-    pointer-events: none;
-  }
-  .icon {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    background: var(--accent-soft);
-    color: var(--accent-ink);
-  }
-  .principle strong {
-    font-size: var(--fs-lg);
-    line-height: 1.3;
-  }
-  .text {
-    font-size: var(--fs-sm);
-    line-height: 1.6;
-    color: var(--text-2);
-  }
-  .when {
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--accent-ink);
-  }
-  .idea {
-    font-size: var(--fs-sm);
-  }
-  .takes {
-    font-size: var(--fs-sm);
-    color: var(--text);
-  }
-  .takes span {
-    font-weight: var(--fw-semibold);
-  }
-  .toc {
-    display: grid;
-    gap: var(--space-2);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
-  .toc a {
+  .principles li,
+  .rest li,
+  .sources li {
+    border-top: 1px solid var(--border-strong);
+  }
+  .principles li:last-child,
+  .rest li:last-child {
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .principles a {
     display: grid;
-    grid-template-columns: 2.5rem 1fr auto;
+    grid-template-columns: 3rem 1fr auto;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-lg);
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-2) var(--space-5) 0;
     color: var(--text);
     text-decoration: none;
-    transition: background var(--motion-quick) var(--ease-out);
   }
-  .toc a:hover {
-    background: var(--fill-muted);
-  }
-  .toc a:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-  .toc-n {
-    font-size: var(--fs-2xl);
-    font-weight: var(--fw-bold);
+  .n {
+    font-family: var(--font-serif);
+    font-size: 2.6rem;
+    line-height: 1;
     color: var(--accent-ink);
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: lining-nums;
   }
-  .toc-t {
+  .p-body,
+  .rest a {
     display: grid;
+    gap: var(--space-1);
   }
-  .toc-t span {
-    font-size: var(--fs-sm);
-    color: var(--text-3);
+  .p-title {
+    font-family: var(--font-serif);
+    font-size: var(--fs-3xl);
+    line-height: 1.2;
+    transition: color var(--motion-quick) var(--ease-out);
   }
-  .glossary {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-    gap: var(--space-4) var(--space-6);
-    margin: 0;
-  }
-  .glossary dt {
-    font-weight: var(--fw-semibold);
-  }
-  .glossary dd {
-    margin: var(--space-1) 0 0;
-    font-size: var(--fs-sm);
-    line-height: 1.6;
+  .p-text,
+  .r-text {
+    font-size: var(--fs-md);
+    line-height: 1.55;
     color: var(--text-2);
   }
-  .sources li {
+  .principles a :global(svg) {
+    color: var(--text-3);
+    transition: transform var(--motion-quick) var(--ease-out);
+  }
+  .principles a:hover .p-title,
+  .rest a:hover .r-title {
+    color: var(--accent-ink);
+  }
+  .principles a:hover :global(svg) {
+    transform: translateX(3px);
+    color: var(--accent-ink);
+  }
+  .principles a:focus-visible,
+  .rest a:focus-visible,
+  .more:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  .more {
+    display: block;
+    width: fit-content;
+    margin-top: var(--space-2);
     font-size: var(--fs-sm);
+  }
+  .more::after {
+    content: ' →';
+  }
+  .rest a {
+    padding: var(--space-4) 0;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .r-title {
+    font-weight: var(--fw-semibold);
+    transition: color var(--motion-quick) var(--ease-out);
+  }
+  .sources li {
+    display: grid;
+    grid-template-columns: minmax(10rem, 15rem) 1fr;
+    gap: var(--space-1) var(--space-6);
+    padding: var(--space-2) 0;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+  }
+  .who {
+    font-weight: var(--fw-semibold);
+    color: var(--text);
+  }
+  .what {
+    color: var(--text-2);
+  }
+  @media (max-width: 640px) {
+    .sources li {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .principles a {
+      grid-template-columns: 2.25rem 1fr auto;
+      gap: var(--space-3);
+    }
+    .n {
+      font-size: 2rem;
+    }
   }
 </style>

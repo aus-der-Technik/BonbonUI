@@ -1,4 +1,5 @@
 <script lang="ts" module>
+  import { prefersReducedMotion } from '../../utils/motion';
   import type { Participant } from '../molecules/AvatarStack.svelte';
 
   export interface KanbanColumn {
@@ -156,8 +157,7 @@
   );
   const columnCards = (columnId: string) => byColumn.get(columnId) ?? [];
 
-  const reduced = () =>
-    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = prefersReducedMotion;
 
   /** A motion token in milliseconds (0 under reduced motion). */
   function motion(token: string, fallback: number): number {

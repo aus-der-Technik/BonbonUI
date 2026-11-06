@@ -1,14 +1,22 @@
 <script lang="ts">
   /**
    * Storybook-only: the example applications — what each is, which principles it demonstrates
-   * and where to look. Every example also carries its own "Design notes" pill.
+   * and where to look — as an index you can filter by principle and kind, and search. Every
+   * example also carries its own "Design notes" pill.
    */
   import StudyPage from './StudyPage.svelte';
+  import StudyList from './StudyList.svelte';
+  import StudyItem from './StudyItem.svelte';
   import Section from '../../patterns/layout/Section.svelte';
   import Icon from '../../patterns/atoms/Icon.svelte';
+  import SearchField from '../../patterns/molecules/SearchField.svelte';
+  import SegmentedControl from '../../patterns/molecules/SegmentedControl.svelte';
+  import ToggleChip from '../../patterns/molecules/ToggleChip.svelte';
+  import EmptyState from '../../patterns/molecules/EmptyState.svelte';
+  import { changeCue } from '../../patterns/atoms/changed';
   import type { IconName } from '../../patterns/atoms/icons';
   import { PRINCIPLES, type Principle } from '../../demo/DesignNotes.svelte';
-  import { storyHref } from './links';
+  import { chapterHref, storyHref, type ChapterSlug } from './links';
 
   interface Example {
     name: string;
@@ -35,7 +43,7 @@
             },
             {
               principle: 'cues',
-              text: 'The navigation bar is thick glass: content bends as it slides underneath.',
+              text: 'The frosted bar is the one thing that floats; the section in view lights up in it as you scroll.',
             },
             {
               principle: 'friendly',
@@ -524,129 +532,331 @@
       ],
     },
   ];
+
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
+
+  // The filters: a principle, a kind (one group) and free text, combined.
+  type Pick = Principle | 'all';
+  let principle = $state<Pick>('all');
+  let kind = $state<string | null>(null);
+  let query = $state('');
+
+  const words = $derived(query.trim().toLowerCase().split(/\s+/).filter(Boolean));
+  const haystack = (g: (typeof groups)[number], ex: Example) =>
+    [g.title, ex.name, ex.what, ...ex.shows.map((s) => s.text)].join(' ').toLowerCase();
+  const matches = (g: (typeof groups)[number], ex: Example) =>
+    (principle === 'all' || ex.shows.some((s) => s.principle === principle)) &&
+    (!kind || g.title === kind) &&
+    words.every((w) => haystack(g, ex).includes(w));
+
+  const results = $derived(
+    groups
+      .map((g) => ({ ...g, items: g.items.filter((ex) => matches(g, ex)) }))
+      .filter((g) => g.items.length),
+  );
+  const shown = $derived(results.reduce((n, g) => n + g.items.length, 0));
+  const filtered = $derived(principle !== 'all' || !!kind || !!words.length);
+
+  function reset() {
+    principle = 'all';
+    kind = null;
+    query = '';
+  }
+
+  const principleOptions: { value: Pick; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'function', label: '1 Function' },
+    { value: 'friendly', label: '2 Friendly' },
+    { value: 'locality', label: '3 Locality' },
+    { value: 'cues', label: '4 Cues' },
+  ];
+
+  const chapterOf: Record<Principle, ChapterSlug> = {
+    function: 'function-first',
+    friendly: 'friendly-always',
+    locality: 'act-where-you-look',
+    cues: 'cause-and-effect',
+  };
 </script>
 
 <StudyPage
   slug="the-examples"
   title="The examples"
-  lead="Full applications built only from BonbonUI components. Each one carries a “Design notes” pill in its corner: open it, point at a note, and the part of the page it talks about lights up."
+  lead="{total} complete applications built only from BonbonUI. Find one by principle, by kind, or by what it does."
 >
-  {#each groups as group (group.title)}
-    <Section eyebrow="Examples" title={group.title} description={group.intro}>
-      <div class="cards">
-        {#each group.items as ex (ex.id)}
-          <a class="ex" href={storyHref(ex.id)} target="_top">
-            <span class="icon"><Icon name={ex.icon} size={22} /></span>
-            <strong class="name">{ex.name}</strong>
-            <span class="what">{ex.what}</span>
-            <ul>
-              {#each ex.shows as s (s.text)}
-                <li>
-                  <span class="tag">{PRINCIPLES[s.principle].n}</span>
-                  <span>{s.text}</span>
-                </li>
-              {/each}
-            </ul>
-            <span class="open">Open example <Icon name="arrow-right" size={14} /></span>
-          </a>
+  <Section
+    title="Find a page"
+    description="Pick a principle to see where it shows, a kind to narrow the list, or search for an idea."
+    gap="lg"
+  >
+    <div class="finder">
+      <div class="finder-row">
+        <div class="search">
+          <SearchField
+            label="Search the examples"
+            placeholder="Search: undo, glow, dot-matrix…"
+            shape="pill"
+            bind:value={query}
+          />
+        </div>
+        <SegmentedControl
+          label="Principle"
+          options={principleOptions}
+          bind:value={principle}
+          wrap
+        />
+      </div>
+      <div class="kinds" role="group" aria-label="Kind of page">
+        {#each groups as g (g.title)}
+          <ToggleChip
+            size="sm"
+            label={g.title}
+            count={g.items.length}
+            pressed={kind === g.title}
+            onchange={(on) => (kind = on ? g.title : null)}
+          />
         {/each}
       </div>
-    </Section>
-  {/each}
-  <Section eyebrow="Key" title="The numbers on the cards">
-    <ol class="key">
-      {#each Object.values(PRINCIPLES) as p (p.n)}
-        <li><span class="tag">{p.n}</span> {p.label}</li>
+      <div class="tally" aria-live="polite">
+        <span use:changeCue={shown}><strong>{shown}</strong> of {total} pages</span>
+        {#if filtered}<button type="button" class="clear" onclick={reset}>Clear filters</button
+          >{/if}
+      </div>
+    </div>
+
+    {#if results.length}
+      {#each results as group (group.title)}
+        <div class="group">
+          <div class="group-head">
+            <h3>{group.title}</h3>
+            <span class="group-intro">{group.intro}</span>
+          </div>
+          <ul class="entries">
+            {#each group.items as ex (ex.id)}
+              <li>
+                <a class="ex" href={storyHref(ex.id)} target="_top">
+                  <span class="ex-head">
+                    <span class="icon"><Icon name={ex.icon} size={18} /></span>
+                    <span class="name">{ex.name}</span>
+                    <span class="open"><Icon name="arrow-right" size={16} /></span>
+                  </span>
+                  <span class="what">{ex.what}</span>
+                  <span class="shows">
+                    {#each ex.shows as s (s.text)}
+                      <span
+                        class="note"
+                        class:hit={principle === s.principle}
+                        class:dim={principle !== 'all' && principle !== s.principle}
+                      >
+                        <span class="n" title={PRINCIPLES[s.principle].label}
+                          >{PRINCIPLES[s.principle].n}</span
+                        >
+                        <span>{s.text}</span>
+                      </span>
+                    {/each}
+                  </span>
+                </a>
+              </li>
+            {/each}
+          </ul>
+        </div>
       {/each}
-    </ol>
+    {:else}
+      <EmptyState
+        icon="search"
+        title="No page matches"
+        message="Try fewer words, or another principle or kind."
+        actionLabel="Clear filters"
+        actionVariant="soft"
+        onaction={reset}
+      />
+    {/if}
+  </Section>
+
+  <Section
+    title="How to read a page"
+    description="Every example carries a “Design notes” pill in a free corner of the screen."
+    gap="lg"
+  >
+    <p>
+      Open it where it sits, and it lists which principles the page demonstrates and why. Point at a
+      note, and the part of the page it talks about lights up while the rest dims. States such as
+      empty, failed or signed out are story controls, not separate pages: change them in the
+      Controls panel, or reach them by using the page.
+    </p>
+  </Section>
+
+  <Section
+    title="The four principles"
+    description="The numbers beside each note refer to these."
+    gap="lg"
+  >
+    <StudyList min="14rem" numbered>
+      {#each Object.entries(PRINCIPLES) as [key, p] (key)}
+        <StudyItem term={p.label}>
+          <a href={chapterHref(chapterOf[key as Principle])} target="_top">Read the chapter</a>
+        </StudyItem>
+      {/each}
+    </StudyList>
   </Section>
 </StudyPage>
 
 <style>
-  .cards {
+  .finder {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
     gap: var(--space-4);
+    padding-bottom: var(--space-2);
   }
-  .ex {
+  .finder-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+  }
+  .search {
+    flex: 1 1 16rem;
+    min-width: 0;
+  }
+  .kinds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .tally {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+  }
+  .tally > span {
+    padding: 1px var(--space-1);
+    margin-left: calc(-1 * var(--space-1));
+    border-radius: var(--radius-xs);
+  }
+  .tally strong {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .clear {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--accent-ink);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .clear:focus-visible {
+    outline: var(--focus-ring);
+    border-radius: var(--radius-xs);
+  }
+  .group {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  .group-head {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .group-intro {
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+  }
+  .entries {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+    gap: 0 var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .entries li {
+    border-top: 1px solid var(--border-strong);
+  }
+  /* Scoped under the list so the handbook's own link colour does not win. */
+  .entries .ex {
     display: grid;
     align-content: start;
     gap: var(--space-2);
-    padding: var(--space-5);
-    border-radius: var(--radius-card);
-    background: var(--layer-panel-bg);
-    border: 0.75px solid var(--layer-panel-border);
-    box-shadow: var(--layer-panel-shadow);
-    backdrop-filter: var(--layer-panel-blur);
-    -webkit-backdrop-filter: var(--layer-panel-blur);
+    height: 100%;
+    padding: var(--space-4) 0 var(--space-5);
     color: var(--text);
     text-decoration: none;
-    transition: transform var(--motion-quick) var(--ease-out);
   }
-  .ex:hover {
-    transform: translateY(-2px);
+  .entries .ex:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
   }
-  .ex:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
+  .ex-head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
   }
   .icon {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-md);
-    background: var(--accent-soft);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent-faint);
     color: var(--accent-ink);
   }
   .name {
-    font-size: var(--fs-xl);
+    font-family: var(--font-serif);
+    font-size: var(--fs-3xl);
+    line-height: 1.15;
+    transition: color var(--motion-quick) var(--ease-out);
+  }
+  .open {
+    display: grid;
+    color: var(--text-3);
+    transition:
+      transform var(--motion-quick) var(--ease-out),
+      color var(--motion-quick) var(--ease-out);
+  }
+  .ex:hover .name {
+    color: var(--accent-ink);
+  }
+  .ex:hover .open {
+    transform: translateX(3px);
+    color: var(--accent-ink);
   }
   .what {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-md);
+    line-height: 1.55;
     color: var(--text-2);
   }
-  ul {
+  .shows {
     display: grid;
     gap: var(--space-2);
-    margin: var(--space-2) 0 0;
-    padding: 0;
-    list-style: none;
+    margin-top: var(--space-1);
   }
-  li {
+  .note {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1.25rem 1fr;
     gap: var(--space-2);
     font-size: var(--fs-sm);
     line-height: 1.5;
+    color: var(--text-2);
+    transition: opacity var(--motion-base) var(--ease-out);
   }
-  .tag {
-    display: inline-grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--accent-soft);
+  .note.hit {
+    color: var(--text);
+    font-weight: var(--fw-medium);
+  }
+  .note.dim {
+    opacity: 0.45;
+  }
+  .n {
+    font-family: var(--font-serif);
+    font-size: var(--fs-lg);
+    line-height: 1.3;
     color: var(--accent-ink);
-    font-size: var(--fs-2xs);
-    font-weight: var(--fw-bold);
-  }
-  .open {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    margin-top: var(--space-2);
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-semibold);
-    color: var(--accent-ink);
-  }
-  .key {
-    display: grid;
-    gap: var(--space-2);
-    padding: 0;
-    list-style: none;
-  }
-  .key li {
-    font-size: var(--fs-base);
   }
 </style>

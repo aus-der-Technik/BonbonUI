@@ -23,6 +23,10 @@
  * stay still: a transform would make them jump. Off under `prefers-reduced-motion`.
  */
 
+import { prefersReducedMotion } from './motion';
+import { frameTime, step, type Spring } from './spring';
+import { GLASS_SELECTOR, isGlass, PANEL_SELECTOR } from './surfaces';
+
 const INTERACTIVE = [
   'button',
   'a[href]',
@@ -51,8 +55,8 @@ export interface FlowOptions {
 
 interface Block {
   el: HTMLElement;
-  y: number;
-  v: number;
+  /** Its dip, in px (down is positive). */
+  s: Spring;
   amp: number;
   /** When the wave reaches it (press) / when the release reaches it. */
   downAt: number;
@@ -63,14 +67,10 @@ interface Block {
 const SINK = { k: 260, c: 22 };
 const RISE = { k: 150, c: 9 };
 
-const reduced = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const reduced = prefersReducedMotion;
 
-const GLASS = '[data-layer="front"], [data-glass], [data-reflect="glass"], dialog, [popover]';
-const PANELS = '[data-layer="panel"], [data-layer="selected"], [data-reflect="panel"]';
-
-/** Is this surface glass — floating, or a panel over a photo? */
-const isGlass = (el: Element) =>
-  el.matches(GLASS) || (el.matches(PANELS) && !!el.closest('[data-surface="photo"]'));
+const GLASS = GLASS_SELECTOR;
+const PANELS = PANEL_SELECTOR;
 
 export type PressLayer = 'glass' | 'panel' | 'ground';
 
@@ -93,6 +93,15 @@ function floats(el: HTMLElement): boolean {
   return a > 0 && (glass.offsetWidth * glass.offsetHeight) / a > 0.8;
 }
 
+/**
+ * Is `el` in a region marked `data-flow-off` — between it and this field's own root? A region
+ * marked off for an outer field can hold a press field of its own (its root is the region).
+ */
+function offWithin(el: Element, root: HTMLElement): boolean {
+  const off = el.closest('[data-flow-off]');
+  return !!off && off !== root && root.contains(off);
+}
+
 /** Finds the blocks of the page inside `root`: what moves as one piece. */
 export function flowBlocks(root: HTMLElement): HTMLElement[] {
   const out: HTMLElement[] = [];
@@ -110,8 +119,13 @@ export function flowBlocks(root: HTMLElement): HTMLElement[] {
       else out.push(child);
     }
   };
-  for (const seed of root.querySelectorAll<HTMLElement>('main, [data-flow]')) {
-    if (seed.closest('[data-flow-off]')) continue;
+  // The root itself may be marked `data-flow` (querySelectorAll does not include it).
+  const seeds = [
+    ...(root.matches('[data-flow]') ? [root] : []),
+    ...root.querySelectorAll<HTMLElement>('main, [data-flow]'),
+  ];
+  for (const seed of seeds) {
+    if (offWithin(seed, root)) continue;
     split(seed, 0);
   }
   return out;
@@ -128,21 +142,20 @@ export function pressField(root: HTMLElement, options: FlowOptions = {}): () => 
   let pressed = false;
 
   const tick = (now: number) => {
-    const dt = Math.min(1 / 30, Math.max(0, (now - last) / 1000));
+    const dt = frameTime(now, last);
     last = now;
     let moving = false;
     for (const b of blocks) {
       const down = pressed ? now >= b.downAt : now < b.upAt && now >= b.downAt;
       const target = down ? b.amp : 0;
-      const { k, c } = target ? SINK : RISE;
-      b.v += (-k * (b.y - target) - c * b.v) * dt;
-      b.y += b.v * dt;
-      const still = Math.abs(b.y - target) < 0.01 && Math.abs(b.v) < 0.05;
+      b.s.to = target;
+      step(b.s, target ? SINK : RISE, dt);
+      const still = Math.abs(b.s.x - target) < 0.01 && Math.abs(b.s.v) < 0.05;
       if (still && !target) {
-        b.y = 0;
+        b.s.x = 0;
         b.el.style.translate = '';
       } else {
-        b.el.style.translate = `0 ${b.y.toFixed(2)}px`;
+        b.el.style.translate = `0 ${b.s.x.toFixed(2)}px`;
       }
       // Waiting for the wave to arrive (or to leave) counts as moving.
       if (!still || (pressed && now < b.downAt) || (!pressed && now < b.upAt)) moving = true;
@@ -212,8 +225,7 @@ export function pressField(root: HTMLElement, options: FlowOptions = {}): () => 
       const prev = known.get(el);
       blocks.push({
         el,
-        y: prev?.y ?? 0,
-        v: prev?.v ?? 0,
+        s: { x: prev?.s.x ?? 0, v: prev?.s.v ?? 0, to: 0 },
         amp: depth * share * Math.exp(-distance / reach),
         downAt: now + distance / speed,
         upAt: Infinity,
@@ -245,13 +257,13 @@ export function pressField(root: HTMLElement, options: FlowOptions = {}): () => 
   const onPointerDown = (event: PointerEvent) => {
     if (event.button !== 0 || !event.isPrimary) return;
     const target = event.target instanceof Element ? event.target : null;
-    if (!target?.closest(INTERACTIVE) || target.closest('[data-flow-off]')) return;
+    if (!target?.closest(INTERACTIVE) || offWithin(target, root)) return;
     press(event.clientX, event.clientY, target);
   };
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.repeat || (event.key !== 'Enter' && event.key !== ' ')) return;
     const target = event.target instanceof Element ? event.target.closest(INTERACTIVE) : null;
-    if (!target || target.closest('[data-flow-off]')) return;
+    if (!target || offWithin(target, root)) return;
     const r = target.getBoundingClientRect();
     press(r.left + r.width / 2, r.top + r.height / 2, target);
   };

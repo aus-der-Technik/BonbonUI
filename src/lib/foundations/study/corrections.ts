@@ -262,6 +262,12 @@ export const corrections: { title: string; intro: string; items: Correction[] }[
         breaks: ['locality'],
         where: 'ChartTooltip · LineChart · bar charts',
       },
+      {
+        was: 'This study preached the ground and practised boxes: quotes, rules, lists and every example sat on frosted cards.',
+        now: 'Its chapters lie on the ground with hairlines and serif pull quotes; panels remain only around live demos, and the examples can be filtered and searched.',
+        breaks: ['function'],
+        where: 'Design study',
+      },
     ],
   },
   {

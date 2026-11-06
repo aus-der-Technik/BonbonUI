@@ -1,3 +1,5 @@
+import { prefersReducedMotion } from '../../utils/motion';
+
 /**
  * The changed-value cue: a short glow (`bb-changed`) on an element whenever the value it shows
  * changes — never on the first render, never under reduced motion.
@@ -5,7 +7,7 @@
  *   <span use:changeCue={formatted}>{formatted}</span>
  */
 export function flashChanged(node: HTMLElement): void {
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  if (prefersReducedMotion()) return;
   node.style.animation = 'none';
   // Reading layout restarts the animation when the value changes again while it still runs.
   void node.offsetWidth;

@@ -1,12 +1,11 @@
 // Copy-paste code for the Introduction chapter. Kept in a .ts file because a literal closing
 // script tag inside a .svelte script block would end that block.
 
-export const install = `# .npmrc — the package lives in the GitLab npm registry
-@bonbon-ui:registry=https://git.ausdertechnik.de/api/v4/packages/npm/
-//git.ausdertechnik.de/api/v4/packages/npm/:_authToken=\${NPM_TOKEN}
+export const install = `npm install @bonbon-ui/core
+npm install leaflet   # only if you use MapView
 
-npm install @bonbon-ui/core
-npm install leaflet   # only if you use MapView`;
+# From a private registry? Point the scope at it in .npmrc:
+# @bonbon-ui:registry=https://registry.example.com/`;
 
 export const rootLayout = `<!-- src/routes/+layout.svelte -->
 <script lang="ts">
@@ -41,8 +40,11 @@ export const firstPage = `<!-- src/routes/+page.svelte -->
 
 export const welcomeExample = `<Application tint="#007aff">
   <Page title="Team" subtitle="who is in">
-    <Section title="Members" description="Everyone who can sign in.">
-      <Grid min="16rem">
+    <Section
+      title="Members"
+      description="Everyone who can sign in."
+    >
+      <Grid min="7rem">
         <Card>Ada</Card>
         <Card selected>Grace</Card>
         <Card>Linus</Card>
@@ -74,15 +76,16 @@ export const tintCode = (tint: string, theme: string, radius: string, density: s
 </Application>`;
 };
 
-export const tokenCode = `/* In your own components: never a literal colour — always a token. */
+export const tokenCode = `/* In your own components: never a literal colour, always a token. */
 .my-chip {
-  background: var(--accent-soft);   /* selected / tinted background   */
-  color: var(--accent-ink);         /* accent as readable text        */
+  background: var(--accent-soft);   /* tinted background      */
+  color: var(--accent-ink);         /* accent as readable text */
   border: 1px solid var(--accent-border);
 }
-.my-chip:hover   { background: var(--accent-faint); }
-.my-chip.danger  { color: var(--danger); background: var(--tint-danger); }
-.my-chip:focus-visible { outline: var(--focus-ring); }`;
+.my-chip:hover               { background: var(--accent-faint); }
+.my-chip[aria-pressed='true'] { background: var(--accent); color: var(--on-accent); }
+.my-chip.danger              { color: var(--danger); background: var(--tint-danger); }
+.my-chip:focus-visible       { outline: var(--focus-ring); }`;
 
 export const nestedBefore = `<!-- Before: wrappers for every bit of spacing -->
 <div class="card">
@@ -270,3 +273,45 @@ export const lightCode = `<!-- Emitters: library parts mark themselves (primary 
 
 <!-- On by default in every Application; turn it off for a page that must stay still: -->
 <Application light={false}>…</Application>`;
+
+export const recipeDevice = `<script lang="ts">
+  import { Application, Page, Grid, NavRail, Card, DotMatrix, ArcGauge, Switch, Avatar }
+    from '@bonbon-ui/core';
+  let { photo, sections, kwh } = $props();
+  let section = $state('home');
+  let target = $state(21.5);
+  let heating = $state(true);
+</script>
+
+<!-- Over a photo, panels turn to frosted glass by themselves. -->
+<Application image={photo}>
+  <Page width="full">
+    <div class="shell">
+      <!-- NavRail in its own sticky column, so its tooltips are not clipped -->
+      <div class="rail">
+        <NavRail items={sections} bind:current={section} label="Home">
+          {#snippet bottom()}<Avatar name="Robin Example" size={40} />{/snippet}
+        </NavRail>
+      </div>
+
+      <Grid min="16rem">
+        <Card surface="ink" padding="lg" gap="sm">
+          <span>Energy today</span>
+          <DotMatrix value={kwh.toFixed(1)} label="{kwh} kilowatt hours" size="xl" />
+        </Card>
+        <Card padding="lg">
+          <ArcGauge label="Living room" bind:value={target} min={16} max={28} step={0.5} unit="°C" />
+        </Card>
+        <Card padding="lg">
+          <Switch label="Heating" bind:checked={heating} />
+        </Card>
+      </Grid>
+    </div>
+  </Page>
+</Application>
+
+<style>
+  .shell { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--space-6); }
+  .rail { position: sticky; top: var(--space-6); align-self: start; }
+  @media (max-width: 900px) { .shell { grid-template-columns: minmax(0, 1fr); } }
+</style>`;

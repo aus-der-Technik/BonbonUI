@@ -20,8 +20,9 @@
  * inherited, so a nested surface never shows its parent's light.
  */
 
+import { SURFACE_SELECTOR, surfaceKind, type SurfaceKind } from './surfaces';
+
 const EMITTERS = '[data-emit]';
-const SURFACES = '[data-layer]:not([data-layer="ground"]), [data-glass], [data-reflect]';
 
 interface Model {
   /** Opacity (%) of the light around an emitter on the surface. */
@@ -45,16 +46,10 @@ const COLOURS: Record<string, string> = {
   danger: 'var(--danger)',
 };
 
-export type ReflectKind = 'glass' | 'panel';
+export type ReflectKind = SurfaceKind;
 
-/** What kind of reflector a surface is. Over a photo, panels are glass too. */
-export function reflectKind(el: Element): ReflectKind {
-  const declared = el.getAttribute('data-reflect');
-  if (declared === 'glass' || declared === 'panel') return declared;
-  const layer = el.getAttribute('data-layer');
-  if (layer === 'front' || el.hasAttribute('data-glass')) return 'glass';
-  return el.closest('[data-surface="photo"]') ? 'glass' : 'panel';
-}
+/** What kind of reflector a surface is (see `surfaces.ts`). Over a photo, panels are glass. */
+export const reflectKind = surfaceKind;
 
 interface Emitter {
   el: Element;
@@ -122,7 +117,7 @@ export function lightField(root: HTMLElement): () => void {
     }
     const seen = new Set<HTMLElement>();
     if (emitters.length) {
-      for (const el of root.querySelectorAll<HTMLElement>(SURFACES)) {
+      for (const el of root.querySelectorAll<HTMLElement>(SURFACE_SELECTOR)) {
         const r = el.getBoundingClientRect();
         if (!r.width || r.bottom < 0 || r.top > vh() || r.right < 0 || r.left > vw()) continue;
         const value = lightFor(el, r, emitters);

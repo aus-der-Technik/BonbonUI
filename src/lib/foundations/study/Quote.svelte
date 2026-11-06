@@ -1,5 +1,9 @@
 <script lang="ts">
-  /** Storybook-only: a short quote from the design literature, with its source. */
+  /**
+   * Storybook-only: a short quote from the design literature, set as a pull quote on the
+   * ground — serif, a fine tint rule before it, the source underneath. No box: a quote anchors
+   * an idea, it is not a thing to act on.
+   */
   interface Props {
     /** The quoted words — keep them short; the study explains, the quote anchors. */
     text: string;
@@ -11,37 +15,47 @@
 </script>
 
 <figure class="quote">
-  <blockquote><p>“{text}”</p></blockquote>
+  <blockquote><span class="words">“{text}”</span></blockquote>
   <figcaption>
-    <strong>{author}</strong>{#if source}<span>, {source}</span>{/if}
+    <span class="author">{author}</span>{#if source}<span class="source">{source}</span>{/if}
   </figcaption>
 </figure>
 
 <style>
   .quote {
     display: grid;
-    gap: var(--space-2);
-    margin: 0;
-    padding: var(--space-4) var(--space-5);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    background: var(--accent-faint);
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+  }
+  .quote::before {
+    content: '';
+    width: 2.5rem;
+    height: 1px;
+    background: var(--accent);
   }
   blockquote {
     margin: 0;
   }
-  blockquote p {
-    font-size: var(--fs-xl);
-    line-height: 1.35;
-    font-weight: var(--fw-medium);
+  .words {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: clamp(1.45rem, 0.9vw + 1.15rem, 1.9rem);
+    font-weight: var(--fw-regular);
+    line-height: 1.28;
     letter-spacing: -0.01em;
+    max-width: 26ch;
     color: var(--text);
+    text-wrap: balance;
   }
   figcaption {
     font-size: var(--fs-sm);
     color: var(--text-3);
   }
-  figcaption strong {
+  .author {
     color: var(--text-2);
+    font-weight: var(--fw-semibold);
+  }
+  .source::before {
+    content: '\00a0·\00a0';
   }
 </style>
