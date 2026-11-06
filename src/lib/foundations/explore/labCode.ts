@@ -72,16 +72,20 @@ export function pillPathCode(at: number, bulge: number, reach: number): string {
   return `pillPath(320, 72, { inset: 10, at: ${Math.round(at)}, bulge: ${fmt(bulge, 1)}, reach: ${Math.round(reach)}, vertical: false });`;
 }
 
-export const FLOW_DEFAULTS = { depth: 3, reach: 200, speed: 1.4 } as const;
+/** The Application's defaults; the lab starts at a clearly visible wiggle. */
+export const FLOW_DEFAULTS = { wiggle: 0.03, reach: 200, speed: 1.4 } as const;
+export const LAB_WIGGLE = 0.8;
 
-export function flowCode(depth: number, reach: number, speed: number): string {
+export function flowCode(wiggle: number, reach: number, speed: number): string {
   const changed: string[] = [];
-  if (depth !== FLOW_DEFAULTS.depth) changed.push(`depth: ${fmt(depth, 1)}`);
   if (reach !== FLOW_DEFAULTS.reach) changed.push(`reach: ${Math.round(reach)}`);
   if (speed !== FLOW_DEFAULTS.speed) changed.push(`speed: ${fmt(speed, 2)}`);
   const options = changed.length ? `, { ${changed.join(', ')} }` : '';
-  return `<!-- Every Application does this for its page, with the defaults: -->
-<Application>…</Application>          <!-- flow={false} keeps a page still -->
+  const app =
+    wiggle === FLOW_DEFAULTS.wiggle ? '<Application>' : `<Application wiggle={${fmt(wiggle, 2)}}>`;
+  return `<!-- Every Application does this for its page; wiggle is 0 (still) to 1, default 0.03: -->
+${app}…</Application>
+<Application flow={false}>…</Application>  <!-- keeps a page still -->
 
 <!-- What a press moves depends on where it lands (utils/flow.ts): -->
 <Layer level="panel">…</Layer>         <!-- panel: what lies on panels moves, not the ground -->
@@ -131,7 +135,10 @@ export function lightCode(
 ${tuned.map((k) => `  LIGHT_MODELS.${k} = { inside: ${fmt(models[k].inside, 1)}, beside: ${fmt(models[k].beside, 1)}, spread: ${fmt(models[k].spread, 2)} };`).join('\n')}
 </script>`
     : '';
-  return `<!-- Emitters: anything on or chosen -->
+  return `<!-- How much light, 0 (none) to 1; default 0.6: -->
+<Application shine={0.6}>…</Application>
+
+<!-- Emitters: anything on or chosen -->
 ${lines.join('\n')}
 
 <!-- Reflectors: Layers already are; your own surface opts in -->

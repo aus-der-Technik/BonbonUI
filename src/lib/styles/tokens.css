@@ -23,6 +23,10 @@
   /* Shape and density knobs (Application sets them): 1 = default. */
   --radius-scale: 1;
   --density: 1;
+  /* Motion and light knobs (Application `wiggle` and `shine`), 0 to 1: how much a press moves
+     the page (0.03, a whisper) and how much light what is on gives (0.6). */
+  --wiggle: 0.03;
+  --shine: 0.6;
 }
 
 /* ── 2. Theme values: light ──────────────────────────────────────────────────────────────── */
@@ -403,7 +407,9 @@
 
   /* Glow: light that comes out of something that is on (a gauge's active arc, a lit toggle). */
   --glow: color-mix(in oklab, var(--tint) 88%, white);
-  --glow-soft: color-mix(in srgb, var(--glow) 40%, transparent);
+  --glow-soft: color-mix(in srgb, var(--glow) min(100%, 40% * var(--shine) / 0.6), transparent);
+  /* The glow under a soft key that is on. */
+  --glow-key: color-mix(in srgb, var(--tint) min(100%, 70% * var(--shine) / 0.6), transparent);
 
   /* Focus */
   --focus-ring: 2px solid var(--accent);
@@ -420,10 +426,10 @@
       color-mix(in srgb, var(--accent-strong) 94%, transparent)
     );
   --shadow-primary:
-    0 8px 20px color-mix(in srgb, var(--tint) 30%, transparent),
+    0 8px 20px color-mix(in srgb, var(--tint) min(100%, 30% * var(--shine) / 0.6), transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.55);
   --shadow-primary-hover:
-    0 14px 32px color-mix(in srgb, var(--tint) 40%, transparent),
+    0 14px 32px color-mix(in srgb, var(--tint) min(100%, 40% * var(--shine) / 0.6), transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
   --grad-success:
     linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
@@ -474,7 +480,9 @@
   --layer-selected-bg: color-mix(in oklab, var(--tint) 14%, var(--layer-panel-bg));
   --layer-selected-border: var(--accent-border);
   --layer-selected-shadow:
-    0 14px 30px -16px color-mix(in srgb, var(--tint) 55%, transparent), var(--glass-inset);
+    0 14px 30px -16px
+      color-mix(in srgb, var(--tint) min(100%, 55% * var(--shine) / 0.6), transparent),
+    var(--glass-inset);
   --layer-front-bg: var(--pill-tint);
   --layer-front-border: var(--pill-border);
   --layer-front-shadow: var(--shadow-header-pill);

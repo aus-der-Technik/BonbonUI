@@ -87,7 +87,7 @@ BonbonUI installs from a release tag; each tag carries the built package, so not
 on install.
 
 ```bash
-npm install git+ssh://git@github.com/aus-der-Technik/BonbonUI.git#v1.2.0
+npm install git+ssh://git@github.com/aus-der-Technik/BonbonUI.git#v1.2.1
 npm install leaflet   # only for MapView (@bonbon-ui/core/map)
 ```
 
@@ -132,7 +132,8 @@ Peer dependency: `svelte ^5.20`.
 - **Auto layout.** `Page`, `Section`, `Stack`, `Row` and `Grid` space and align their children:
   no margins, no wrapper divs.
 - **It answers back.** Selections flow like thick water, a press gives a little where it lands,
-  and what is on casts light on its surroundings. `Application` does it for every page.
+  and what is on casts light on its surroundings. `Application` does it for every page;
+  `wiggle` (0–1, default 0.03) and `shine` (0–1, default 0.6) set how much.
 - **Props in, callbacks out.** Components fetch, store and route nothing; async callbacks may
   return a promise.
 

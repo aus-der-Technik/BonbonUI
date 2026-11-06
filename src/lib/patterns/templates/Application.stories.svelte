@@ -20,6 +20,8 @@
       theme: { control: 'inline-radio', options: ['auto', 'light', 'dark'] },
       radius: { control: 'inline-radio', options: ['square', 'soft', 'round'] },
       density: { control: 'inline-radio', options: ['compact', 'default', 'comfortable'] },
+      wiggle: { control: { type: 'range', min: 0, max: 1, step: 0.01 } },
+      shine: { control: { type: 'range', min: 0, max: 1, step: 0.05 } },
     },
     args: { contained: true },
   });

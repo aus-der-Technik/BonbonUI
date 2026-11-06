@@ -1,7 +1,7 @@
 <script lang="ts">
   /**
    * Storybook-only: presses by layer, from `utils/flow.ts`. A small page of ground, panels and
-   * glass runs its own `pressField` with the depth, reach and speed you set; every press is
+   * glass runs its own `pressField` with the wiggle, reach and speed you set; every press is
    * classified by the real `pressLayer`, and the answer is shown right under the stage. A slider
    * on the ground and a field on a panel show that every control starts the wave, and that a
    * drag sways what is around it.
@@ -15,9 +15,9 @@
   import CodeBlock from '../../patterns/molecules/CodeBlock.svelte';
   import { flowPieces, pressLayer, type PressLayer } from '../../utils/flow';
   import { isolatedPressField } from './isolate';
-  import { flowCode, FLOW_DEFAULTS } from './labCode';
+  import { flowCode, FLOW_DEFAULTS, LAB_WIGGLE } from './labCode';
 
-  let depth = $state<number>(FLOW_DEFAULTS.depth);
+  let wiggle = $state<number>(LAB_WIGGLE);
   let reach = $state<number>(FLOW_DEFAULTS.reach);
   let speed = $state<number>(FLOW_DEFAULTS.speed);
 
@@ -31,7 +31,7 @@
   $effect(() => {
     if (!wrapper || !root || !field) return;
     blocks = flowPieces(root, 'ground').length + flowPieces(root, 'panel').length;
-    return isolatedPressField(wrapper, root, { depth, reach, speed });
+    return isolatedPressField(wrapper, root, { wiggle, reach, speed });
   });
 
   const said: Record<PressLayer, string> = {
@@ -50,7 +50,7 @@
   }
 
   function reset() {
-    depth = FLOW_DEFAULTS.depth;
+    wiggle = LAB_WIGGLE;
     reach = FLOW_DEFAULTS.reach;
     speed = FLOW_DEFAULTS.speed;
   }
@@ -105,12 +105,12 @@
   <div class="side">
     <div class="controls">
       <Slider
-        label="Depth under the press"
-        bind:value={depth}
+        label="Wiggle (Application default 0.03)"
+        bind:value={wiggle}
         min={0}
-        max={12}
-        step={0.5}
-        format={(v) => `${v} px`}
+        max={1}
+        step={0.01}
+        format={(v) => v.toFixed(2)}
       />
       <Slider
         label="Reach (a third of the energy left at)"
@@ -138,7 +138,7 @@
   </div>
 </div>
 
-<CodeBlock label="What you set, in code" code={flowCode(depth, reach, speed)} />
+<CodeBlock label="What you set, in code" code={flowCode(wiggle, reach, speed)} />
 
 <style>
   .lab {

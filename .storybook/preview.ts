@@ -51,20 +51,62 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    wiggle: {
+      description: 'How much a press moves the page (Application wiggle)',
+      toolbar: {
+        title: 'Wiggle',
+        icon: 'transfer',
+        items: [
+          { value: '0', title: 'Still' },
+          { value: '0.03', title: 'Whisper (default)' },
+          { value: '0.3', title: 'Gentle' },
+          { value: '0.8', title: 'Playful' },
+          { value: '1', title: 'Wild' },
+        ],
+        dynamicTitle: true,
+      },
+    },
+    shine: {
+      description: 'How much light what is on gives (Application shine)',
+      toolbar: {
+        title: 'Shine',
+        icon: 'lightning',
+        items: [
+          { value: '0', title: 'No light' },
+          { value: '0.2', title: 'Dim' },
+          { value: '0.6', title: 'Bright (default)' },
+          { value: '0.8', title: 'Brighter' },
+          { value: '1', title: 'Full' },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
-  initialGlobals: { theme: 'auto', tint: 'default', radius: '1', density: '1' },
+  initialGlobals: {
+    theme: 'auto',
+    tint: 'default',
+    radius: '1',
+    density: '1',
+    wiggle: '0.03',
+    shine: '0.6',
+  },
   decorators: [
     // The tokens read `<html data-theme>` and `--tint`; an <Application tint> inside a story
     // still overrides the toolbar for its own subtree.
     (story, context) => {
       const root = document.documentElement;
-      const { theme, tint, radius, density } = context.globals as Record<string, string>;
+      const { theme, tint, radius, density, wiggle, shine } = context.globals as Record<
+        string,
+        string
+      >;
       if (theme === 'light' || theme === 'dark') root.dataset['theme'] = theme;
       else delete root.dataset['theme'];
       if (tint && tint !== 'default') root.style.setProperty('--tint', tint);
       else root.style.removeProperty('--tint');
       root.style.setProperty('--radius-scale', radius ?? '1');
       root.style.setProperty('--density', density ?? '1');
+      root.style.setProperty('--wiggle', wiggle ?? '0.03');
+      root.style.setProperty('--shine', shine ?? '0.6');
       return story();
     },
   ],

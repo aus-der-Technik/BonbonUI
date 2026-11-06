@@ -28,7 +28,8 @@
    *
    * The page flows: pressing any control (a key, a field, a slider) moves what lies on the same
    * layer like things floating in thick water, the far ones less, and a drag sways them along
-   * (`utils/flow.ts`); `flow={false}` keeps it still. And it is lit:
+   * (`utils/flow.ts`); `wiggle` sets how much (0 to 1, default 0.03), `flow={false}` keeps it
+   * still. `shine` sets how much light what is on gives (0 to 1, default 0.6). And it is lit:
    * what is on or chosen (`data-emit`) casts its tint onto the surfaces near it — a little on
    * panels, more inside glass (`utils/light.ts`); `light={false}` turns that off.
    */
@@ -57,8 +58,14 @@
     contained?: boolean | undefined;
     /** Presses move their own layer like thick water (default on; off with reduced motion). */
     flow?: boolean;
+    /** How much a press moves the page, from 0 (still) to 1. Default 0.03, a whisper; 0.8 is
+     *  a clear, playful answer. Sets the `--wiggle` token. */
+    wiggle?: number | undefined;
     /** Emitters light the surfaces around them (default on). */
     light?: boolean;
+    /** How much light what is on gives, from 0 (none) to 1: the light on the surfaces and the
+     *  glows (0.2 shines and glows less than 0.8). Default 0.6. Sets the `--shine` token. */
+    shine?: number | undefined;
     class?: string;
     children: Snippet;
   }
@@ -74,12 +81,16 @@
     animate = true,
     contained = false,
     flow = true,
+    wiggle,
     light = true,
+    shine,
     class: extraClass = '',
     children,
   }: Props = $props();
 
   let root = $state<HTMLElement>();
+  // Both read their knob (`--wiggle`, `--shine`) from the root, so a value set further up
+  // (the Storybook toolbar, a settings page) reaches them too.
   $effect(() => (flow && root ? pressField(root) : undefined));
   $effect(() => (light && root ? lightField(root) : undefined));
 
@@ -97,6 +108,8 @@
   style:--tint={tint}
   style:--radius-scale={radius === 'soft' ? undefined : RADIUS[radius]}
   style:--density={density === 'default' ? undefined : DENSITY[density]}
+  style:--wiggle={wiggle === undefined ? undefined : Math.min(1, Math.max(0, wiggle))}
+  style:--shine={shine === undefined ? undefined : Math.min(1, Math.max(0, shine))}
 >
   <Backdrop
     color={background}

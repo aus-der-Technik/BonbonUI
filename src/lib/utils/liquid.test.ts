@@ -94,7 +94,7 @@ describe('pressField', () => {
     });
     expect(flowBlocks(root).map((b) => b.id)).toEqual(['near', 'far']);
 
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
     root.querySelector('button')!.dispatchEvent(
       new PointerEvent('pointerdown', {
         bubbles: true,
@@ -183,8 +183,23 @@ describe('light', () => {
     expect(beside).toContain('at -30px 50px');
     // Far away: nothing.
     expect(lightFor(glass, { ...rect, left: 900, right: 1100 } as DOMRect, [emitter])).toBe('');
+    // Shine scales it: 0.2 gives a third of the default light, 0 none at all.
+    expect(lightFor(panel, rect, [emitter], 0.2)).toContain('5.0%');
+    expect(lightFor(panel, rect, [emitter], 0)).toBe('');
     panel.remove();
     glass.remove();
+  });
+
+  it('reads the shine and the wiggle from the tokens', async () => {
+    const { knob } = await import('./light');
+    const el = document.createElement('div');
+    document.body.append(el);
+    expect(knob(el, '--shine', 0.6)).toBe(0.6);
+    el.style.setProperty('--shine', '0.2');
+    expect(knob(el, '--shine', 0.6)).toBe(0.2);
+    el.style.setProperty('--shine', '3');
+    expect(knob(el, '--shine', 0.6)).toBe(1);
+    el.remove();
   });
 });
 
@@ -248,7 +263,7 @@ describe('what a press moves', () => {
       </main>`,
       { text: 0, a: 0, b: 120, far: 2000, bar: 0 },
     );
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
 
     down('on-glass');
     run(20);
@@ -280,7 +295,7 @@ describe('what a press moves', () => {
       </main>`,
       { go: 0, near: 150, far: 900, tile: 60 },
     );
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
     down('go');
     run(40);
     // The row is one small piece of the ground; the panel beside it is another layer.
@@ -300,7 +315,7 @@ describe('what a press moves', () => {
       `<main><button id="go">Go</button><p id="near">Near</p><p id="mid">Mid</p><p id="far">Far</p></main>`,
       { go: 0, near: 140, mid: 400, far: 800 },
     );
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
     down('go');
     run(90);
     const [, go] = xy('go');
@@ -355,10 +370,35 @@ describe('what a press moves', () => {
       run(600);
       return dip;
     };
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
     const fromSmall = dipAfter(small);
     const fromBig = dipAfter(big);
     expect(fromBig).toBeGreaterThan(fromSmall * 2);
+    stop();
+    root.remove();
+  });
+
+  it('the wiggle sets how much: the --wiggle token, and 0 keeps the page still', () => {
+    const run = frames();
+    const { root, at, down } = page(`<main><button id="go">Go</button></main>`, { go: 0 });
+    const dip = () => Number.parseFloat(at('go').style.translate.split(' ')[1] ?? '0');
+    const stop = pressField(root);
+    root.style.setProperty('--wiggle', '0.8');
+    down('go');
+    run(60);
+    const playful = dip();
+    window.dispatchEvent(new PointerEvent('pointerup'));
+    run(600);
+    root.style.setProperty('--wiggle', '0.2');
+    down('go');
+    run(60);
+    expect(dip()).toBeCloseTo(playful / 4, 1);
+    window.dispatchEvent(new PointerEvent('pointerup'));
+    run(600);
+    root.style.setProperty('--wiggle', '0');
+    down('go');
+    run(60);
+    expect(at('go').style.translate).toBe('');
     stop();
     root.remove();
   });
@@ -369,7 +409,7 @@ describe('what a press moves', () => {
       `<main><div id="held"><input id="slider" type="range" /></div><p id="near">Near</p></main>`,
       { held: 0, near: 120 },
     );
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
     down('slider');
     run(6);
     for (let i = 1; i <= 8; i++) {
@@ -401,7 +441,7 @@ describe('what a press moves', () => {
       `<main><div id="field"><input id="name" type="text" /></div><p id="near">Near</p></main>`,
       { field: 0, near: 120 },
     );
-    const stop = pressField(root);
+    const stop = pressField(root, { wiggle: 0.8 });
     at('name').dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
     run(20);
     expect(moved('near')).toBe(false);

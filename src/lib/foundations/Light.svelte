@@ -168,6 +168,12 @@
       every <code>Application</code>; <code>light={'{false}'}</code> turns it off for a page that must
       stay still.
     </p>
+    <p>
+      How much light there is, is one value from 0 to 1: <code>shine</code> on the
+      <code>Application</code> (the <code>--shine</code> token). It scales the light on the surfaces
+      and the glows together, so 0.2 shines and glows less than 0.8. The default is 0.6. Try it with
+      <strong>Shine</strong> in the toolbar above.
+    </p>
     <LiveExample
       source={ownSurfacesSource}
       label="Study.svelte"

@@ -540,7 +540,7 @@
     color: var(--accent-ink);
     box-shadow:
       inset 0 0 0 1px var(--layer-selected-border),
-      0 8px 18px -12px color-mix(in srgb, var(--tint) 70%, transparent);
+      0 8px 18px -12px var(--glow-key);
   }
 
   .shimmer {

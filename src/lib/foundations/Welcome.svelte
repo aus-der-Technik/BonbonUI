@@ -141,6 +141,8 @@
     { term: 'Tint', text: 'The one colour everything is computed from.' },
     { term: 'Radius', text: 'Square, soft or round corners on every part.' },
     { term: 'Density', text: 'Compact for tools, comfortable for touch and websites.' },
+    { term: 'Wiggle', text: 'How much a press moves the page, from still to playful.' },
+    { term: 'Shine', text: 'How much light what is on gives, from none to full.' },
   ];
 
   // The live sample beside the picker: every part of it takes its colour from the tint.
@@ -184,9 +186,9 @@
 
   <Section title="Make it yours">
     <p>
-      The toolbar above every page sets theme, tint, corners and density for the whole Storybook:
-      the same four values an <code>Application</code> sets in your app. Open the brush and pick a colour,
-      or pick one right here.
+      The toolbar above every page sets theme, tint, corners, density, wiggle and shine for the
+      whole Storybook: the same values an <code>Application</code> sets in your app. Open the brush and
+      pick a colour, or pick one right here.
     </p>
     <div class="yours">
       <figure class="toolbar-shot">
@@ -194,7 +196,9 @@
           src={toolbarShot}
           alt="The Storybook toolbar with the tint menu open: Green (default), Mint, Blue, Indigo, Purple, Pink, Red, Orange and Graphite."
         />
-        <figcaption>The tint menu in the toolbar, next to theme, corners and density.</figcaption>
+        <figcaption>
+          The tint menu in the toolbar, among theme, corners, density, wiggle and shine.
+        </figcaption>
       </figure>
       <div class="try">
         <TintPicker />

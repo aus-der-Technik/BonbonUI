@@ -32,6 +32,7 @@
 
 import { prefersReducedMotion } from './motion';
 import { frameTime, step, type Spring, type SpringParams } from './spring';
+import { knob } from './light';
 import { GLASS_SELECTOR, isGlass, PANEL_SELECTOR } from './surfaces';
 
 /** What a press on starts the wave: every control, form fields and sliders included. */
@@ -68,9 +69,18 @@ const TEXT_ENTRY = [
   'input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="color"]):not([type="file"])',
 ].join(',');
 
+/** How much a page wiggles when nothing says otherwise: a whisper. */
+export const WIGGLE_DEFAULT = 0.03;
+/** The dip under a standard control at `wiggle: 1`, in px (0.8 sinks it 3 px). */
+const FULL_DEPTH = 3.75;
+
 export interface FlowOptions {
-  /** How deep the thing under a standard-sized control sinks, in px (smaller controls less,
-   *  bigger ones more). Default 3. */
+  /** How much presses move the page, from 0 (still) to 1; read from the `--wiggle` token when
+   *  left out (Application `wiggle`, default 0.03, a whisper; 0.8 is a clear, playful answer).
+   *  The dip under a standard control is 3.75 px × wiggle. */
+  wiggle?: number;
+  /** The dip under a standard-sized control in px, instead of `wiggle` (smaller controls
+   *  less, bigger ones more). */
   depth?: number;
   /** How quickly the wave loses energy: after this many px a third of it is left, after twice
    *  as many a tenth. Default 200. */
@@ -254,7 +264,15 @@ const rest = (): Spring => ({ x: 0, v: 0, to: 0 });
 
 /** Makes every press inside `root` move its own layer (see the header). Returns the cleanup. */
 export function pressField(root: HTMLElement, options: FlowOptions = {}): () => void {
-  const depth = options.depth ?? 3;
+  // Read at every press, so a changed `--wiggle` (a toolbar, a setting) applies at once.
+  const depthNow = () => {
+    if (options.depth !== undefined) return Math.max(0, options.depth);
+    const wiggle =
+      options.wiggle !== undefined
+        ? Math.min(1, Math.max(0, options.wiggle))
+        : knob(root, '--wiggle', WIGGLE_DEFAULT);
+    return FULL_DEPTH * wiggle;
+  };
   const reach = options.reach ?? 200;
   const speed = options.speed ?? 1.4;
   let pieces: Piece[] = [];
@@ -345,6 +363,8 @@ export function pressField(root: HTMLElement, options: FlowOptions = {}): () => 
   function press(x: number, y: number, target: Element, control: Element, drag: boolean) {
     if (reduced()) return;
     // A bigger control moves more water: it sinks deeper, and its wave carries further.
+    const depth = depthNow();
+    if (!depth) return;
     const force = heft(control);
     const sink = depth * force;
     const carry = reach * Math.sqrt(force);

@@ -124,6 +124,11 @@
           things around it sway along, then swing back and forth into place. A big key moves more
           water than a small one: press both and compare. Panels and glass stay still.
         </p>
+        <p>
+          How much it moves is <code>wiggle</code> on the <code>Application</code>, from 0 (still)
+          to 1. The default, 0.03, is a whisper you feel more than see; set
+          <strong>Wiggle</strong> in the toolbar to Playful (0.8) to watch it here.
+        </p>
       </div>
       <IntroDemo>
         <div class="drag">
