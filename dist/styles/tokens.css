@@ -1,0 +1,816 @@
+/*
+ * BonbonUI design tokens.
+ *
+ * Three groups, in this order:
+ *
+ *   1. The tint      — one colour (`--tint`) that every accent, surface glow and the animated
+ *                      backdrop is computed from. Default: the house green.
+ *   2. Theme values  — raw light values; the dark values follow twice (once for "follow the OS",
+ *                      once for the `data-theme="dark"` pin). `data-theme` works on any element.
+ *   3. Derived       — tokens computed from 1 + 2 (accent family, focus, gradients, the four
+ *                      layers). They are re-declared on every element that sets a tint or a
+ *                      theme (`[data-tint]`, `[data-theme]`), because a custom property is
+ *                      resolved where it is declared: without this a nested `--tint` would not
+ *                      reach the colours computed on :root.
+ *
+ * Legacy names the existing admin apps declare in their app.css (`--brand-red`, `--tint-red`,
+ * `--blob-red`, …) are kept as aliases at the end, so an app can migrate without renaming.
+ */
+
+/* ── 1. The tint ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --tint: #5a9854;
+  /* Shape and density knobs (Application sets them): 1 = default. */
+  --radius-scale: 1;
+  --density: 1;
+}
+
+/* ── 2. Theme values: light ──────────────────────────────────────────────────────────────── */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Status — fixed hues, independent of the tint, so "danger" is always red. */
+  --danger: #d92d20;
+  --danger-strong: #b42318;
+  --ok: #16a34a;
+  --ok-dark: #0e7a36;
+  /* The bead of a slider: white, lit from above. */
+  --knob-top: #fff;
+  --knob-bottom: #f1f1f4;
+  --warn: #eda100;
+  --draft: #a15c00;
+  --info: #2a78d6;
+
+  /* System palette — candy hues for categories, tags, charts and app icons */
+  --color-red: #ff3b30;
+  --color-orange: #ff9500;
+  --color-yellow: #ffcc00;
+  --color-green: #34c759;
+  --color-mint: #00c7be;
+  --color-teal: #30b0c7;
+  --color-cyan: #32ade6;
+  --color-blue: #007aff;
+  --color-indigo: #5856d6;
+  --color-purple: #af52de;
+  --color-pink: #ff2d55;
+  --color-brown: #a2845e;
+  --color-gray: #8e8e93;
+
+  /* Text */
+  --text: #1a1a1a;
+  --text-2: #555;
+  --text-3: #636363; /* ≥ 4.5:1 on the stone ground */
+
+  /* Surfaces */
+  /* The ground is soft stone, a shade darker than the panels: panels read as raised tiles
+     without needing a shadow, and the tint can stay a whisper. */
+  --bg-base: #e9e9e6;
+  /* Light from above: the top of the ground catches a little more of it. */
+  --ground-light: rgba(255, 255, 255, 0.5);
+  --border: rgba(255, 255, 255, 0.6);
+  --border-strong: rgba(20, 20, 30, 0.08);
+  /* Field edges need to be findable: stronger than a card's hairline. */
+  --input-border: rgba(20, 20, 30, 0.16);
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-strong: rgba(255, 255, 255, 0.72);
+  --glass-shadow: 0 10px 30px rgba(20, 20, 40, 0.08), 0 2px 6px rgba(20, 20, 40, 0.04);
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+  /* Panels lie on the ground: a solid tile a little lighter than it, no glass (glass is for
+     what floats, and what floats is sticky). How much lighter: */
+  --panel-lift: 55%;
+  /* Glass for panels over a photo ([data-surface='photo']). */
+  --photo-glass: rgba(255, 255, 255, 0.46);
+  /* The ink tile (Card surface="ink"): near black, in both themes. */
+  --ink-surface: #121213;
+  --photo-glass-border: rgba(255, 255, 255, 0.5);
+  --photo-glass-light: rgba(255, 255, 255, 0.75);
+  --panel-border: rgba(255, 255, 255, 0.6);
+  --panel-shadow: 0 1px 2px rgba(20, 20, 40, 0.035);
+  /* Soft-touch keys: matte, slightly domed buttons that sit on the ground and sink when pressed. */
+  --soft-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.5));
+  --soft-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.66));
+  --soft-shadow:
+    0 1px 1px rgba(20, 20, 40, 0.05), 0 8px 16px -10px rgba(20, 20, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(20, 20, 40, 0.04);
+  --soft-shadow-pressed:
+    inset 0 2px 5px rgba(20, 20, 40, 0.14), inset 0 0 0 1px rgba(20, 20, 40, 0.04);
+  --tooltip-bg: rgba(255, 255, 255, 0.94);
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --head-bg: rgba(248, 248, 251, 0.92);
+  --editor-bg: #fff;
+  --backdrop: rgba(18, 18, 28, 0.32);
+
+  /* Front layer (glass) — clear, a little brighter at the top where the light falls in */
+  --pill-tint: linear-gradient(
+    175deg,
+    rgba(255, 255, 255, 0.64),
+    rgba(255, 255, 255, 0.4) 55%,
+    rgba(255, 255, 255, 0.5)
+  );
+  --pill-border: rgba(255, 255, 255, 0.62);
+  --pill-light: rgba(255, 255, 255, 1);
+  --pill-rim: rgba(255, 255, 255, 0.8);
+  --pill-edge: rgba(255, 255, 255, 0.85);
+  --pill-bloom: rgba(255, 255, 255, 0.45);
+  /* The shadow under front-layer glass when it is drawn as a shape (NavRail's outline). */
+  --front-shadow: rgba(12, 12, 22, 0.16);
+  /* Thinner body for glass that refracts (GlassLens): a dense tint would cover the lens up. */
+  --pill-lens-tint: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.1) 48%,
+    rgba(255, 255, 255, 0.24)
+  );
+
+  /* Chart roles */
+  --up: #2a78d6;
+  --down: #e34948;
+  --line: #2a78d6;
+  --grid: rgba(20, 20, 30, 0.08);
+  --axis: rgba(20, 20, 30, 0.22);
+  --star-1: #86b6ef;
+  --star-2: #5598e7;
+  --star-3: #2a78d6;
+  --star-4: #1c5cab;
+  --star-5: #184f95;
+  --star-on: #eda100;
+
+  /* Knobs the derived tokens read (how the tint is mixed in this theme) */
+  --ink-mix: black;
+  --ink-share: 74%;
+  --bg-tint-share: 3%;
+  /* A quiet mesh: colour lives in the 10 % (actions, selection), not in the ground. */
+  --blob-share: 24%;
+  --blob-share-2: 14%;
+}
+
+/* ── 2. Theme values: dark (OS) ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --danger: #f04438;
+    --danger-strong: #fda29b;
+    --text: #f2f2f0;
+    --text-2: #c3c2b7;
+    --text-3: #8f8e86;
+    --draft: #f2b84b;
+    /* Readable green text on the dark ground (light uses a darker green). */
+    --ok-dark: #4ade80;
+    --knob-top: #f4f4f6;
+    --knob-bottom: #d9d9de;
+    --bg-base: #121313;
+    --ground-light: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.09);
+    --input-border: rgba(255, 255, 255, 0.16);
+    --glass: rgba(34, 34, 38, 0.6);
+    --glass-strong: rgba(40, 40, 44, 0.8);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+    --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --panel-lift: 5%;
+    /* BonbonUI's own dark glass (see --glass), a little clearer over a photo. */
+    --photo-glass: rgba(34, 34, 38, 0.52);
+    --ink-surface: #0c0c0d;
+    --photo-glass-border: rgba(255, 255, 255, 0.14);
+    --photo-glass-light: rgba(255, 255, 255, 0.2);
+    --panel-border: rgba(255, 255, 255, 0.06);
+    --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --soft-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+    --soft-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.07));
+    --soft-shadow:
+      0 1px 1px rgba(0, 0, 0, 0.3), 0 8px 16px -10px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    --soft-shadow-pressed:
+      inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --tooltip-bg: rgba(30, 30, 33, 0.96);
+    --input-bg: rgba(255, 255, 255, 0.06);
+    --head-bg: rgba(30, 30, 34, 0.94);
+    --editor-bg: #1d1d21;
+    --pill-tint: linear-gradient(
+      175deg,
+      rgba(66, 66, 72, 0.66),
+      rgba(40, 40, 44, 0.52) 55%,
+      rgba(50, 50, 56, 0.58)
+    );
+    --pill-border: rgba(255, 255, 255, 0.14);
+    --pill-light: rgba(255, 255, 255, 0.28);
+    --pill-rim: rgba(255, 255, 255, 0.12);
+    --pill-edge: rgba(255, 255, 255, 0.18);
+    --pill-bloom: rgba(255, 255, 255, 0.08);
+    --front-shadow: rgba(0, 0, 0, 0.42);
+    --pill-lens-tint: linear-gradient(
+      150deg,
+      rgba(58, 58, 64, 0.46),
+      rgba(36, 36, 40, 0.28) 48%,
+      rgba(52, 52, 58, 0.4)
+    );
+    --up: #3987e5;
+    --down: #e66767;
+    --line: #3987e5;
+    --grid: rgba(255, 255, 255, 0.07);
+    --axis: rgba(255, 255, 255, 0.2);
+    --star-1: #184f95;
+    --star-2: #256abf;
+    --star-3: #3987e5;
+    --star-4: #6da7ec;
+    --star-5: #9ec5f4;
+    --ink-mix: white;
+    --ink-share: 62%;
+    --bg-tint-share: 5%;
+    --blob-share: 20%;
+    --blob-share-2: 11%;
+
+    --color-red: #ff453a;
+    --color-orange: #ff9f0a;
+    --color-yellow: #ffd60a;
+    --color-green: #30d158;
+    --color-mint: #63e6e2;
+    --color-teal: #40c8e0;
+    --color-cyan: #64d2ff;
+    --color-blue: #0a84ff;
+    --color-indigo: #5e5ce6;
+    --color-purple: #bf5af2;
+    --color-pink: #ff375f;
+    --color-brown: #ac8e68;
+    --color-gray: #98989d;
+  }
+}
+
+/* ── 2. Theme values: dark (pinned) ──────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --danger: #f04438;
+  --danger-strong: #fda29b;
+  --text: #f2f2f0;
+  --text-2: #c3c2b7;
+  --text-3: #8f8e86;
+  --draft: #f2b84b;
+  /* Readable green text on the dark ground (light uses a darker green). */
+  --ok-dark: #4ade80;
+  --knob-top: #f4f4f6;
+  --knob-bottom: #d9d9de;
+  --bg-base: #121313;
+  --ground-light: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.09);
+  --input-border: rgba(255, 255, 255, 0.16);
+  --glass: rgba(34, 34, 38, 0.6);
+  --glass-strong: rgba(40, 40, 44, 0.8);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --panel-lift: 5%;
+  /* BonbonUI's own dark glass (see --glass), a little clearer over a photo. */
+  --photo-glass: rgba(34, 34, 38, 0.52);
+  --ink-surface: #0c0c0d;
+  --photo-glass-border: rgba(255, 255, 255, 0.14);
+  --photo-glass-light: rgba(255, 255, 255, 0.2);
+  --panel-border: rgba(255, 255, 255, 0.06);
+  --panel-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --soft-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  --soft-bg-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.07));
+  --soft-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.3), 0 8px 16px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --soft-shadow-pressed:
+    inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --tooltip-bg: rgba(30, 30, 33, 0.96);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --head-bg: rgba(30, 30, 34, 0.94);
+  --editor-bg: #1d1d21;
+  --pill-tint: linear-gradient(
+    175deg,
+    rgba(66, 66, 72, 0.66),
+    rgba(40, 40, 44, 0.52) 55%,
+    rgba(50, 50, 56, 0.58)
+  );
+  --pill-border: rgba(255, 255, 255, 0.14);
+  --pill-light: rgba(255, 255, 255, 0.28);
+  --pill-rim: rgba(255, 255, 255, 0.12);
+  --pill-edge: rgba(255, 255, 255, 0.18);
+  --pill-bloom: rgba(255, 255, 255, 0.08);
+  --front-shadow: rgba(0, 0, 0, 0.42);
+  --pill-lens-tint: linear-gradient(
+    150deg,
+    rgba(58, 58, 64, 0.46),
+    rgba(36, 36, 40, 0.28) 48%,
+    rgba(52, 52, 58, 0.4)
+  );
+  --up: #3987e5;
+  --down: #e66767;
+  --line: #3987e5;
+  --grid: rgba(255, 255, 255, 0.07);
+  --axis: rgba(255, 255, 255, 0.2);
+  --star-1: #184f95;
+  --star-2: #256abf;
+  --star-3: #3987e5;
+  --star-4: #6da7ec;
+  --star-5: #9ec5f4;
+  --ink-mix: white;
+  --ink-share: 62%;
+  --bg-tint-share: 5%;
+  --blob-share: 20%;
+  --blob-share-2: 11%;
+
+  --color-red: #ff453a;
+  --color-orange: #ff9f0a;
+  --color-yellow: #ffd60a;
+  --color-green: #30d158;
+  --color-mint: #63e6e2;
+  --color-teal: #40c8e0;
+  --color-cyan: #64d2ff;
+  --color-blue: #0a84ff;
+  --color-indigo: #5e5ce6;
+  --color-purple: #bf5af2;
+  --color-pink: #ff375f;
+  --color-brown: #ac8e68;
+  --color-gray: #98989d;
+}
+
+/* ── 3. Derived from the tint and the theme ──────────────────────────────────────────────── */
+:root,
+[data-tint],
+[data-theme] {
+  /* Accent family — use these in components, never a literal colour. */
+  --accent: var(--tint);
+  /** Hover / pressed fills and the lower end of the primary gradient. */
+  --accent-strong: color-mix(in oklab, var(--tint) 76%, black);
+  /** Accent as text or icon on a surface: darkened in light, lightened in dark (readable). */
+  --accent-ink: color-mix(in oklab, var(--tint) var(--ink-share), var(--ink-mix));
+  /** Selected backgrounds, tags, active nav items. */
+  --accent-soft: color-mix(in srgb, var(--tint) 14%, transparent);
+  /** Row hover, quiet highlights. */
+  --accent-faint: color-mix(in srgb, var(--tint) 7%, transparent);
+  --accent-border: color-mix(in srgb, var(--tint) 45%, transparent);
+  /** Text on an accent fill: white on dark tints, near-black on light ones. */
+  --on-accent: oklch(from var(--accent-strong) clamp(0.16, (0.8 - l) * 999, 1) 0 0);
+  /** Text on a solid status fill. The fill is the plain status colour (not darkened like the
+      accent's), so the switch to near-black comes earlier: white on warn would be ~2:1. */
+  --on-ok: oklch(from var(--ok) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
+  --on-warn: oklch(from var(--warn) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
+  --on-danger: oklch(from var(--danger) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
+  --on-info: oklch(from var(--info) clamp(0.16, (0.7 - l) * 999, 1) 0 0);
+
+  /* Tint scale — 50 is a whisper, 900 nearly black; for tinted sections, charts, badges */
+  --tint-50: color-mix(in oklab, var(--tint) 7%, white);
+  --tint-100: color-mix(in oklab, var(--tint) 16%, white);
+  --tint-200: color-mix(in oklab, var(--tint) 32%, white);
+  --tint-300: color-mix(in oklab, var(--tint) 52%, white);
+  --tint-400: color-mix(in oklab, var(--tint) 76%, white);
+  --tint-500: var(--tint);
+  --tint-600: color-mix(in oklab, var(--tint) 84%, black);
+  --tint-700: color-mix(in oklab, var(--tint) 66%, black);
+  --tint-800: color-mix(in oklab, var(--tint) 48%, black);
+  --tint-900: color-mix(in oklab, var(--tint) 30%, black);
+
+  /* Shape — every radius follows the Application's radius scale */
+  --radius-xs: calc(5px * var(--radius-scale));
+  --radius-sm: calc(8px * var(--radius-scale));
+  --radius-md: calc(11px * var(--radius-scale));
+  --radius-lg: calc(14px * var(--radius-scale));
+  --radius-xl: calc(18px * var(--radius-scale));
+  --radius-card: calc(22px * var(--radius-scale));
+  --radius-pop: calc(20px * var(--radius-scale));
+  --radius-dialog: calc(28px * var(--radius-scale));
+  --radius-pill: 999px;
+
+  /* Control heights — follow the Application's density */
+  /* 2xs/xs are visual sizes only: such controls add an invisible hit area of --target-min. */
+  --control-2xs: calc(24px * var(--density));
+  --control-xs: calc(26px * var(--density));
+  --control-sm: calc(32px * var(--density));
+  --control-md: calc(36px * var(--density));
+  --control-lg: calc(44px * var(--density));
+  --control-xl: calc(52px * var(--density));
+
+  /* Secondary hues for the backdrop, rotated around the tint so any tint gets a harmonic mesh. */
+  --tint-2: oklch(from var(--tint) l c calc(h + 48));
+  --tint-3: oklch(from var(--tint) calc(l + 0.08) calc(c * 0.8) calc(h - 56));
+
+  /* Page background and the blurred colour blobs the glass refracts */
+  --bg: color-mix(in oklab, var(--tint) var(--bg-tint-share), var(--bg-base));
+  --blob-1: color-mix(in srgb, var(--tint) var(--blob-share), transparent);
+  --blob-2: color-mix(in srgb, var(--tint-2) var(--blob-share-2), transparent);
+  --blob-3: color-mix(in srgb, var(--tint-3) var(--blob-share-2), transparent);
+
+  /* Tinted fills */
+  --cell-hover: var(--accent-faint);
+  --tint-accent: var(--accent-soft);
+  --tint-danger: color-mix(in srgb, var(--danger) 10%, transparent);
+  --tint-ok: color-mix(in srgb, var(--ok) 12%, transparent);
+  --tint-warn: color-mix(in srgb, var(--warn) 16%, transparent);
+  --tint-info: color-mix(in srgb, var(--info) 12%, transparent);
+
+  /* Glow: light that comes out of something that is on (a gauge's active arc, a lit toggle). */
+  --glow: color-mix(in oklab, var(--tint) 88%, white);
+  --glow-soft: color-mix(in srgb, var(--glow) 40%, transparent);
+
+  /* Focus */
+  --focus-ring: 2px solid var(--accent);
+  --focus-halo: 0 0 0 3px color-mix(in srgb, var(--tint) 20%, transparent);
+  /** Focus halo of a field or action that is invalid or destructive. */
+  --focus-halo-danger: 0 0 0 3px color-mix(in srgb, var(--danger) 20%, transparent);
+
+  /* Fills for primary, success and danger actions */
+  --grad-primary:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 94%, transparent),
+      color-mix(in srgb, var(--accent-strong) 94%, transparent)
+    );
+  --shadow-primary:
+    0 8px 20px color-mix(in srgb, var(--tint) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --shadow-primary-hover:
+    0 14px 32px color-mix(in srgb, var(--tint) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --grad-success:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(22, 163, 74, 0.94), rgba(14, 122, 54, 0.94));
+  --shadow-success: 0 8px 20px rgba(22, 163, 74, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --shadow-success-hover:
+    0 14px 32px rgba(22, 163, 74, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --grad-danger:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, var(--danger), color-mix(in oklab, var(--danger) 80%, black));
+  --avatar-grad:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(160deg, var(--accent), var(--accent-strong));
+
+  /* Shadows that pick up the front-layer light */
+  --shadow-pop:
+    0 24px 60px rgba(12, 12, 22, 0.26), 0 6px 14px rgba(12, 12, 22, 0.12),
+    inset 0 1.2px 0 var(--pill-light);
+  --shadow-dialog: 0 24px 60px rgba(12, 12, 22, 0.28), inset 0 1.2px 0 var(--pill-light);
+  --shadow-frosted:
+    0 8px 20px rgba(12, 12, 22, 0.14), inset 0 1.2px 0 var(--pill-light),
+    inset 0 -10px 18px -14px var(--pill-rim);
+  --shadow-frosted-hover:
+    0 14px 32px rgba(12, 12, 22, 0.2), inset 0 1.2px 0 var(--pill-light),
+    inset 0 -10px 18px -14px var(--pill-rim);
+  /* Glass, not jelly: a soft lift, one crisp edge of light on top, a faint glow along the
+     bottom where light leaves the pane. */
+  --shadow-header-pill:
+    0 10px 28px rgba(12, 12, 22, 0.14), 0 2px 6px rgba(12, 12, 22, 0.08),
+    0 0 0 0.5px rgba(60, 60, 75, 0.1), inset 0 1px 0 var(--pill-light),
+    inset 0 0 0 0.75px rgba(255, 255, 255, 0.26), inset 0 -10px 16px -14px var(--pill-rim),
+    inset 0 10px 16px -14px rgba(255, 255, 255, 0.45);
+
+  /*
+   * The four layers, bottom to top. Every surface in the library is one of these.
+   *   ground   — on the backdrop itself: headings, text, KPI rows, empty states
+   *   panel    — a solid tile a little lighter than the ground: cards, tables, forms
+   *   selected — a panel that is chosen / active / focused: tinted glass
+   *   front    — liquid glass floating over everything; always sticky (design rule)
+   */
+  --layer-ground-bg: transparent;
+  --layer-panel-bg: color-mix(in oklab, var(--bg), white var(--panel-lift));
+  --layer-panel-border: var(--panel-border);
+  --layer-panel-shadow: var(--panel-shadow), var(--glass-inset);
+  /* Not glass: panels are solid, so nothing behind them needs scattering (and none is paid). */
+  --layer-panel-blur: none;
+  /* Selected is the panel washed in tint: the same tile, coloured; its glow stays close. */
+  --layer-selected-bg: color-mix(in oklab, var(--tint) 14%, var(--layer-panel-bg));
+  --layer-selected-border: var(--accent-border);
+  --layer-selected-shadow:
+    0 14px 30px -16px color-mix(in srgb, var(--tint) 55%, transparent), var(--glass-inset);
+  --layer-front-bg: var(--pill-tint);
+  --layer-front-border: var(--pill-border);
+  --layer-front-shadow: var(--shadow-header-pill);
+  --layer-front-blur: var(--blur-pill);
+  /* A front layer with a GlassLens: the lens does the scattering, so the body thins out. */
+  --layer-front-lens-bg: var(--pill-lens-tint);
+
+  /* ── Legacy aliases (the names existing apps declare; prefer the new names above) ── */
+  --brand-red: var(--accent);
+  --brand-red-dark: var(--accent-strong);
+  --tint-red: var(--accent-soft);
+  --blob-red: var(--blob-1);
+  --blob-blue: var(--blob-2);
+  --series-1: var(--accent);
+}
+
+/* Less transparency asked for: every glass fallback (`--glass-strong`) becomes the solid panel
+ * tile, so nothing turns see-through — before, a solid panel's fallback was the more
+ * transparent of the two. */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  [data-tint],
+  [data-theme] {
+    --glass-strong: var(--layer-panel-bg);
+  }
+}
+
+/*
+ * Over a photo (an Application or Page with a background `image`): panels become glass after
+ * all — over a picture, a solid tile would cut a hole into it, and text needs the blur to stay
+ * legible. Light themes get milky glass, dark themes smoked glass; both with one light edge on
+ * top. Re-declared on [data-theme] inside, like every derived token.
+ */
+[data-surface='photo'],
+[data-surface='photo'] [data-theme] {
+  --layer-panel-bg: var(--photo-glass);
+  --layer-panel-border: var(--photo-glass-border);
+  --layer-panel-shadow:
+    0 18px 40px -20px rgba(0, 0, 0, 0.38), inset 0 1px 0 var(--photo-glass-light),
+    inset 0 0 0 0.5px var(--photo-glass-border);
+  --layer-panel-blur: blur(24px) saturate(112%);
+  --layer-selected-bg: color-mix(in srgb, var(--tint) 22%, var(--photo-glass));
+}
+
+/* ── Theme-independent scales ────────────────────────────────────────────────────────────── */
+:root {
+  /* Neutral fills (they sit on whatever surface is below) */
+  --fill-hover: rgba(127, 127, 127, 0.1);
+  --fill-subtle: rgba(127, 127, 127, 0.06);
+  --fill-muted: rgba(127, 127, 127, 0.14);
+  --fill-off: rgba(127, 127, 127, 0.3);
+  --border-on-accent: rgba(255, 255, 255, 0.35);
+
+  /* States */
+  --disabled-opacity: 0.45;
+  /* The smallest pointer target. Smaller-looking controls (xs buttons, tag ×, bare checkboxes)
+     reach it with an invisible ::before. */
+  --target-min: 32px;
+
+  /* Categorical series (map markers, legends); series-1 follows the tint (see above) */
+  --series-2: #2a78d6;
+  --series-3: #16a34a;
+  --series-4: #eda100;
+
+  /* Layout */
+  --gutter: 1.5rem;
+  /* Content sits a little further in than the header pill and buttons. */
+  --content-gutter: calc(var(--gutter) + 0.5rem);
+  /* Where front-layer elements stick to the viewport edges. */
+  --sticky-gap: var(--space-4);
+  --width-narrow: 46rem;
+  --width-medium: 72rem;
+  --width-wide: 100rem;
+
+  /* Type */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Long-form reading (documents, articles): the system's book face. */
+  --font-serif:
+    ui-serif, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, Cambria, 'Times New Roman',
+    serif;
+  /* Line heights: headings sit tight, running text breathes. */
+  --leading-tight: 1.2;
+  --leading-body: 1.6;
+  /* The comfortable line length for prose; `ch` resolves in the font of the element using it. */
+  --measure: 68ch;
+  --fs-2xs: 0.6875rem;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.875rem;
+  --fs-base: 0.9375rem;
+  --fs-lg: 1rem;
+  --fs-xl: 1.0625rem;
+  --fs-2xl: 1.125rem;
+  --fs-3xl: 1.5rem;
+  --fs-display: 2.25rem;
+  --fs-kpi: 2rem;
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-heavy: 650;
+  --fw-bold: 700;
+  --tracking-tight: -0.01em;
+  --tracking-caps: 0.04em;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Effects */
+  /* Glass softens what is behind it; it does not recolour it (saturation stays near 1). */
+  --blur-glass: blur(16px) saturate(115%);
+  /* Behind modal overlays: enough to push the page back, little enough to keep its shape. */
+  --blur-backdrop: blur(6px);
+  --blur-pill: blur(18px) saturate(118%);
+  --duration-fast: 0.18s;
+  --duration-base: 0.3s;
+  /* The backdrop gradient drifts slowly and gently. */
+  --duration-drift: 48s;
+  /* One turn of the light around a shimmering button: slow enough to read as calm. */
+  --duration-shimmer: 5.6s;
+
+  /* Motion — every animation answers one question: where did it come from, where did it go,
+     did it work? Small things may spring; big things (panels, pages) only ease. */
+  --motion-quick: 120ms; /* press, hover colour */
+  --motion-base: 220ms; /* pop-overs, toggles, indicators */
+  --motion-slow: 360ms; /* panels, sheets, page-level enter */
+  --motion-lazy: 640ms; /* celebrations, gentle floats */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); /* default: arrives softly */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* moving between two places */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* a small overshoot — only for ≤ 48px things */
+  --ease-jelly: cubic-bezier(0.5, 1.8, 0.5, 0.8); /* the squish back after a press */
+  /* A mild speed change for loops that never stop, e.g. the spinner. */
+  --ease-gentle: cubic-bezier(0.45, 0.15, 0.55, 0.85);
+  /* The press: things squish like a gummy, not shrink like a stone. */
+  --press-squish: scale(0.96, 0.93);
+  --hover-lift: translateY(-1px);
+
+  /* Sugar glass: the moving specular sheen on front-layer and primary surfaces. */
+  --sheen: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.38) 48%,
+    rgba(255, 255, 255, 0.08) 56%,
+    transparent 70%
+  );
+
+  /* Stacking (cards carry backdrop filters, which make them stacking contexts) */
+  --z-raised: 20;
+  --z-dropdown: 30;
+  --z-tooltip: 50;
+  --z-front: 90;
+  --z-header: 100;
+  --z-popover: 120;
+  --z-fab: 150;
+  /* Detail panels float above the header and floating actions, below toasts. */
+  --z-panel: 170;
+  --z-toast: 200;
+}
+
+@media (max-width: 520px) {
+  :root {
+    --gutter: 1rem;
+  }
+}
+
+/* Shared animations — here rather than in base.css so components animate with tokens alone.
+ * Prefixed so they cannot clash with an app's own keyframes. */
+@keyframes bb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bb-slide {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes bb-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Micro-animations — shared so every component moves with the same personality. */
+@keyframes bb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes bb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A press that springs back — gummy, not mechanical. */
+@keyframes bb-jelly {
+  0% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(1.06, 0.92);
+  }
+  55% {
+    transform: scale(0.97, 1.04);
+  }
+  75% {
+    transform: scale(1.02, 0.99);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* "No": a small, polite head-shake for invalid input — never for system errors. */
+@keyframes bb-nope {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+/* "This changed": a short glow that fades back, so a value that updates shows that it did. */
+/* A changed value glows once. An inset shadow tints over the element's own background instead of
+   replacing it (opaque cards would flash see-through), and with no `to` frame the animation
+   returns to the element's own shadow. */
+@keyframes bb-changed {
+  from {
+    box-shadow:
+      inset 0 0 0 999px var(--accent-faint),
+      0 0 0 4px var(--accent-faint);
+  }
+}
+
+/* The light a surface catches from nearby emitters (utils/light.ts writes it per surface).
+ * Not inherited: a nested surface must never paint its parent's light. */
+@property --light {
+  syntax: '*';
+  inherits: false;
+}
+
+/* The angle of a button's shimmer (Button `shimmer`); registered so it can be animated. */
+@property --bb-shimmer-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes bb-shimmer-turn {
+  to {
+    --bb-shimmer-angle: 360deg;
+  }
+}
+
+/* Sugar-glass sheen sweeping across once on hover. */
+@keyframes bb-sheen {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* Gentle float for illustrations and idle attention. */
+@keyframes bb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* A sprinkle flies out from its origin and fades (see utils/delight.ts). */
+@keyframes bb-sprinkle {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot))
+      scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --press-squish: none;
+    --hover-lift: none;
+  }
+}
