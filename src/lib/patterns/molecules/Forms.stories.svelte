@@ -126,3 +126,20 @@
     <CopyButton value="3f1c9a2e-8a1d-4f7b" label="Copy order id" />
   </Row>
 </Story>
+
+<!-- A floating "copy link" key: ghost glass in a front layer, a link icon, a tooltip that names the
+     target and then says "Link copied". The value is read at the click, so it follows the page. -->
+<Story name="CopyButton as a link key" asChild>
+  <div data-layer="front" style="display: inline-flex; padding: var(--space-3);">
+    <CopyButton
+      value={() => window.location.href}
+      variant="ghost"
+      icon="link"
+      iconOnly
+      label="Copy link to this page"
+      copiedLabel="Link copied"
+      tooltipPlacement="bottom"
+      sprinkles={false}
+    />
+  </div>
+</Story>

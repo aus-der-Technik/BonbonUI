@@ -258,6 +258,30 @@ describe('new molecules', () => {
     expect(host.textContent).toContain('Copy failed');
   });
 
+  it('CopyButton reads a value function at the click and dresses as a link key', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    let current = 'first';
+    const host = render(CopyButton, {
+      value: () => current,
+      variant: 'ghost',
+      icon: 'link',
+      iconOnly: true,
+      label: 'Copy link',
+      copiedLabel: 'Link copied',
+      sprinkles: false,
+    });
+    const button = host.querySelector('button')!;
+    expect(button.className).toContain('btn--ghost');
+    expect(button.getAttribute('aria-label')).toBe('Copy link');
+    expect(host.querySelector('[role="tooltip"]')?.textContent).toContain('Copy link');
+    current = 'second';
+    click(button);
+    await settle();
+    expect(writeText).toHaveBeenCalledWith('second');
+    expect(host.querySelector('[role="tooltip"]')?.textContent).toContain('Link copied');
+  });
+
   it('CodeBlock masks secrets until revealed', () => {
     const host = render(CodeBlock, {
       code: 'sk_secret',
