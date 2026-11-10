@@ -213,6 +213,42 @@ describe('squeeze', () => {
     stop();
     host.remove();
   });
+
+  it('picks the item a held press is let go over, and only that one', () => {
+    const host = document.createElement('div');
+    host.innerHTML = '<button>Home</button><button>Inbox</button>';
+    document.body.append(host);
+    const [home, inbox] = [...host.querySelectorAll('button')];
+    const clicked: string[] = [];
+    for (const b of [home!, inbox!])
+      b.addEventListener('click', () => clicked.push(b.textContent!));
+    let under: Element | null = inbox!;
+    const hit = vi.fn(() => under);
+    document.elementFromPoint = hit;
+    const stop = squeeze(host);
+    const press = () =>
+      home!.dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1 }),
+      );
+    press();
+    window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
+    expect(clicked).toEqual(['Inbox']);
+    expect(document.activeElement).toBe(inbox);
+    // Let go over the pressed item (its own click handles it), outside, or cancelled: nothing.
+    for (const [target, type] of [
+      [home!, 'pointerup'],
+      [document.body, 'pointerup'],
+      [inbox!, 'pointercancel'],
+    ] as const) {
+      under = target;
+      press();
+      window.dispatchEvent(new PointerEvent(type, { pointerId: 1 }));
+    }
+    expect(clicked).toEqual(['Inbox']);
+    stop();
+    host.remove();
+    Reflect.deleteProperty(document, 'elementFromPoint');
+  });
 });
 
 describe('light', () => {

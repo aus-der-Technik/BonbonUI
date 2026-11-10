@@ -222,6 +222,9 @@ export interface SqueezeOptions {
   /** Called every frame with the press (0…1, rings a little below 0 on release) and where it
    *  is along the long side, in px — to morph the outline there (see `pillPath`). */
   onFrame?: ((press: number, at: number) => void) | undefined;
+  /** A press slid onto another item and let go there picks that item (clicks it), as a
+   *  finger lifted over it would. Default true. */
+  selectOnRelease?: boolean | undefined;
 }
 
 const PINCH_IN = { k: 360, c: 30 };
@@ -235,7 +238,7 @@ const SLIDE = { k: 420, c: 36 };
  * pressed with a finger: it narrows across its long side and gives a hair along it, centred on
  * the press, and on release it settles back with a soft ring. Held down, the press slides with
  * the pointer along the band (between the first and the last item), as a finger dragged over
- * it would. A plain transform, so the surface keeps its shadow and glass; nothing is left on it
+ * it would, and letting go over another item picks that one. A plain transform, so the surface keeps its shadow and glass; nothing is left on it
  * at rest. Returns the cleanup.
  */
 export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => void {
@@ -256,6 +259,7 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
   let along0 = 0;
   let scale = 1;
   let pointer: number | null = null;
+  let pressed: HTMLElement | null = null;
 
   const paint = () => {
     options.onFrame?.(Math.abs(s.x) < 0.002 ? 0 : s.x, at.x);
@@ -290,10 +294,14 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
   };
 
   const down = (event: PointerEvent) => {
-    if (event.button !== 0 || reducedMotion()) return;
+    if (event.button !== 0) return;
     const item =
       event.target instanceof Element ? event.target.closest<HTMLElement>(selector) : null;
     if (!item || !host.contains(item)) return;
+    // Picking on release is function, not motion: it works under reduced motion too.
+    pointer = event.pointerId;
+    pressed = item;
+    if (reducedMotion()) return;
     // Measured from layout offsets, in the host's own coordinates: a transform on an ancestor
     // (a zoomed preview, a scaled card) must not move the squeeze away from the press.
     const r = boxWithin(item, host);
@@ -314,7 +322,6 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
     const rect = parent?.getBoundingClientRect();
     const size = across ? parent?.offsetHeight : parent?.offsetWidth;
     scale = rect && size ? (across ? rect.height : rect.width) / size || 1 : 1;
-    pointer = event.pointerId;
     start0 = across ? event.clientY : event.clientX;
     // A fresh press lands where it is; one during the ring of the last slides over.
     if (Math.abs(s.x) < 0.002) {
@@ -332,15 +339,27 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
     start();
   };
   const up = (event: PointerEvent) => {
-    if (!s.to || event.pointerId !== pointer) return;
-    s.to = 0;
-    pointer = null;
-    start();
+    if (pressed === null || event.pointerId !== pointer) return;
+    const from = pressed;
+    pressed = pointer = null;
+    if (s.to) {
+      s.to = 0;
+      start();
+    }
+    if (event.type !== 'pointerup' || options.selectOnRelease === false) return;
+    // Let go over another item: pick it. The browser clicks neither (the press began on a
+    // different one), and over the pressed item its own click does the work. Hit-tested at the
+    // pointer, not the event target: a touch keeps targeting where it began.
+    const under = document.elementFromPoint?.(event.clientX, event.clientY);
+    const item = under?.closest<HTMLElement>(selector);
+    if (!item || item === from || !host.contains(item)) return;
+    item.focus({ preventScroll: true });
+    item.click();
   };
 
   // Dragging a link or selecting a label would cancel the pointer and end the slide.
   const hold = (event: Event) => {
-    if (s.to) event.preventDefault();
+    if (pressed) event.preventDefault();
   };
 
   host.addEventListener('pointerdown', down);
