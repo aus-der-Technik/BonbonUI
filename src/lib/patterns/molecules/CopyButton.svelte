@@ -7,22 +7,42 @@
    * styled as an inline link, and the outcome appears as a small note right after it; `oncopy`
    * reports the outcome to the page.
    *
+   * `value` may be a function, read at the moment of the click, for values that change while the
+   * button is on screen (the link to the section in view). `variant` and `icon` dress the button
+   * for where it sits: `ghost` with `icon="link"` is a floating "copy link" key. Icon-only, it
+   * names itself and says the outcome in a tooltip (`hint`), so sighted users read "Copied" at
+   * the control too. `sprinkles={false}` keeps a quiet surface quiet.
+   *
    *   <CopyButton value={token} iconOnly />
    *   <CopyButton value={id}>{id}</CopyButton>
+   *   <CopyButton value={() => location.href} variant="ghost" icon="link" iconOnly label="Copy link" />
    */
   import type { Snippet } from 'svelte';
   import Button from '../atoms/Button.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import Tooltip from '../atoms/Tooltip.svelte';
   import VisuallyHidden from '../atoms/VisuallyHidden.svelte';
+  import type { IconName } from '../atoms/icons';
   import { celebrate } from '../../utils/delight';
 
   interface Props {
-    value: string;
+    /** What is copied; a function is read at the moment of the click. */
+    value: string | (() => string);
     label?: string;
     copiedLabel?: string;
     failedLabel?: string;
     iconOnly?: boolean;
     size?: 'xs' | 'sm' | 'md';
+    /** The button's look; `ghost` or `glass` float as glass inside a front layer. */
+    variant?: 'secondary' | 'ghost' | 'glass' | 'plain' | 'soft';
+    /** The icon before anything was copied, e.g. `link` for a "copy link" key. */
+    icon?: IconName;
+    /** Icon-only: a tooltip with the label, then the outcome. */
+    hint?: boolean;
+    tooltipPlacement?: 'top' | 'bottom';
+    tooltipAlign?: 'center' | 'start' | 'end';
+    /** A pinch of sprinkles on a fresh copy. */
+    sprinkles?: boolean;
     oncopy?: ((ok: boolean) => void) | undefined;
     children?: Snippet | undefined;
   }
@@ -34,6 +54,12 @@
     failedLabel = 'Copy failed',
     iconOnly = false,
     size = 'sm',
+    variant = 'secondary',
+    icon = 'copy',
+    hint = true,
+    tooltipPlacement = 'top',
+    tooltipAlign = 'center',
+    sprinkles = true,
     oncopy,
     children,
   }: Props = $props();
@@ -45,12 +71,12 @@
   async function copy() {
     clearTimeout(timer);
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(typeof value === 'function' ? value() : value);
       const again = status === 'copied';
       status = 'copied';
       // One small burst per fresh copy, from the trigger itself.
       const trigger = root?.firstElementChild;
-      if (trigger && !again) celebrate(trigger, 6);
+      if (sprinkles && trigger && !again) celebrate(trigger, 6);
     } catch {
       status = 'failed';
     }
@@ -64,6 +90,17 @@
     status === 'copied' ? copiedLabel : status === 'failed' ? failedLabel : label,
   );
 </script>
+
+{#snippet button()}
+  <Button
+    {size}
+    {iconOnly}
+    variant={status === 'failed' ? 'danger' : variant}
+    icon={status === 'copied' ? 'check' : status === 'failed' ? 'alert' : icon}
+    label={text}
+    onclick={copy}
+  />
+{/snippet}
 
 <span class="copy" bind:this={root}>
   {#if children}
@@ -83,15 +120,12 @@
         <Icon name={status === 'copied' ? 'check' : 'alert'} size={12} />{text}
       </span>
     {/if}
+  {:else if iconOnly && hint}
+    <Tooltip {text} placement={tooltipPlacement} align={tooltipAlign} describe={false}>
+      {@render button()}
+    </Tooltip>
   {:else}
-    <Button
-      {size}
-      {iconOnly}
-      variant={status === 'failed' ? 'danger' : 'secondary'}
-      icon={status === 'copied' ? 'check' : status === 'failed' ? 'alert' : 'copy'}
-      label={text}
-      onclick={copy}
-    />
+    {@render button()}
   {/if}
   <VisuallyHidden><span aria-live="polite">{status === 'idle' ? '' : text}</span></VisuallyHidden>
 </span>
