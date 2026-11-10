@@ -159,6 +159,60 @@ describe('squeeze', () => {
     stop();
     host.remove();
   });
+
+  it('slides the press with a held pointer, between the first and the last item', () => {
+    const run = frames();
+    const host = document.createElement('div');
+    host.innerHTML = '<button>Home</button><button>Inbox</button>';
+    document.body.append(host);
+    const [home, inbox] = [...host.querySelectorAll('button')];
+    const define = (el: HTMLElement, box: Record<string, unknown>) => {
+      for (const [k, v] of Object.entries(box)) Object.defineProperty(el, k, { value: v });
+    };
+    define(host, {
+      offsetLeft: 0,
+      offsetTop: 0,
+      offsetWidth: 70,
+      offsetHeight: 600,
+      offsetParent: null,
+      clientLeft: 0,
+      clientTop: 0,
+    });
+    define(home!, {
+      offsetLeft: 0,
+      offsetTop: 80,
+      offsetWidth: 44,
+      offsetHeight: 44,
+      offsetParent: host,
+    });
+    define(inbox!, {
+      offsetLeft: 0,
+      offsetTop: 200,
+      offsetWidth: 44,
+      offsetHeight: 44,
+      offsetParent: host,
+    });
+    const at: number[] = [];
+    const stop = squeeze(host, { onFrame: (_press, along) => at.push(along) });
+    home!.dispatchEvent(
+      new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 1, clientY: 100 }),
+    );
+    run(4);
+    expect(at.at(-1)).toBe(102);
+    window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 160 }));
+    run(60);
+    expect(at.at(-1)).toBeCloseTo(162, 0);
+    expect(host.style.transformOrigin).toMatch(/^22px 16[12]/);
+    // Past the last item it stops at its centre.
+    window.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientY: 900 }));
+    run(60);
+    expect(at.at(-1)).toBeCloseTo(222, 0);
+    window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
+    run(200);
+    expect(host.style.transform).toBe('');
+    stop();
+    host.remove();
+  });
 });
 
 describe('light', () => {

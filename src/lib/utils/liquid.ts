@@ -227,25 +227,38 @@ export interface SqueezeOptions {
 const PINCH_IN = { k: 360, c: 30 };
 // Letting go: a little looser, so the band settles back with one soft ring — rubber, not a hinge.
 const PINCH_OUT = { k: 210, c: 15 };
+// A held press sliding along the band: quick, but liquid — it trails the finger a hair.
+const SLIDE = { k: 420, c: 36 };
 
 /**
  * Squeeze — pressing an item squeezes the surface around it a little, like a rubber band
  * pressed with a finger: it narrows across its long side and gives a hair along it, centred on
- * the press, and on release it settles back with a soft ring. A plain transform, so the
- * surface keeps its shadow and glass; nothing is left on it at rest. Returns the cleanup.
+ * the press, and on release it settles back with a soft ring. Held down, the press slides with
+ * the pointer along the band (between the first and the last item), as a finger dragged over
+ * it would. A plain transform, so the surface keeps its shadow and glass; nothing is left on it
+ * at rest. Returns the cleanup.
  */
 export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => void {
   const selector = options.selector ?? 'a[href], button';
   const amount = options.amount ?? 0.03;
   const s = spring(0);
+  // Where the press is along the long side, in the host's own px.
+  const at = spring(0);
   let frame = 0;
   let last = 0;
   let across = true;
-  let origin = '50% 50%';
-  let along = 0;
+  // The press's centre across the long side, and the range it may slide along it.
+  let cross = 0;
+  let min = 0;
+  let max = 0;
+  // The pointer where the press began, and the screen px per host px (a zoomed preview).
+  let start0 = 0;
+  let along0 = 0;
+  let scale = 1;
+  let pointer: number | null = null;
 
   const paint = () => {
-    options.onFrame?.(Math.abs(s.x) < 0.002 ? 0 : s.x, along);
+    options.onFrame?.(Math.abs(s.x) < 0.002 ? 0 : s.x, at.x);
     if (Math.abs(s.x) < 0.002) {
       host.style.removeProperty('transform');
       host.style.removeProperty('transform-origin');
@@ -253,7 +266,7 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
     }
     const narrow = 1 - s.x * amount;
     const longer = 1 + s.x * amount * 0.25;
-    host.style.transformOrigin = origin;
+    host.style.transformOrigin = across ? `${cross}px ${at.x}px` : `${at.x}px ${cross}px`;
     host.style.transform = across ? `scale(${narrow}, ${longer})` : `scale(${longer}, ${narrow})`;
   };
 
@@ -261,6 +274,7 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
     const dt = frameTime(now, last);
     last = now;
     step(s, s.to ? PINCH_IN : PINCH_OUT, dt);
+    step(at, SLIDE, dt);
     paint();
     if (s.to || !settled(s, 0.003)) frame = requestAnimationFrame(tick);
     else {
@@ -284,24 +298,62 @@ export function squeeze(host: HTMLElement, options: SqueezeOptions = {}): () => 
     // (a zoomed preview, a scaled card) must not move the squeeze away from the press.
     const r = boxWithin(item, host);
     across = host.offsetHeight > host.offsetWidth;
-    const cx = r.x + r.w / 2;
-    const cy = r.y + r.h / 2;
-    origin = `${cx}px ${cy}px`;
-    along = across ? cy : cx;
+    cross = across ? r.x + r.w / 2 : r.y + r.h / 2;
+    along0 = across ? r.y + r.h / 2 : r.x + r.w / 2;
+    // The press slides between the centres of the outermost items, clear of the round ends.
+    const centres = [...host.querySelectorAll<HTMLElement>(selector)]
+      .filter((el) => el.offsetWidth)
+      .map((el) => {
+        const b = boxWithin(el, host);
+        return across ? b.y + b.h / 2 : b.x + b.w / 2;
+      });
+    min = Math.min(along0, ...centres);
+    max = Math.max(along0, ...centres);
+    // Screen px per layout px, from the untransformed parent (the host itself is squeezed).
+    const parent = host.parentElement;
+    const rect = parent?.getBoundingClientRect();
+    const size = across ? parent?.offsetHeight : parent?.offsetWidth;
+    scale = rect && size ? (across ? rect.height : rect.width) / size || 1 : 1;
+    pointer = event.pointerId;
+    start0 = across ? event.clientY : event.clientX;
+    // A fresh press lands where it is; one during the ring of the last slides over.
+    if (Math.abs(s.x) < 0.002) {
+      at.x = along0;
+      at.v = 0;
+    }
+    at.to = along0;
     s.to = 1;
     start();
   };
-  const up = () => {
-    if (!s.to) return;
+  const move = (event: PointerEvent) => {
+    if (!s.to || event.pointerId !== pointer) return;
+    const delta = ((across ? event.clientY : event.clientX) - start0) / scale;
+    at.to = Math.min(max, Math.max(min, along0 + delta));
+    start();
+  };
+  const up = (event: PointerEvent) => {
+    if (!s.to || event.pointerId !== pointer) return;
     s.to = 0;
+    pointer = null;
     start();
   };
 
+  // Dragging a link or selecting a label would cancel the pointer and end the slide.
+  const hold = (event: Event) => {
+    if (s.to) event.preventDefault();
+  };
+
   host.addEventListener('pointerdown', down);
+  host.addEventListener('dragstart', hold);
+  document.addEventListener('selectstart', hold);
+  window.addEventListener('pointermove', move, { capture: true, passive: true });
   window.addEventListener('pointerup', up, true);
   window.addEventListener('pointercancel', up, true);
   return () => {
     host.removeEventListener('pointerdown', down);
+    host.removeEventListener('dragstart', hold);
+    document.removeEventListener('selectstart', hold);
+    window.removeEventListener('pointermove', move, { capture: true });
     window.removeEventListener('pointerup', up, true);
     window.removeEventListener('pointercancel', up, true);
     cancelAnimationFrame(frame);
