@@ -154,6 +154,7 @@ export { default as EditableGrid } from './patterns/organisms/EditableGrid.svelt
 export { default as FeedbackDialog } from './patterns/organisms/FeedbackDialog.svelte';
 export { default as FloatingActions } from './patterns/organisms/FloatingActions.svelte';
 export { default as FormSection } from './patterns/organisms/FormSection.svelte';
+export { default as GlimmerPanel } from './patterns/organisms/GlimmerPanel.svelte';
 export { default as HorizontalBarChart } from './patterns/organisms/HorizontalBarChart.svelte';
 export { default as LineChart } from './patterns/organisms/LineChart.svelte';
 export { default as ResourceList } from './patterns/organisms/ResourceList.svelte';

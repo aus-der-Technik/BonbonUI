@@ -1147,6 +1147,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     'organisms-navigation-drawers-forms--form-section',
   ),
   e(
+    'GlimmerPanel',
+    'Organisms',
+    'A panel that glimmers while it is being worked on, then fades out.',
+    ['feedback', 'content'],
+    'sparkles',
+    'organisms-glimmerpanel--writing-an-answer',
+  ),
+  e(
     'HorizontalBarChart',
     'Organisms',
     'One bar per row with its count at the end.',

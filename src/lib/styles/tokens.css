@@ -626,6 +626,8 @@
   --duration-drift: 48s;
   /* One turn of the light around a shimmering button: slow enough to read as calm. */
   --duration-shimmer: 5.6s;
+  /* One turn of a GlimmerPanel's halo: a little quicker, as it says "working". */
+  --duration-glimmer: 4.5s;
 
   /* Motion — every animation answers one question: where did it come from, where did it go,
      did it work? Small things may spring; big things (panels, pages) only ease. */
@@ -783,7 +785,8 @@
   inherits: false;
 }
 
-/* The angle of a button's shimmer (Button `shimmer`); registered so it can be animated. */
+/* The angle of a button's shimmer (Button `shimmer`) and a GlimmerPanel's halo; registered so
+ * it can be animated. */
 @property --bb-shimmer-angle {
   syntax: '<angle>';
   inherits: false;
@@ -793,6 +796,23 @@
 @keyframes bb-shimmer-turn {
   to {
     --bb-shimmer-angle: 360deg;
+  }
+}
+
+/* A GlimmerPanel's halo breathes out of step with its turn, so it never repeats exactly. */
+@keyframes bb-glimmer-wave {
+  0%,
+  100% {
+    transform: scale(0.995);
+    filter: blur(7px);
+  }
+  35% {
+    transform: scale(1.005);
+    filter: blur(12px);
+  }
+  70% {
+    transform: scale(1);
+    filter: blur(9px);
   }
 }
 
