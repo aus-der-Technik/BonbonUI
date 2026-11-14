@@ -1235,6 +1235,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     'organisms-panels-lists-status-cards--status-card-working',
   ),
   e(
+    'TimeGrid',
+    'Organisms',
+    'The week or day view of a calendar: events at their time, all-day bars on top.',
+    ['data', 'collaboration'],
+    'calendar',
+    'organisms-timegrid--week',
+  ),
+  e(
     'Toaster',
     'Organisms',
     'The stack of toasts floating in a corner, announced politely.',

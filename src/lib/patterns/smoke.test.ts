@@ -90,6 +90,7 @@ const PROPS: Record<string, Props> = {
   HorizontalBarChart: { data: [{ label: 'A', value: 2 }] },
   ColumnChart: { data: [{ label: 'A', value: 2 }] },
   DonutChart: { data: [{ label: 'A', value: 2 }] },
+  TimeGrid: { days: [new Date(2026, 10, 2)] },
   LineChart: { data: [{ label: 'Mon', value: 4 }] },
   PricingTable: { plans: [{ id: 'free', name: 'Free', monthly: 0 }] },
   ProductGallery: { images: [{ src: '/a.jpg', alt: 'Front' }] },

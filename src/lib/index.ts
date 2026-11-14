@@ -169,6 +169,7 @@ export { default as Sheet } from './patterns/organisms/Sheet.svelte';
 export { default as SideNav } from './patterns/organisms/SideNav.svelte';
 export { default as SplitPane } from './patterns/organisms/SplitPane.svelte';
 export { default as StatusCard } from './patterns/organisms/StatusCard.svelte';
+export { default as TimeGrid } from './patterns/organisms/TimeGrid.svelte';
 export { default as Toaster } from './patterns/organisms/Toaster.svelte';
 
 // Templates
