@@ -1,5 +1,5 @@
 /** Storybook-only mock workbook for the Spreadsheet example: a small candy shop's year. */
-import { cellKey, type Inputs, type NumberFormat } from './sheet-formula';
+import { cellKey, type Inputs, type NumberFormat } from '../utils/sheet';
 
 export type CellAlign = 'left' | 'center' | 'right';
 

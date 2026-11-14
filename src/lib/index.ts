@@ -260,6 +260,8 @@ export { downloadBlob, fetchAndDownload } from './utils/download';
 export { formatBytes, uploadFile, UploadError, type UploadOptions } from './utils/upload';
 export { every, poll, type PollOptions } from './utils/poll';
 export { renderMarkdown } from './utils/markdown';
+/** The spreadsheet engine: `sheet.evaluateSheet(inputs)`, `sheet.formatNumber`, `sheet.FUNCTIONS`… */
+export * as sheet from './utils/sheet';
 export { buildLens, canRefract, frostFilter, LENS_DEFAULTS, type LensOptions } from './utils/lens';
 // The motion and light engine (see Introduction › Layers and › Light, and Explore › Motion &
 // light lab). Application runs the press field and the light for every page; these are for

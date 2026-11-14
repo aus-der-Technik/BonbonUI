@@ -63,6 +63,16 @@ describe('AvatarStack', () => {
     expect(host.textContent).toContain('Ada One · online');
   });
 
+  it('wears each colour and says where the person is', () => {
+    const host = render(AvatarStack, {
+      people: [{ name: 'Ada One', color: 'teal', presence: 'online', detail: 'in Writer' }],
+    });
+    expect(host.textContent).toContain('Ada One · in Writer');
+    expect(host.textContent).not.toContain('online');
+    const disc = host.querySelector<HTMLElement>('.avatar--colored');
+    expect(disc?.getAttribute('style')).toContain('--color-teal');
+  });
+
   it('never cuts a single avatar into "+1"', () => {
     const host = render(AvatarStack, { people: people.slice(0, 4), max: 3 });
     expect(host.textContent).not.toContain('+1');

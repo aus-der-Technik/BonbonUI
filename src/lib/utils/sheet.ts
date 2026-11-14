@@ -1,5 +1,5 @@
 /**
- * Storybook-only: a small spreadsheet engine for the Spreadsheet example — addresses, a formula
+ * A small spreadsheet engine — addresses, a formula
  * evaluator (numbers, + - * /, parentheses, B3, B2:B9, SUM / AVERAGE / MIN / MAX / COUNT), sheet
  * evaluation with loop detection, dependents for the recalc cue, and the reference rewriting that
  * fill, sort and insert need. Errors are values with a plain explanation, never exceptions.

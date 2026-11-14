@@ -40,6 +40,8 @@
     fillActions?: boolean;
     /** Refraction of the standard header's title pill (see TitlePill); `false` = frosted. */
     lens?: LensOptions | false | undefined;
+    /** A mark in the standard header's title pill instead of the tint bar (an app icon). */
+    logo?: Snippet | undefined;
     /** Your own header instead of the standard one (still front layer, still sticky). */
     header?: Snippet | undefined;
     /** A second sticky row under the header: tabs, a segmented control, a toolbar. */
@@ -82,6 +84,7 @@
     actions,
     fillActions = false,
     lens,
+    logo,
     header,
     nav,
     sidebar,
@@ -135,7 +138,7 @@
         <div class="top-row">{@render header()}</div>
       {:else if title}
         <div class="top-row top-row--header">
-          <AppHeader {title} {subtitle} {href} {onhome} {fillActions} {actions} {lens} />
+          <AppHeader {title} {subtitle} {href} {onhome} {fillActions} {actions} {lens} {logo} />
         </div>
       {/if}
       {#if nav}<div class="top-row top-row--nav">{@render nav()}</div>{/if}

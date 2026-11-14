@@ -24,7 +24,7 @@ import {
   sortOrder,
   tokenize,
   type Value,
-} from './sheet-formula';
+} from './sheet';
 
 const sheet = (inputs: Record<string, string>) => evaluateSheet(inputs);
 

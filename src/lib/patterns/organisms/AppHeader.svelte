@@ -32,9 +32,21 @@
     actions?: Snippet | undefined;
     /** Refraction of the title pill (see TitlePill); `false` = frosted. */
     lens?: LensOptions | false | undefined;
+    /** A mark in the title pill instead of the tint bar (an app icon, a logo). */
+    logo?: Snippet | undefined;
   }
 
-  let { title, subtitle, href, hint, onhome, fillActions = false, actions, lens }: Props = $props();
+  let {
+    title,
+    subtitle,
+    href,
+    hint,
+    onhome,
+    fillActions = false,
+    actions,
+    lens,
+    logo,
+  }: Props = $props();
 </script>
 
 <header class="hdr" data-glass>
@@ -47,6 +59,7 @@
         hint={hint ?? (href ? undefined : 'Back to top')}
         onclick={href ? onhome : (onhome ?? scrollToTop)}
         {lens}
+        {logo}
       />
     </div>
     {#if actions}<div class="actions">{@render actions()}</div>{/if}
