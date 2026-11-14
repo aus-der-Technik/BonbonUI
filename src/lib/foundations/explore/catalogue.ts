@@ -1434,6 +1434,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     'organisms-desktop-os-contextmenu--context-menu',
   ),
   e(
+    'ContextPanel',
+    'Desktop',
+    'The right-click panel: a form or a thread for the thing under the pointer.',
+    ['overlay', 'glass', 'form'],
+    'message-plus',
+    'organisms-desktop-os-contextpanel--rename-and-comment',
+  ),
+  e(
     'CommandPalette',
     'Desktop',
     'A search field over grouped commands, for the keyboard.',

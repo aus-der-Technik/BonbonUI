@@ -341,6 +341,7 @@ export {
 } from './patterns/desktop/ControlCenter.svelte';
 export { default as Widget } from './patterns/desktop/Widget.svelte';
 export { default as ContextMenu } from './patterns/desktop/ContextMenu.svelte';
+export { default as ContextPanel } from './patterns/desktop/ContextPanel.svelte';
 export {
   default as CommandPalette,
   type CommandItem,

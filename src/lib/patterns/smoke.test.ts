@@ -38,6 +38,7 @@ const PROPS: Record<string, Props> = {
   ToolGroup: { children: child },
   VisuallyHidden: { children: child },
   ContextMenu: { children: child },
+  ContextPanel: { label: 'Edit', onopen: noop, panel: child, children: child },
   Carousel: { children: child },
   DetailSection: { children: child },
   Field: { label: 'Name', children: child },

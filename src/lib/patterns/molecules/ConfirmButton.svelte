@@ -124,8 +124,11 @@
   class:armed
   class:done
   onkeydown={(event) => {
-    if (event.key === 'Escape' && armed) disarm(true);
-    else restartTimer();
+    if (event.key === 'Escape' && armed) {
+      // Handled: a panel or dialog around it stays open, this Escape only meant "never mind".
+      event.preventDefault();
+      disarm(true);
+    } else restartTimer();
   }}
   onpointermove={restartTimer}
   onfocusout={(event) => {
