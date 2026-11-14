@@ -144,11 +144,17 @@ export { default as NotificationList } from './patterns/organisms/NotificationLi
 export { default as ActivityLog } from './patterns/organisms/ActivityLog.svelte';
 export { default as AppHeader } from './patterns/organisms/AppHeader.svelte';
 export { default as ChartCard } from './patterns/organisms/ChartCard.svelte';
+export { default as ColumnChart } from './patterns/organisms/ColumnChart.svelte';
 export { default as ConfirmDialog } from './patterns/organisms/ConfirmDialog.svelte';
 export { default as DataTable } from './patterns/organisms/DataTable.svelte';
 export { default as DetailPanel } from './patterns/organisms/DetailPanel.svelte';
 export { default as Dialog } from './patterns/organisms/Dialog.svelte';
 export { default as DivergingBarChart } from './patterns/organisms/DivergingBarChart.svelte';
+export {
+  default as DonutChart,
+  donutColors,
+  type DonutSlice,
+} from './patterns/organisms/DonutChart.svelte';
 export { default as Drawer } from './patterns/organisms/Drawer.svelte';
 export { default as EditableGrid } from './patterns/organisms/EditableGrid.svelte';
 export { default as FeedbackDialog } from './patterns/organisms/FeedbackDialog.svelte';

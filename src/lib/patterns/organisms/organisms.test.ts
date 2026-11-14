@@ -2,10 +2,12 @@ import { flushSync } from 'svelte';
 import { click, html, key, render, tick } from '../../test/render';
 import AppHeader from './AppHeader.svelte';
 import ChartCard from './ChartCard.svelte';
+import ColumnChart from './ColumnChart.svelte';
 import DataTable from './DataTable.svelte';
 import Dialog from './Dialog.svelte';
 import Drawer from './Drawer.svelte';
 import DivergingBarChart from './DivergingBarChart.svelte';
+import DonutChart from './DonutChart.svelte';
 import FeedbackDialog from './FeedbackDialog.svelte';
 import FloatingActions from './FloatingActions.svelte';
 import HorizontalBarChart from './HorizontalBarChart.svelte';
@@ -259,6 +261,149 @@ describe('charts', () => {
     expect(fills).toEqual(['var(--accent)', 'var(--danger)', 'var(--accent)']);
     move(diverging.querySelector('rect[role="presentation"]'), 500);
     expect(diverging.querySelectorAll('path.dim')).toHaveLength(2);
+  });
+
+  it('ColumnChart draws columns from a zero baseline, negatives below it', () => {
+    const data = [
+      { label: 'Jan', value: 30, title: 'January' },
+      { label: 'Feb', value: 0 },
+      { label: 'Mar', value: 10, color: 'var(--color-pink)' },
+    ];
+    const host = render(ColumnChart, { data, valueLabel: 'Words', label: 'Words per month' });
+    const bars = host.querySelectorAll('path.bar');
+    expect(bars).toHaveLength(2);
+    expect(bars[0]?.getAttribute('fill')).toBe('var(--up)');
+    expect(bars[1]?.getAttribute('fill')).toBe('var(--color-pink)');
+    expect(host.querySelector('caption')?.textContent).toBe('Words per month');
+    expect([...host.querySelectorAll('th[scope="col"]')].map((th) => th.textContent)).toEqual([
+      'Category',
+      'Words',
+      'Share',
+    ]);
+    // Gridlines on 0, 5, 10 … 30; the zero line is the axis.
+    const labels = [...host.querySelectorAll('svg text')].map((t) => t.textContent);
+    expect(labels).toContain('0');
+    expect(labels).toContain('30');
+    expect(host.querySelector('line[stroke="var(--axis)"]')).not.toBeNull();
+
+    const hits = host.querySelectorAll('rect[role="presentation"]');
+    move(hits[0]!);
+    expect(document.querySelector('.tooltip')?.textContent).toContain('January');
+    expect(document.querySelector('.tooltip')?.textContent).toContain('75');
+    expect(bars[1]?.classList.contains('dim')).toBe(true);
+    expect(host.querySelector('rect[fill="var(--fill-subtle)"]')).not.toBeNull();
+    leave(hits[0]!);
+    expect(document.querySelector('.tooltip')).toBeNull();
+    expect(host.querySelector('.dim')).toBeNull();
+    move(hits[1]!);
+    expect(document.querySelector('.tooltip')?.textContent).toContain('Feb');
+    leave(hits[1]!);
+
+    const loss = render(ColumnChart, {
+      data: [
+        { label: 'Q1', value: 12 },
+        { label: 'Q2', value: -8 },
+        { label: 'Q3', value: Number.NaN, color: 'var(--color-teal)' },
+      ],
+      negativeColor: 'var(--down)',
+      valueFormat: (v) => `${v} €`,
+      tickFormat: (v) => `${v}`,
+    });
+    const down = loss.querySelector('path.down');
+    expect(down?.getAttribute('fill')).toBe('var(--down)');
+    expect(loss.querySelector('path.up')?.getAttribute('fill')).toBe('var(--up)');
+    // The baseline sits between the top and bottom gridlines.
+    expect([...loss.querySelectorAll('svg text')].map((t) => t.textContent)).toContain('-10');
+    move(loss.querySelectorAll('rect[role="presentation"]')[1]!);
+    expect(document.querySelector('.tooltip')?.textContent).toContain('-8 €');
+    expect(document.querySelector('.tooltip')?.textContent).not.toContain('Share');
+    leave(loss.querySelectorAll('rect[role="presentation"]')[1]!);
+    expect(loss.querySelectorAll('th[scope="col"]')).toHaveLength(2);
+    // Not a number: no bar, listed as zero.
+    expect(loss.querySelectorAll('path.bar')).toHaveLength(2);
+    expect(loss.querySelectorAll('tbody tr')[2]?.textContent).toContain('0 €');
+
+    const empty = render(ColumnChart, { data: [{ label: 'a', value: 0 }], emptyMessage: 'None' });
+    expect(empty.querySelector('.empty')?.textContent).toContain('None');
+    expect(empty.querySelector('svg')).toBeNull();
+  });
+
+  it('ColumnChart shortens and thins out crowded labels', () => {
+    const long = Array.from({ length: 6 }, (_, i) => ({
+      label: `A rather long chapter title ${i}`,
+      value: i + 1,
+    }));
+    const host = render(ColumnChart, { data: long });
+    const labels = [...host.querySelectorAll('svg text[text-anchor="middle"]')].map(
+      (t) => t.textContent ?? '',
+    );
+    expect(labels).toHaveLength(6);
+    expect(labels.every((l) => l.endsWith('…'))).toBe(true);
+    // The full title stays in the data table.
+    expect(host.querySelector('tbody th')?.textContent).toBe('A rather long chapter title 0');
+
+    const many = render(ColumnChart, {
+      data: Array.from({ length: 60 }, (_, i) => ({ label: `Day ${i + 1}`, value: i })),
+    });
+    const shown = many.querySelectorAll('svg text[text-anchor="middle"]');
+    expect(shown.length).toBeLessThan(60);
+    expect(shown[shown.length - 1]?.textContent).toBe('Day 60');
+  });
+
+  it('DonutChart shows shares of the positive values with the total in the hole', () => {
+    const data = [
+      { label: 'Pictures', value: 6 },
+      { label: 'Nothing', value: 0 },
+      { label: 'Refunds', value: -3 },
+      { label: 'Documents', value: 2, title: 'Text documents' },
+      { label: 'Other', value: 2, color: 'var(--color-gray)' },
+    ];
+    const host = render(DonutChart, { data, valueLabel: 'Files', categoryLabel: 'Kind' });
+    const slices = host.querySelectorAll('path.slice');
+    expect(slices).toHaveLength(3);
+    // Default colours cycle by position in the data; a slice's own colour wins.
+    expect([...slices].map((p) => p.getAttribute('fill'))).toEqual([
+      'var(--color-blue)',
+      'var(--color-purple)',
+      'var(--color-gray)',
+    ]);
+    expect(host.querySelector('.center .value')?.textContent).toBe('10');
+    expect(host.querySelector('.center .caption')?.textContent).toBe('Total');
+    expect(host.querySelector('caption')?.textContent).toBe('Total 10');
+    expect(host.querySelectorAll('tbody tr')).toHaveLength(3);
+    expect(host.querySelector('.legend')?.textContent).toContain('Documents');
+    expect(host.querySelector('.legend')?.textContent).not.toContain('Refunds');
+
+    move(slices[1]!);
+    expect(document.querySelector('.tooltip')?.textContent).toContain('Text documents');
+    expect(document.querySelector('.tooltip')?.textContent).toContain('20%');
+    expect((slices[1] as SVGPathElement).style.transform).toContain('translate');
+    expect(slices[0]?.classList.contains('dim')).toBe(true);
+    expect(slices[1]?.classList.contains('dim')).toBe(false);
+    leave(slices[1]!);
+    expect(document.querySelector('.tooltip')).toBeNull();
+    expect(host.querySelector('.dim')).toBeNull();
+
+    const own = render(DonutChart, {
+      data: [{ label: 'All', value: 5 }],
+      centerValue: '5 GB',
+      centerLabel: 'Used',
+      legend: false,
+      label: 'Storage',
+    });
+    // A single slice is the whole ring.
+    expect(own.querySelector('path.slice')?.getAttribute('d')?.match(/M/g)).toHaveLength(2);
+    expect(own.querySelector('.center')?.textContent).toContain('5 GB');
+    expect(own.querySelector('.center')?.textContent).toContain('Used');
+    expect(own.querySelector('.legend')).toBeNull();
+    expect(own.querySelector('caption')?.textContent).toBe('Storage');
+
+    const empty = render(DonutChart, {
+      data: [{ label: 'x', value: -1 }],
+      emptyTitle: 'Nothing yet',
+    });
+    expect(empty.querySelector('.empty')?.textContent).toContain('Nothing yet');
+    expect(empty.querySelector('svg')).toBeNull();
   });
 
   it('ChartCard frames a chart with a legend', () => {

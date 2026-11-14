@@ -88,6 +88,8 @@ const PROPS: Record<string, Props> = {
   ResourceList: { items: [{ id: '1' }], key: () => '1', title: () => 'Item' },
   DivergingBarChart: { data: [{ label: 'Mon', up: 3, down: 1 }] },
   HorizontalBarChart: { data: [{ label: 'A', value: 2 }] },
+  ColumnChart: { data: [{ label: 'A', value: 2 }] },
+  DonutChart: { data: [{ label: 'A', value: 2 }] },
   LineChart: { data: [{ label: 'Mon', value: 4 }] },
   PricingTable: { plans: [{ id: 'free', name: 'Free', monthly: 0 }] },
   ProductGallery: { images: [{ src: '/a.jpg', alt: 'Front' }] },

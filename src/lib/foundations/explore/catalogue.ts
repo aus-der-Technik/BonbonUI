@@ -1067,6 +1067,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     'organisms-charts--dashboard-row',
   ),
   e(
+    'ColumnChart',
+    'Organisms',
+    'One vertical bar per category, below a zero baseline when negative.',
+    ['chart'],
+    'chart',
+    'organisms-charts--columns-and-shares',
+  ),
+  e(
     'ConfirmDialog',
     'Organisms',
     '"Are you sure?" for actions that cannot be undone.',
@@ -1105,6 +1113,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     ['chart'],
     'chart',
     'organisms-charts--diverging-bar-chart-90-days',
+  ),
+  e(
+    'DonutChart',
+    'Organisms',
+    'Shares of a whole as a ring, with the total in the hole.',
+    ['chart'],
+    'circle',
+    'organisms-charts--columns-and-shares',
   ),
   e(
     'Drawer',
