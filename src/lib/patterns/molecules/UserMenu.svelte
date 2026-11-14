@@ -10,11 +10,14 @@
   import type { Snippet } from 'svelte';
   import Avatar from '../atoms/Avatar.svelte';
   import Icon from '../atoms/Icon.svelte';
+  import type { PaletteColor } from '../atoms/palette';
   import DropdownMenu, { type MenuEntry } from './DropdownMenu.svelte';
 
   interface Props {
     email: string;
     name?: string | undefined;
+    /** The person's own colour for the avatar (as on their cursor and name tags); default the tint. */
+    color?: PaletteColor | 'accent' | 'auto' | undefined;
     heading?: string;
     signOutLabel?: string;
     menuLabel?: string;
@@ -26,6 +29,7 @@
   let {
     email,
     name,
+    color = 'accent',
     heading = 'Signed in as',
     signOutLabel = 'Sign out',
     menuLabel = 'Account',
@@ -41,7 +45,7 @@
 <DropdownMenu items={entries} label={menuLabel} {menuLabel} minWidth="16rem" {children}>
   {#snippet trigger(props)}
     <button type="button" class="chip" {...props} aria-label="{menuLabel}: {name ?? email}">
-      <Avatar name={name ?? email} />
+      <Avatar name={name ?? email} {color} />
       <span class="email">{name ?? email}</span>
       <Icon name="chevron-down" size={12} class="chev" />
     </button>

@@ -1,4 +1,6 @@
 <script lang="ts" module>
+  import type { PaletteColor } from '../atoms/palette';
+
   export type Presence = 'online' | 'away' | 'busy' | 'offline';
 
   /** A person in a collaborative view: a reviewer, an assignee, someone looking at the page. */
@@ -10,6 +12,10 @@
     src?: string | undefined;
     /** Adds a presence dot. */
     presence?: Presence | undefined;
+    /** The person's own colour — the same one their cursor and name tag wear elsewhere. */
+    color?: PaletteColor | 'accent' | 'auto' | undefined;
+    /** A few words after the name in the tooltip: where they are, what they do ("in Writer"). */
+    detail?: string | undefined;
   }
 </script>
 
@@ -58,9 +64,13 @@
   const hidden = $derived(people.slice(cut));
 
   const tip = (person: Participant) =>
-    presence && person.presence
-      ? `${person.name} · ${presenceLabels[person.presence]}`
-      : person.name;
+    [
+      person.name,
+      person.detail,
+      presence && person.presence && !person.detail ? presenceLabels[person.presence] : undefined,
+    ]
+      .filter(Boolean)
+      .join(' · ');
 </script>
 
 <ul class="stack" aria-label={label} style:--size="{size}px">
@@ -74,14 +84,14 @@
             aria-label={tip(person)}
             onclick={() => onselect(person)}
           >
-            <Avatar name={person.name} src={person.src} {size} />
+            <Avatar name={person.name} src={person.src} {size} color={person.color ?? 'accent'} />
             {#if presence && person.presence}
               <span class="dot dot--{person.presence}" aria-hidden="true"></span>
             {/if}
           </button>
         {:else}
           <span class="face">
-            <Avatar name={person.name} src={person.src} {size} />
+            <Avatar name={person.name} src={person.src} {size} color={person.color ?? 'accent'} />
             {#if presence && person.presence}
               <span class="dot dot--{person.presence}" aria-hidden="true"></span>
             {/if}

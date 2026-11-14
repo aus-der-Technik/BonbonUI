@@ -60,7 +60,7 @@
     type FunctionInfo,
     type NumberFormat,
     type Value,
-  } from './sheet-formula';
+  } from '../utils/sheet';
 
   interface Props {
     /** Name of the workbook in the top bar. */

@@ -22,6 +22,20 @@
 <!-- Who is looking at the page right now: presence dots, names as tooltips, "+n" for the rest. -->
 <Story name="Presence" args={{ people: team.slice(0, 5), max: 5, size: 34 }} />
 
+<!-- Each person in their own colour (the one their cursor wears), and where they are in the tooltip. -->
+<Story
+  name="Colours and whereabouts"
+  args={{
+    people: team.slice(0, 4).map((person, i) => ({
+      ...person,
+      color: (['indigo', 'orange', 'teal', 'pink'] as const)[i],
+      detail: ['in Writer', 'in Sheets · Budget', 'on the dashboard', 'in Calendar'][i],
+    })),
+    max: 4,
+    size: 34,
+  }}
+/>
+
 <!-- Assignees on a card: small and without presence. -->
 <Story name="Assignees" args={{ people: team.slice(0, 3), size: 22, presence: false }} />
 
