@@ -1,6 +1,8 @@
 <script module lang="ts">
   import { defineMeta } from '@storybook/addon-svelte-csf';
   import ChartCard from './ChartCard.svelte';
+  import ColumnChart from './ColumnChart.svelte';
+  import DonutChart from './DonutChart.svelte';
   import DivergingBarChart from './DivergingBarChart.svelte';
   import HorizontalBarChart from './HorizontalBarChart.svelte';
   import LineChart from './LineChart.svelte';
@@ -31,6 +33,50 @@
     { label: 'E-mail', value: 104, color: 'var(--color-orange)' },
     { label: 'Ads', value: 66, color: 'var(--color-teal)' },
   ];
+  const chapters = [
+    'Arrival',
+    'The long winter',
+    'Letters',
+    'A house by the harbour',
+    'Storm',
+    'Return',
+    'Epilogue',
+  ].map((label, i) => ({
+    label,
+    title: `Chapter ${i + 1}: ${label}`,
+    value: [3200, 5400, 2100, 6100, 4300, 3900, 1200][i] ?? 0,
+  }));
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  const profit = months.map((label, i) => ({
+    label,
+    value: Math.round(Math.sin(i / 1.8) * 14_000 + 4_000),
+  }));
+  const storage = [
+    { label: 'Pictures', value: 18.4 },
+    { label: 'Documents', value: 6.2 },
+    { label: 'Spreadsheets', value: 3.1 },
+    { label: 'Videos', value: 9.8 },
+    { label: 'Other', value: 1.6 },
+  ];
+  const gb = (v: number) => `${decimalFormat.format(v)} GB`;
+  const euro = new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: 'EUR',
+    notation: 'compact',
+  });
 </script>
 
 <script lang="ts">
@@ -118,6 +164,34 @@
   </Grid>
 </Story>
 
+<!-- ColumnChart, the upright sibling of HorizontalBarChart, and DonutChart for shares of a whole.
+     Long chapter names shorten with an ellipsis before any is left out (the tooltip has the full
+     title); the donut shows the total in its hole and lifts the slice under the pointer. -->
+<Story name="Columns and shares" asChild>
+  <Grid min="20rem">
+    <ChartCard title="Words per chapter" sub="Draft 3">
+      <ColumnChart data={chapters} valueLabel="Words" color="var(--accent)" />
+    </ChartCard>
+    <ChartCard title="Storage" sub="By kind of file">
+      <DonutChart data={storage} valueFormat={gb} valueLabel="Size" centerLabel="Used" />
+    </ChartCard>
+  </Grid>
+</Story>
+
+<!-- Negative values hang below the zero line, here in `--down`; the share drops out of the
+     tooltip once a value is negative. -->
+<Story name="ColumnChart, profit and loss" asChild>
+  <ChartCard title="Profit per month" sub="This year">
+    <ColumnChart
+      data={profit}
+      valueLabel="Profit"
+      negativeColor="var(--down)"
+      valueFormat={(v) => euro.format(v)}
+      height={240}
+    />
+  </ChartCard>
+</Story>
+
 <!-- 90 slots: bars get thinner, every few days carry a label. -->
 <Story name="DivergingBarChart, 90 days" asChild>
   <ChartCard title="Votes per day" sub="Last 90 days">
@@ -136,6 +210,12 @@
     </ChartCard>
     <ChartCard title="Distribution">
       <HorizontalBarChart data={[]} emptyText="No ratings in this range" />
+    </ChartCard>
+    <ChartCard title="Words per chapter">
+      <ColumnChart data={[]} emptyMessage="No chapters yet" />
+    </ChartCard>
+    <ChartCard title="Storage">
+      <DonutChart data={[]} emptyMessage="Nothing stored yet" />
     </ChartCard>
   </DashboardGrid>
 </Story>

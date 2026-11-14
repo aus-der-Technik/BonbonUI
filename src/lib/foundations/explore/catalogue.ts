@@ -1067,6 +1067,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     'organisms-charts--dashboard-row',
   ),
   e(
+    'ColumnChart',
+    'Organisms',
+    'One vertical bar per category, below a zero baseline when negative.',
+    ['chart'],
+    'chart',
+    'organisms-charts--columns-and-shares',
+  ),
+  e(
     'ConfirmDialog',
     'Organisms',
     '"Are you sure?" for actions that cannot be undone.',
@@ -1105,6 +1113,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     ['chart'],
     'chart',
     'organisms-charts--diverging-bar-chart-90-days',
+  ),
+  e(
+    'DonutChart',
+    'Organisms',
+    'Shares of a whole as a ring, with the total in the hole.',
+    ['chart'],
+    'circle',
+    'organisms-charts--columns-and-shares',
   ),
   e(
     'Drawer',
@@ -1217,6 +1233,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     ['feedback'],
     'check-circle',
     'organisms-panels-lists-status-cards--status-card-working',
+  ),
+  e(
+    'TimeGrid',
+    'Organisms',
+    'The week or day view of a calendar: events at their time, all-day bars on top.',
+    ['data', 'collaboration'],
+    'calendar',
+    'organisms-timegrid--week',
   ),
   e(
     'Toaster',
@@ -1432,6 +1456,14 @@ export const catalogue: readonly CatalogueEntry[] = [
     ['overlay', 'glass'],
     'more-vertical',
     'organisms-desktop-os-contextmenu--context-menu',
+  ),
+  e(
+    'ContextPanel',
+    'Desktop',
+    'The right-click panel: a form or a thread for the thing under the pointer.',
+    ['overlay', 'glass', 'form'],
+    'message-plus',
+    'organisms-desktop-os-contextpanel--rename-and-comment',
   ),
   e(
     'CommandPalette',
