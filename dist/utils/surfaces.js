@@ -1,0 +1,30 @@
+/**
+ * Surfaces — which layer an element belongs to, in one place for everything that asks:
+ * the light (`light.ts`, what a surface reflects) and the press field (`flow.ts`, what a press
+ * moves). Components declare their layer with `data-layer` (Layer, Section), `data-glass`
+ * (floating bars and overlays) or `data-reflect` (Card and custom surfaces).
+ */
+/** Glass: what floats above the page — front layers, overlays, declared glass. */
+export const GLASS_SELECTOR = '[data-layer="front"], [data-glass], [data-reflect="glass"], dialog, [popover]';
+/** Panels: what lies on the page. */
+export const PANEL_SELECTOR = '[data-layer="panel"], [data-layer="selected"], [data-reflect="panel"]';
+/** Every surface that can catch light (glass or panel; the ground has none). */
+export const SURFACE_SELECTOR = `${GLASS_SELECTOR}, ${PANEL_SELECTOR}`;
+/** Is this surface glass? Floating surfaces are, and so is every panel over a photo. */
+export function isGlass(el) {
+    return (el.matches(GLASS_SELECTOR) ||
+        (el.matches(PANEL_SELECTOR) && !!el.closest('[data-surface="photo"]')));
+}
+/** Plain panel tiles (not selected ones): what tokens.css turns into a well when nested. */
+const TILE_SELECTOR = '[data-layer="panel"], [data-reflect="panel"]:not(.card--selected)';
+/** A panel inside another panel: drawn as a quiet well (tokens.css), so it catches no light. */
+export function nestedPanel(el) {
+    return el.matches(TILE_SELECTOR) && !!el.parentElement?.closest(TILE_SELECTOR);
+}
+/** What kind of surface an element is; anything that is not glass reflects like a panel. */
+export function surfaceKind(el) {
+    const declared = el.getAttribute('data-reflect');
+    if (declared === 'glass' || declared === 'panel')
+        return declared;
+    return isGlass(el) ? 'glass' : 'panel';
+}
