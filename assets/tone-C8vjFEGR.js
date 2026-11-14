@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";function t(e){return n[e]??e}var n,r;function i(){return(i=e((()=>{n={error:`danger`,brand:`accent`},r=e=>t(e)===`danger`?`alert`:`status`})))()}export{r as n,t as r,i as t};

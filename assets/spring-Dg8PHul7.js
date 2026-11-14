@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";function t(e,{k:t,c:n},r){e.v+=(-t*(e.x-e.to)-n*e.v)*r,e.x+=e.v*r}var n,r,i;function a(){return(a=e((()=>{n=e=>({x:e,v:0,to:e}),r=(e,t=.05)=>Math.abs(e.x-e.to)<t&&Math.abs(e.v)<t*4,i=(e,t)=>Math.min(1/30,Math.max(0,(e-t)/1e3))})))()}export{t as a,n as i,a as n,r,i as t};
