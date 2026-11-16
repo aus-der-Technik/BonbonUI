@@ -220,6 +220,8 @@
     /* One light from above: every raised button carries the same top highlight. */
     --_highlight: inset 0 1px 0 rgba(255, 255, 255, 0.5);
     position: relative;
+    /* On a filled action only on a dark ground (see --on-accent-highlight in tokens.css). */
+    --_highlight-on-fill: inset 0 1px 0 rgb(255 255 255 / calc(0.5 * var(--on-accent-highlight, 1)));
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -445,21 +447,25 @@
   .btn--danger-solid {
     background: var(--grad-danger);
     border-color: var(--border-on-accent);
+    /* From the outer edge: from the padding box the gradient repeats into a see-through border
+       (a dark line on top, a light one below). */
+    background-origin: border-box;
     color: var(--on-danger);
     box-shadow:
       0 6px 16px color-mix(in srgb, var(--danger) 26%, transparent),
-      var(--_highlight);
+      var(--_highlight-on-fill);
   }
   .btn--danger-solid:hover:not(:disabled, .btn--soft-disabled) {
     filter: brightness(1.05);
     box-shadow:
       0 10px 24px color-mix(in srgb, var(--danger) 34%, transparent),
-      var(--_highlight);
+      var(--_highlight-on-fill);
   }
 
   .btn--primary {
     background: var(--grad-primary);
     border-color: var(--border-on-accent);
+    background-origin: border-box;
     color: var(--on-accent);
     box-shadow: var(--shadow-primary);
   }
@@ -471,6 +477,7 @@
   .btn--success {
     background: var(--grad-success);
     border-color: var(--border-on-accent);
+    background-origin: border-box;
     color: var(--on-ok);
     box-shadow: var(--shadow-success);
   }

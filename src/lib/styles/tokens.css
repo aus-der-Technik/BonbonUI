@@ -74,6 +74,12 @@
   --ground-light: rgba(255, 255, 255, 0.5);
   --border: rgba(255, 255, 255, 0.6);
   --border-strong: rgba(20, 20, 30, 0.08);
+  /* Edge of a filled action: none on a light ground, a white rim on a dark one. On a light
+     ground any rim, or a hard 1px highlight inside it, draws a second pill: the button looks
+     like it sits on another one. There the fill runs to the edge and its gradient alone lights
+     it from above. */
+  --border-on-accent: transparent;
+  --on-accent-highlight: 0;
   /* Field edges need to be findable: stronger than a card's hairline. */
   --input-border: rgba(20, 20, 30, 0.16);
   --glass: rgba(255, 255, 255, 0.55);
@@ -167,6 +173,8 @@
     --ground-light: rgba(255, 255, 255, 0.03);
     --border: rgba(255, 255, 255, 0.08);
     --border-strong: rgba(255, 255, 255, 0.09);
+    --border-on-accent: rgba(255, 255, 255, 0.35);
+    --on-accent-highlight: 1;
     --input-border: rgba(255, 255, 255, 0.16);
     --glass: rgba(34, 34, 38, 0.6);
     --glass-strong: rgba(40, 40, 44, 0.8);
@@ -258,6 +266,8 @@
   --ground-light: rgba(255, 255, 255, 0.03);
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.09);
+  --border-on-accent: rgba(255, 255, 255, 0.35);
+  --on-accent-highlight: 1;
   --input-border: rgba(255, 255, 255, 0.16);
   --glass: rgba(34, 34, 38, 0.6);
   --glass-strong: rgba(40, 40, 44, 0.8);
@@ -427,16 +437,19 @@
     );
   --shadow-primary:
     0 8px 20px color-mix(in srgb, var(--tint) min(100%, 30% * var(--shine) / 0.6), transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    inset 0 1px 0 rgb(255 255 255 / calc(0.55 * var(--on-accent-highlight)));
   --shadow-primary-hover:
     0 14px 32px color-mix(in srgb, var(--tint) min(100%, 40% * var(--shine) / 0.6), transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    inset 0 1px 0 rgb(255 255 255 / calc(0.7 * var(--on-accent-highlight)));
   --grad-success:
     linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
     linear-gradient(180deg, rgba(22, 163, 74, 0.94), rgba(14, 122, 54, 0.94));
-  --shadow-success: 0 8px 20px rgba(22, 163, 74, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --shadow-success:
+    0 8px 20px rgba(22, 163, 74, 0.3),
+    inset 0 1px 0 rgb(255 255 255 / calc(0.55 * var(--on-accent-highlight)));
   --shadow-success-hover:
-    0 14px 32px rgba(22, 163, 74, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    0 14px 32px rgba(22, 163, 74, 0.4),
+    inset 0 1px 0 rgb(255 255 255 / calc(0.7 * var(--on-accent-highlight)));
   --grad-danger:
     linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 55%),
     linear-gradient(180deg, var(--danger), color-mix(in oklab, var(--danger) 80%, black));
@@ -548,7 +561,6 @@
   --fill-subtle: rgba(127, 127, 127, 0.06);
   --fill-muted: rgba(127, 127, 127, 0.14);
   --fill-off: rgba(127, 127, 127, 0.3);
-  --border-on-accent: rgba(255, 255, 255, 0.35);
 
   /* States */
   --disabled-opacity: 0.45;

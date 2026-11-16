@@ -269,6 +269,12 @@ export const corrections: { title: string; intro: string; items: Correction[] }[
         where: 'Layers · Card · Layer · tokens.css',
       },
       {
+        was: 'In light mode a filled action (primary, success, solid danger) had a white rim and a hard 1px highlight inside it: on the pale ground they drew a second pill, a button on a button.',
+        now: 'On a light ground it has no rim: the fill runs to the edge and its gradient alone lights it from above. On a dark ground the rim and highlight stay.',
+        breaks: ['function'],
+        where: 'Button · Widget · tokens.css',
+      },
+      {
         was: 'Chart tooltips inside a panel opened far from the pointer and under the next panel.',
         now: 'They open in the top layer, beside the pointer, above everything.',
         breaks: ['locality'],

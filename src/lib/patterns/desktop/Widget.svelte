@@ -137,6 +137,7 @@
   }
   .filled {
     border-color: var(--border-on-accent);
+    background-origin: border-box;
     background-image:
       linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 50%),
       linear-gradient(
