@@ -1,0 +1,3 @@
+/* Everything an admin app needs globally: tokens first, then the page base. */
+@import './tokens.css';
+@import './base.css';
