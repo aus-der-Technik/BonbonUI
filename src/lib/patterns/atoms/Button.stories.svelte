@@ -36,6 +36,7 @@
 
 <script lang="ts">
   let saving = $state(false);
+  let arranging = $state(false);
   let fan = $state(true);
   let light = $state(false);
 
@@ -109,9 +110,21 @@ it brightens under the pointer and sinks when held. Round icon-only soft keys wo
 
 <!-- `shimmer`: a slow ring of light travels round the button — for the one action a panel is
 waiting for, at most one per screen. It goes still while the button is busy or disabled, and
-stands still under reduced motion. -->
+stands still under reduced motion. While an edit state is on (arranging a dashboard, editing a
+card), the "Done" that leaves it shimmers: it is the way out the screen is waiting for. -->
 <Story name="Shimmer" asChild>
   <Row>
+    {#if arranging}
+      <Button
+        variant="primary"
+        icon="check"
+        label="Done"
+        shimmer
+        onclick={() => (arranging = false)}
+      />
+    {:else}
+      <Button variant="soft" icon="edit" label="Edit" onclick={() => (arranging = true)} />
+    {/if}
     <Button variant="primary" size="lg" icon="droplet" label="Mist now" shimmer />
     <Button
       variant="primary"

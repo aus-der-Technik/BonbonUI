@@ -452,7 +452,8 @@
         {/snippet}
       </Popover>
       <Spacer />
-      <Button label="Done" variant="primary" shape="pill" onclick={close} />
+      <!-- Done leaves the card's edit state: the way out shimmers. -->
+      <Button label="Done" variant="primary" shape="pill" shimmer onclick={close} />
     </Row>
   {/snippet}
 </Drawer>

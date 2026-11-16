@@ -23,7 +23,8 @@
    * a button that may become unavailable right after it was pressed (a pager's "Next" on the
    * last page), so focus is not dropped to the page. `soft` keys show `aria-pressed="true"` in
    * the tint, so a round `soft` icon button is a toggle too. `shimmer` lays a slow ring of light
-   * behind the button — for the one action a panel is waiting for, at most one per screen.
+   * behind the button — for the one action a panel is waiting for, at most one per screen. The
+   * "Done" that leaves an edit state (arranging a dashboard, editing a card) is such an action.
    *
    * Glass is for what floats, and what floats is sticky: `glass` and `ghost` are liquid glass
    * only inside a front layer or an overlay (anything marked `data-layer="front"` or
@@ -219,9 +220,9 @@
   .btn {
     /* One light from above: every raised button carries the same top highlight. */
     --_highlight: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-    position: relative;
     /* On a filled action only on a dark ground (see --on-accent-highlight in tokens.css). */
     --_highlight-on-fill: inset 0 1px 0 rgb(255 255 255 / calc(0.5 * var(--on-accent-highlight, 1)));
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -446,10 +447,10 @@
 
   .btn--danger-solid {
     background: var(--grad-danger);
-    border-color: var(--border-on-accent);
     /* From the outer edge: from the padding box the gradient repeats into a see-through border
        (a dark line on top, a light one below). */
     background-origin: border-box;
+    border-color: var(--border-on-accent);
     color: var(--on-danger);
     box-shadow:
       0 6px 16px color-mix(in srgb, var(--danger) 26%, transparent),
@@ -464,8 +465,8 @@
 
   .btn--primary {
     background: var(--grad-primary);
-    border-color: var(--border-on-accent);
     background-origin: border-box;
+    border-color: var(--border-on-accent);
     color: var(--on-accent);
     box-shadow: var(--shadow-primary);
   }
@@ -476,8 +477,8 @@
 
   .btn--success {
     background: var(--grad-success);
-    border-color: var(--border-on-accent);
     background-origin: border-box;
+    border-color: var(--border-on-accent);
     color: var(--on-ok);
     box-shadow: var(--shadow-success);
   }
