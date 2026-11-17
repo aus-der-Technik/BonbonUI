@@ -1,0 +1,10 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{Ct as t,En as n,Gt as r,Kt as i,Nn as a,Pt as o,Yt as s,en as c,hn as l,l as u,mn as d,nn as f,xt as p}from"./iframe-CRBWUEFv.js";import{i as m,n as h,r as g,t as _}from"./create-runtime-stories-DtoOt73Q.js";import{n as v,t as y}from"./SourceList-DGGqPTU0.js";import{_ as b,f as x,m as S}from"./mock-desktop-Cq7Fn4sQ.js";function C(e,t){l(t,!0);let a=f(`inbox`);var u=D(),m=i(u);T(m,{name:`Mailboxes`,asChild:!0,children:(e,t)=>{var i=E(),s=r(i);y(s,{get sections(){return S},label:`Mailboxes`,get value(){return o(a)},set value(e){c(a,e,!0)}}),n(i),p(e,i)},$$slots:{default:!0},parameters:{docs:{description:{story:`Mailboxes with counts; the labelled sections fold. Up / Down move, Enter selects.
+
+    Why tinted glass for the selected item instead of a solid accent bar? Sidebars are read all
+    day; a solid bar is the loudest thing in the window. The selected layer (tint wash + rim +
+    soft glow) is the same "chosen" signal as everywhere else and keeps the icons' candy
+    colours readable on top of it.`}},__svelteCsf:{rawCode:`<div style="max-width:15rem">
+  <SourceList sections={mailboxes} bind:value label="Mailboxes" />
+</div>`}}});var h=s(m,2);T(h,{name:`Places`,asChild:!0,children:(e,t)=>{var i=E(),a=r(i);y(a,{get sections(){return b},value:`documents`,label:`Places`}),n(i),p(e,i)},$$slots:{default:!0},parameters:{docs:{description:{story:`Places of a file manager, with coloured tags.`}},__svelteCsf:{rawCode:`<div style="max-width:15rem">
+  <SourceList sections={places} value="documents" label="Places" />
+</div>`}}}),p(e,u),d()}var w,T,E,D,O,k,A,j;function M(){return(M=e((()=>{a(),m(),v(),x(),u(),h(),w={title:`Organisms/Desktop & OS/SourceList`,component:y,tags:[`autodocs`]},{Story:T}=g(w),E=t(`<div style="max-width:15rem"><!></div>`),D=t(`<!> <!>`,1),C.__docgen={data:[],name:`SourceList.stories.svelte`},O=_(C,w),k=[`Mailboxes`,`Places`],A={...O.Mailboxes,tags:[`svelte-csf-v5`]},j={...O.Places,tags:[`svelte-csf-v5`]}})))()}M();export{A as Mailboxes,j as Places,k as __namedExportsOrder,w as default};

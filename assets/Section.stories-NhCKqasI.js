@@ -1,0 +1,18 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{Ct as t,Kt as n,Nn as r,Yt as i,hn as a,jn as o,l as s,m as c,mn as l,p as u,xt as d}from"./iframe-CRBWUEFv.js";import{a as f,i as p,n as m,r as h,t as g}from"./create-runtime-stories-DtoOt73Q.js";import{n as _,t as v}from"./Button-CVctU_KR.js";import{n as y,t as b}from"./Section-Byz1upsT.js";import{n as x,t as S}from"./DemoBox-Dn1EgtJh.js";function C(e,t){a(t,!1),c();var r=O(),s=n(r);T(s,{name:`Default`,template:(e,t=o)=>{b(e,u(t,{actions:e=>{v(e,{size:`sm`,icon:`user-plus`,label:`Invite`})},children:(e,t)=>{S(e,{label:`Content`,tall:!0})},$$slots:{actions:!0,default:!0}}))},$$slots:{template:!0},parameters:{docs:{description:{story:`Title, description and actions in one consistent heading; children stacked below.`}},__svelteCsf:{rawCode:`<Section {...args}>
+  {#snippet actions()}<Button size="sm" icon="user-plus" label="Invite" />{/snippet}
+  <Demo label="Content" tall />
+</Section>`}}});var f=i(s,2);T(f,{name:`Grid layout`,asChild:!0,children:(e,t)=>{b(e,{title:`Plans`,eyebrow:`Pricing`,layout:`grid`,min:`12rem`,children:(e,t)=>{var r=E(),a=n(r);S(a,{label:`Free`,tall:!0});var o=i(a);S(o,{label:`Team`,tall:!0});var s=i(o);S(s,{label:`Business`,tall:!0}),d(e,r)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:'`layout="grid"` lays the children out in responsive columns.'}},__svelteCsf:{rawCode:`<Section title="Plans" eyebrow="Pricing" layout="grid" min="12rem">
+  <Demo label="Free" tall /><Demo label="Team" tall /><Demo label="Business" tall />
+</Section>`}}});var p=i(f,2);T(p,{name:`As a panel`,asChild:!0,children:(e,t)=>{b(e,{title:`Danger zone`,description:`These actions cannot be undone.`,level:`panel`,children:(e,t)=>{v(e,{variant:`danger`,icon:`trash`,label:`Delete workspace`})},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:'`level="panel"` turns the whole section into a glass card.'}},__svelteCsf:{rawCode:`<Section title="Danger zone" description="These actions cannot be undone." level="panel">
+  <Button variant="danger" icon="trash" label="Delete workspace" />
+</Section>`}}});var m=i(p,2);T(m,{name:`Hero`,asChild:!0,children:(e,t)=>{b(e,{size:`hero`,align:`center`,eyebrow:`New`,title:`Build calm interfaces, fast`,description:`One tint, four layers and auto layout — the rest follows.`,layout:`row`,children:(e,t)=>{var r=D(),a=n(r);v(a,{variant:`primary`,size:`lg`,shape:`pill`,label:`Get started`});var o=i(a,2);v(o,{size:`lg`,shape:`pill`,label:`Read the docs`}),d(e,r)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:'`size="hero"` and `align="center"` for the opening of a website or a welcome screen.'}},__svelteCsf:{rawCode:`<Section
+  size="hero"
+  align="center"
+  eyebrow="New"
+  title="Build calm interfaces, fast"
+  description="One tint, four layers and auto layout — the rest follows."
+  layout="row"
+>
+  <Button variant="primary" size="lg" shape="pill" label="Get started" />
+  <Button size="lg" shape="pill" label="Read the docs" />
+</Section>`}}}),d(e,r),l()}var w,T,E,D,O,k,A,j,M,N,P;function F(){return(F=e((()=>{r(),f(),p(),y(),_(),x(),s(),m(),w={title:`Layout/Section`,component:b,tags:[`autodocs`],args:{title:`Members`,description:`Everyone who can sign in to this workspace.`}},{Story:T}=h(w),E=t(`<!><!><!>`,1),D=t(`<!> <!>`,1),O=t(`<!> <!> <!> <!>`,1),C.__docgen={data:[],name:`Section.stories.svelte`},k=g(C,w),A=[`Default`,`GridLayout`,`AsAPanel`,`Hero`],j={...k.Default,tags:[`svelte-csf-v5`]},M={...k.GridLayout,tags:[`svelte-csf-v5`]},N={...k.AsAPanel,tags:[`svelte-csf-v5`]},P={...k.Hero,tags:[`svelte-csf-v5`]}})))()}F();export{N as AsAPanel,j as Default,M as GridLayout,P as Hero,A as __namedExportsOrder,w as default};

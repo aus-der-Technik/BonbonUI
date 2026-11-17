@@ -1,0 +1,46 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{Bt as t,Ct as n,Dt as r,Kt as i,Nn as a,Pt as o,St as s,Tn as c,Yt as l,_t as u,cn as d,ct as f,en as p,hn as m,jn as h,l as g,mn as _,nn as ee,p as te,rt as ne,xt as v}from"./iframe-CRBWUEFv.js";import{i as y,n as b,r as x,t as S}from"./create-runtime-stories-DtoOt73Q.js";import{n as C,t as w}from"./Badge-DjfGPRKM.js";import{n as T,t as E}from"./Button-CVctU_KR.js";import{n as D,t as O}from"./Card-D32i3kW8.js";import{n as k,t as A}from"./Heading-DUPmpqkk.js";import{n as j,t as M}from"./Text-LIE7rjjM.js";import{n as N,t as P}from"./Grid-DlBYjD7t.js";import{n as F,t as I}from"./Row-VZCdMLbk.js";import{n as L,t as R}from"./Price-DHPglp2z.js";function z(e,n){m(n,!0);let a=ee(`team`),g=[{id:`solo`,name:`Solo`,price:0,note:`For trying things out`},{id:`team`,name:`Team`,price:12,note:`Up to 20 seats`},{id:`org`,name:`Organisation`,price:29,note:`SSO and audit log`}];var y=W(),b=i(y);V(b,{name:`Playground`,template:(e,t=h)=>{O(e,te(t,{children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`lg`,children:(e,t)=>{c();var n=r(`Weekly report`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{tone:`muted`,children:(e,t)=>{c();var n=r(`1.284 new sign-ups · 12 % more than last week`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}}))},$$slots:{template:!0},parameters:{__svelteCsf:{rawCode:`<Card {...args}>
+  <Heading level={3} size="lg">Weekly report</Heading>
+  <Text tone="muted">1.284 new sign-ups · 12 % more than last week</Text>
+</Card>`}}});var x=l(b,2);V(x,{name:`Surfaces`,asChild:!0,children:(e,t)=>{P(e,{min:`14rem`,children:(e,t)=>{var n=U(),a=i(n);O(a,{gap:`xs`,children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`base`,children:(e,t)=>{c();var n=r(`Glass`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{size:`sm`,tone:`muted`,children:(e,t)=>{c();var n=r(`The content card every section sits on.`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}});var o=l(a,2);O(o,{surface:`frosted`,gap:`xs`,children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`base`,children:(e,t)=>{c();var n=r(`Frosted`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{size:`sm`,tone:`muted`,children:(e,t)=>{c();var n=r(`Sign-in card, chooser tiles, dialogs.`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}});var s=l(o,2);O(s,{surface:`subtle`,gap:`xs`,children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`base`,children:(e,t)=>{c();var n=r(`Subtle`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{size:`sm`,tone:`muted`,children:(e,t)=>{c();var n=r(`A quiet box inside a card.`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:"The three surfaces. `glass` is the panel layer; `frosted` the denser liquid glass; `subtle` a\nflat box inside another card."}},__svelteCsf:{rawCode:`<Grid min="14rem">
+  <Card gap="xs">
+    <Heading level={3} size="base">Glass</Heading>
+    <Text size="sm" tone="muted">The content card every section sits on.</Text>
+  </Card>
+  <Card surface="frosted" gap="xs">
+    <Heading level={3} size="base">Frosted</Heading>
+    <Text size="sm" tone="muted">Sign-in card, chooser tiles, dialogs.</Text>
+  </Card>
+  <Card surface="subtle" gap="xs">
+    <Heading level={3} size="base">Subtle</Heading>
+    <Text size="sm" tone="muted">A quiet box inside a card.</Text>
+  </Card>
+</Grid>`}}});var S=l(x,2);V(S,{name:`Header and actions`,asChild:!0,children:(e,t)=>{O(e,{title:`Open orders`,count:`1.284`,gap:`sm`,actions:e=>{var t=H(),n=i(t);E(n,{size:`sm`,icon:`filter`,label:`Filter`});var r=l(n,2);E(r,{size:`sm`,variant:`tinted`,icon:`plus`,label:`New`}),v(e,t)},children:(e,t)=>{M(e,{tone:`muted`,children:(e,t)=>{c();var n=r(`Orders that are paid but not yet shipped.`);v(e,n)},$$slots:{default:!0}})},$$slots:{actions:!0,default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:`A header row without wrappers: caps title, muted count, actions on the right.`}},__svelteCsf:{rawCode:`<Card title="Open orders" count="1.284" gap="sm">
+  {#snippet actions()}
+    <Button size="sm" icon="filter" label="Filter" />
+    <Button size="sm" variant="tinted" icon="plus" label="New" />
+  {/snippet}
+  <Text tone="muted">Orders that are paid but not yet shipped.</Text>
+</Card>`}}});var C=l(S,2);V(C,{name:`Selectable cards`,asChild:!0,children:(e,n)=>{P(e,{min:`12rem`,children:(e,n)=>{var m=s(),h=i(m);ne(h,17,()=>g,e=>e.id,(e,n)=>{{let s=d(()=>o(a)===o(n).id);O(e,{gap:`sm`,get selected(){return o(s)},onclick:()=>p(a,o(n).id,!0),children:(e,s)=>{var d=U(),p=i(d);I(p,{justify:`between`,children:(e,s)=>{var d=H(),p=i(d);A(p,{level:3,size:`lg`,children:(e,i)=>{c();var a=r();t(()=>u(a,o(n).name)),v(e,a)},$$slots:{default:!0}});var m=l(p,2),h=e=>{w(e,{tone:`accent`,icon:`check`,label:`Selected`})};f(m,e=>{o(a)===o(n).id&&e(h)}),v(e,d)},$$slots:{default:!0}});var m=l(p,2);R(m,{get amount(){return o(n).price},unit:`/ month`,freeLabel:`Free`,size:`lg`});var h=l(m,2);M(h,{size:`sm`,tone:`muted`,children:(e,i)=>{c();var a=r();t(()=>u(a,o(n).note)),v(e,a)},$$slots:{default:!0}}),v(e,d)},$$slots:{default:!0}})}}),v(e,m)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:"Clickable cards with `onclick` lift a little on hover and work with Enter and Space. Cards are\nbig, so they ease and press with only a hint (99%) — a gummy squish at this size would look like\na wobble. `selected` marks the chosen one with tinted glass. Click a plan."}},__svelteCsf:{rawCode:`<Grid min="12rem">
+  {#each plans as p (p.id)}
+    <Card gap="sm" selected={plan === p.id} onclick={() => (plan = p.id)}>
+      <Row justify="between">
+        <Heading level={3} size="lg">{p.name}</Heading>
+        {#if plan === p.id}<Badge tone="accent" icon="check" label="Selected" />{/if}
+      </Row>
+      <Price amount={p.price} unit="/ month" freeLabel="Free" size="lg" />
+      <Text size="sm" tone="muted">{p.note}</Text>
+    </Card>
+  {/each}
+</Grid>`}}});var T=l(C,2);V(T,{name:`Link card`,asChild:!0,children:(e,t)=>{P(e,{min:`14rem`,children:(e,t)=>{var n=H(),a=i(n);O(a,{href:`#`,gap:`xs`,children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`base`,children:(e,t)=>{c();var n=r(`Getting started`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{size:`sm`,tone:`muted`,children:(e,t)=>{c();var n=r(`Set up your workspace in five minutes.`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}});var o=l(a,2);O(o,{href:`#`,gap:`xs`,children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`base`,children:(e,t)=>{c();var n=r(`Invite your team`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{size:`sm`,tone:`muted`,children:(e,t)=>{c();var n=r(`Share projects and work together.`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:"With `href` the whole card is a link."}},__svelteCsf:{rawCode:`<Grid min="14rem">
+  <Card href="#" gap="xs">
+    <Heading level={3} size="base">Getting started</Heading>
+    <Text size="sm" tone="muted">Set up your workspace in five minutes.</Text>
+  </Card>
+  <Card href="#" gap="xs">
+    <Heading level={3} size="base">Invite your team</Heading>
+    <Text size="sm" tone="muted">Share projects and work together.</Text>
+  </Card>
+</Grid>`}}});var D=l(T,2);V(D,{name:`Accent stripe`,asChild:!0,children:(e,t)=>{O(e,{accent:!0,padding:`lg`,gap:`xs`,children:(e,t)=>{var n=H(),a=i(n);A(a,{level:3,size:`base`,children:(e,t)=>{c();var n=r(`Pinned`);v(e,n)},$$slots:{default:!0}});var o=l(a,2);M(o,{tone:`muted`,children:(e,t)=>{c();var n=r(`Maintenance window on Sunday, 02:00–04:00.`);v(e,n)},$$slots:{default:!0}}),v(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:"`accent` draws a tint stripe on the left edge, e.g. for a pinned note."}},__svelteCsf:{rawCode:`<Card accent padding="lg" gap="xs">
+  <Heading level={3} size="base">Pinned</Heading>
+  <Text tone="muted">Maintenance window on Sunday, 02:00–04:00.</Text>
+</Card>`}}}),v(e,y),_()}var B,V,H,U,W,G,K,q,J,Y,X,Z,Q;function $(){return($=e((()=>{a(),y(),N(),F(),C(),T(),D(),k(),L(),j(),g(),b(),B={title:`Atoms/Card`,component:O,tags:[`autodocs`],args:{surface:`glass`,padding:`md`,gap:`sm`},argTypes:{surface:{control:`inline-radio`,options:[`glass`,`frosted`,`subtle`]},padding:{control:`inline-radio`,options:[`none`,`sm`,`md`,`lg`]},gap:{control:`select`,options:[void 0,`none`,`xs`,`sm`,`md`,`lg`]}}},{Story:V}=x(B),H=n(`<!> <!>`,1),U=n(`<!> <!> <!>`,1),W=n(`<!> <!> <!> <!> <!> <!>`,1),z.__docgen={data:[],name:`Card.stories.svelte`},G=S(z,B),K=[`Playground`,`Surfaces`,`HeaderAndActions`,`SelectableCards`,`LinkCard`,`AccentStripe`],q={...G.Playground,tags:[`svelte-csf-v5`]},J={...G.Surfaces,tags:[`svelte-csf-v5`]},Y={...G.HeaderAndActions,tags:[`svelte-csf-v5`]},X={...G.SelectableCards,tags:[`svelte-csf-v5`]},Z={...G.LinkCard,tags:[`svelte-csf-v5`]},Q={...G.AccentStripe,tags:[`svelte-csf-v5`]}})))()}$();export{Q as AccentStripe,Y as HeaderAndActions,Z as LinkCard,q as Playground,X as SelectableCards,J as Surfaces,K as __namedExportsOrder,B as default};
