@@ -714,6 +714,18 @@
 }
 
 /* Micro-animations — shared so every component moves with the same personality. */
+/* A bottom sheet rising from the edge (SheetGrip), and its backdrop fading in. */
+@keyframes bb-sheet-up {
+  from {
+    translate: 0 40%;
+    opacity: 0;
+  }
+}
+@keyframes bb-sheet-fade {
+  from {
+    opacity: 0;
+  }
+}
 @keyframes bb-pop {
   from {
     opacity: 0;

@@ -127,6 +127,7 @@ const preview: Preview = {
             'Light',
             'Colour & tint',
             'Layout',
+            'On phones',
             'Recipes',
             'Design tokens',
             'Conventions',

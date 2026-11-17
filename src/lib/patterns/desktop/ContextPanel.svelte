@@ -51,9 +51,15 @@
    * it keeps the theme and tint of where it opened and the snippet is ordinary content of the
    * caller. Escape, a press outside or `close()` shut it and focus returns where it was; popups
    * opened from inside it (a Popover, a menu, a select, a dialog) do not count as outside.
+   *
+   * Touch: `longpress` lets a finger held still on the area open it the same way (the row under
+   * it squeezes once; no text selection or callout instead; text fields keep their own
+   * long-press). `sheet` makes the panel a bottom sheet on phones (see SheetGrip).
    */
   import { tick, type Snippet } from 'svelte';
   import { fromOtherModal } from '../../utils/overlay';
+  import { longpress as hold, squeezeOnce } from '../../utils/gestures';
+  import SheetGrip from '../atoms/SheetGrip.svelte';
 
   interface Props {
     /** Called on right-click or the menu keys: the thing to show, or nothing to stand aside. */
@@ -67,6 +73,12 @@
     disabled?: boolean;
     /** Inner padding of the panel. */
     padding?: 'none' | 'sm' | 'md';
+    /** On phones (≤ 720 px) a bottom sheet with a grip to pull it down: `true`/`'sheet'`, `'half'`, `'full'`. */
+    sheet?: boolean | 'sheet' | 'half' | 'full';
+    /** Accessible name of the sheet's grip. */
+    gripLabel?: string;
+    /** A finger held still on the area opens the panel too (touch screens only). */
+    longpress?: boolean;
     /** The panel's content for a target, with a function that closes it. */
     panel: Snippet<[T, () => void]>;
     /** The area that answers a right-click. */
@@ -80,6 +92,9 @@
     width,
     disabled = false,
     padding = 'md',
+    sheet = false,
+    gripLabel = 'Close',
+    longpress = false,
     panel,
     children,
   }: Props = $props();
@@ -129,6 +144,24 @@
   }
 
   const closePanel = () => close();
+
+  /** A held finger asks the area what is under it, the way a right-click does. */
+  function held(x: number, y: number, under: Element): boolean {
+    const event = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      button: 2,
+    });
+    under.dispatchEvent(event);
+    if (!event.defaultPrevented) return false;
+    squeezeOnce(
+      under.closest('li, tr, article, [role="row"], [role="listitem"], [data-longpress-target]') ??
+        under,
+    );
+    return true;
+  }
 
   function oncontextmenu(event: MouseEvent) {
     if (disabled) return;
@@ -223,7 +256,14 @@
 </script>
 
 <!-- display: contents — the wrapper only listens, it adds no box to the layout. -->
-<div class="target" role="presentation" {oncontextmenu} {onkeydown}>
+<div
+  class="target"
+  role="presentation"
+  data-longpress={longpress ? '' : undefined}
+  {oncontextmenu}
+  {onkeydown}
+  use:hold={{ onpress: held, enabled: longpress }}
+>
   {@render children()}
 </div>
 
@@ -240,6 +280,11 @@
       style:width
       oncontextmenu={keepInside}
     >
+      {#if sheet}<SheetGrip
+          close={closePanel}
+          size={sheet === true ? 'sheet' : sheet}
+          label={gripLabel}
+        />{/if}
       {@render panel(opened.target, closePanel)}
     </div>
   {/key}
@@ -248,6 +293,19 @@
 <style>
   .target {
     display: contents;
+  }
+  /* A long-press opens the panel: no text selection or callout instead (fields keep theirs). */
+  @media (hover: none) and (pointer: coarse) {
+    .target[data-longpress] :global(*) {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .target[data-longpress]
+      :global(:is(input, textarea, [contenteditable='true'], [contenteditable=''])) {
+      -webkit-user-select: text;
+      user-select: text;
+    }
   }
   .panel {
     position: fixed;

@@ -23,6 +23,8 @@ const modules = import.meta.glob<{ default: Component<Props> }>(
     '!./**/*.test.svelte',
     // needs a real Leaflet canvas; checked in Storybook (see CLAUDE.md)
     '!./organisms/MapView.svelte',
+    // lives only inside a PanelStack; mounted there in phone.test.ts
+    '!./organisms/StackPanel.svelte',
   ],
   { eager: true },
 );
@@ -39,6 +41,11 @@ const PROPS: Record<string, Props> = {
   VisuallyHidden: { children: child },
   ContextMenu: { children: child },
   ContextPanel: { label: 'Edit', onopen: noop, panel: child, children: child },
+  Joined: { label: 'Find', children: child },
+  PanelStack: { onclose: noop, children: child },
+  SheetGrip: { close: noop },
+  MoreButton: { label: 'More', onclick: noop },
+  BottomBar: { items: [{ id: 'home', label: 'Home', icon: 'home', href: '#' }] },
   Carousel: { children: child },
   DetailSection: { children: child },
   Field: { label: 'Name', children: child },

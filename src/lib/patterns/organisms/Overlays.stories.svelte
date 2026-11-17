@@ -7,6 +7,8 @@
   import Button from '../atoms/Button.svelte';
   import Card from '../atoms/Card.svelte';
   import Badge from '../atoms/Badge.svelte';
+  import Input from '../atoms/Input.svelte';
+  import Field from '../molecules/Field.svelte';
   import Row from '../layout/Row.svelte';
   import Stack from '../layout/Stack.svelte';
   import Spacer from '../layout/Spacer.svelte';
@@ -29,6 +31,7 @@
 <script lang="ts">
   let dialogOpen = $state(false);
   let feedbackOpen = $state(false);
+  let formOpen = $state(false);
   let failingOpen = $state(false);
   let selected = $state(3);
   let dialogTrigger = $state<HTMLElement>();
@@ -59,6 +62,39 @@
     {#snippet actions()}
       <Button label="Keep editing" onclick={() => (dialogOpen = false)} />
       <Button variant="danger-solid" label="Discard" onclick={() => (dialogOpen = false)} />
+    {/snippet}
+  </Dialog>
+</Story>
+
+<!-- A long form on a phone: `phone="full"` takes the whole visible screen — it shrinks above the
+     on-screen keyboard, the body scrolls and the actions stay pinned side by side at the thumb.
+     On a wider screen it is the usual dialog. -->
+<Story
+  name="Dialog full screen on a phone"
+  asChild
+  globals={{ viewport: { value: 'mobile2', isRotated: false } }}
+>
+  <Button
+    label="Add a connection"
+    variant="primary"
+    icon="plus"
+    onclick={() => (formOpen = true)}
+  />
+  <Dialog
+    open={formOpen}
+    phone="full"
+    title="Add a connection"
+    intro="Where the files are and how to sign in."
+    onclose={() => (formOpen = false)}
+  >
+    <Stack gap="md">
+      {#each ['Name', 'Address', 'Port', 'User', 'Password', 'Folder', 'Note'] as field (field)}
+        <Field label={field}><Input type={field === 'Password' ? 'password' : 'text'} /></Field>
+      {/each}
+    </Stack>
+    {#snippet actions()}
+      <Button label="Cancel" onclick={() => (formOpen = false)} />
+      <Button variant="primary" label="Connect" onclick={() => (formOpen = false)} />
     {/snippet}
   </Dialog>
 </Story>

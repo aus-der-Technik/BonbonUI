@@ -39,6 +39,7 @@ export const tags = [
   'shop',
   'website',
   'collaboration',
+  'phone',
   'deprecated',
 ] as const;
 export type CatalogueTag = (typeof tags)[number];
@@ -57,6 +58,7 @@ export const tagBlurbs: Record<CatalogueTag, string> = {
   shop: 'Products, carts and checkout.',
   website: 'Sections of a public website.',
   collaboration: 'People working together.',
+  phone: 'Made for phones and fingers: sheets, gestures, the bottom edge.',
   deprecated: 'An old name kept so older imports still compile.',
 };
 
@@ -1544,6 +1546,55 @@ export const catalogue: readonly CatalogueEntry[] = [
     ['feedback', 'overlay'],
     'inbox',
     'organisms-desktop-os-notifications--notification-center',
+  ),
+  // ── Phones and touch ────────────────────────────────────────────────────────────────────
+  e(
+    'SheetGrip',
+    'Atoms',
+    'The grabber that turns a Popover or ContextPanel into a bottom sheet on phones.',
+    ['overlay', 'phone'],
+    'grip',
+    'atoms-sheetgrip--on-a-popover',
+  ),
+  e(
+    'MoreButton',
+    'Molecules',
+    'The "⋯" of a row that opens its panel for fingers that cannot right-click.',
+    ['phone', 'form'],
+    'more',
+    'molecules-morebutton--in-a-list',
+  ),
+  e(
+    'Joined',
+    'Molecules',
+    'Controls that belong together as one capsule: a field and its button, ‹ Today ›.',
+    ['form', 'layout'],
+    'layout',
+    'molecules-joined--search-and-new',
+  ),
+  e(
+    'BottomBar',
+    'Organisms',
+    'A phone’s navigation along the bottom edge, with badges and a "More" sheet.',
+    ['navigation', 'phone', 'glass'],
+    'grid',
+    'organisms-bottombar--phone',
+  ),
+  e(
+    'PanelStack',
+    'Organisms',
+    'Room for panels that open beside each other: a group, then a person in it.',
+    ['overlay', 'phone'],
+    'layers',
+    'organisms-panelstack--group-then-person',
+  ),
+  e(
+    'StackPanel',
+    'Organisms',
+    'One panel in a PanelStack; covers the one below with "‹ back" where both do not fit.',
+    ['overlay', 'phone'],
+    'sidebar',
+    'organisms-panelstack--group-then-person',
   ),
 ];
 

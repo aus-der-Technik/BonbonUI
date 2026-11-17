@@ -134,13 +134,16 @@ Peer dependency: `svelte ^5.20`.
 - **It answers back.** Selections flow like thick water, a press gives a little where it lands,
   and what is on casts light on its surroundings. `Application` does it for every page;
   `wiggle` (0–1, default 0.03) and `shine` (0–1, default 0.6) set how much.
+- **Made for a thumb, too.** Below 720 px a floating panel rises from the bottom edge as a sheet
+  you pull away, a held finger opens what a right-click opens, the navigation moves to a bottom
+  bar and nothing hides behind the on-screen keyboard. The desktop stays as it is.
 - **Props in, callbacks out.** Components fetch, store and route nothing; async callbacks may
   return a promise.
 
 ## What's inside
 
-176 components from atoms to templates, desktop-style windows and docks, charts, a motion and
-light engine, and 23 complete example pages. Browse them all in **Explore › Component
+182 components from atoms to templates, desktop-style windows and docks, charts, bottom sheets,
+touch gestures and a phone's bottom bar, a motion and light engine, and 23 complete example pages. Browse them all in **Explore › Component
 catalogue**.
 
 ## Develop

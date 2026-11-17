@@ -156,7 +156,7 @@
 </script>
 
 {#snippet content()}
-  {#if size === 'xs'}<span class="btn__hit" aria-hidden="true"></span>{/if}
+  <span class="btn__hit" aria-hidden="true"></span>
   <!-- Busy: refresh-style icons spin, any other icon makes room for a spinner. -->
   {#if leading}{@render leading()}
   {:else if busy && !(icon && SPINNING.has(icon))}<Spinner size={iconSize - 4} label="" />
@@ -328,7 +328,8 @@
     cursor: default;
   }
 
-  /* Invisible hit area: an xs button looks small but is as easy to hit as any control. */
+  /* Invisible hit area: a small button is as easy to hit as any control — --target-min (32 px,
+     44 px for a finger, styles/touch.css). Sizes already that tall add nothing. */
   .btn__hit {
     position: absolute;
     top: min(0px, calc((100% - var(--target-min)) / 2));
