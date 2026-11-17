@@ -90,6 +90,19 @@ describe('ContextPanel', () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it('keeps the target readable for a handler that closes first', () => {
+    const onuse = vi.fn();
+    const host = render(ContextPanelFixture, { onopen: () => 'a', onuse });
+    rightClick(host.querySelector('.row'));
+    click(dialog()!.querySelector('.use'));
+    expect(dialog()).toBeNull();
+    expect(onuse).toHaveBeenCalledWith('a');
+
+    click(host.querySelector('.opener'));
+    click(dialog()!.querySelector('.use'));
+    expect(onuse).toHaveBeenLastCalledWith('from-button');
+  });
+
   it('opens from the keyboard under the focused element', () => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(100, 200, 80, 20),

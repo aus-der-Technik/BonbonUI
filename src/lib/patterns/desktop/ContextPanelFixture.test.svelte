@@ -10,9 +10,11 @@
     onopen: (event: MouseEvent | KeyboardEvent) => string | null | undefined;
     onclose?: () => void;
     disabled?: boolean;
+    /** Called by "Use", after the panel closed, with its target. */
+    onuse?: (target: string) => void;
   }
 
-  let { onopen, onclose = () => {}, disabled = false }: Props = $props();
+  let { onopen, onclose = () => {}, disabled = false, onuse = () => {} }: Props = $props();
   let ref = $state<ContextPanel<string>>();
 </script>
 
@@ -29,6 +31,14 @@
     <input class="field" />
     <select class="choice"><option>One</option></select>
     <button type="button" class="done" onclick={close}>Done</button>
+    <button
+      type="button"
+      class="use"
+      onclick={() => {
+        close();
+        onuse(target);
+      }}>Use</button
+    >
     <Popover label="More"><button type="button" class="in-popover">x</button></Popover>
     <ContextMenu items={[{ label: 'Copy' }]}><span class="menu-area">menu</span></ContextMenu>
     <ConfirmButton onconfirm={() => {}} />
