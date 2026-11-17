@@ -7,6 +7,8 @@ interface that answers every touch.
 **Storybook:** <https://aus-der-technik.github.io/BonbonUI/>, or locally with `npm run storybook`.
 Start with **Introduction › Welcome**.
 
+**Instagram:** <https://www.instagram.com/bonbonui.webcomponents/>
+
 <p align="center">
   <a href="https://aus-der-technik.github.io/BonbonUI/?path=/story/pages-devices--smart-home"><img src="src/lib/foundations/assets/welcome-smart-home.jpg" alt="A smart-home dashboard built with BonbonUI: smoked glass panels over a house, a temperature arc and device controls."></a>
 </p>
