@@ -10,6 +10,11 @@
    * the backdrop all report through `onclose` (once per request). `dismissible={false}` holds
    * the dialog open while work runs; `closeButton` / `closeOnBackdrop` switch those off.
    *
+   * On a phone it rises from the bottom edge, stays above the on-screen keyboard (`--keyboard`,
+   * see `watchDevice`) and keeps its actions in reach while a long body scrolls.
+   * `phone="full"` takes the whole visible screen instead — for long forms: the body scrolls,
+   * the actions are pinned side by side at the thumb.
+   *
    *   <Dialog open={asking} origin={trigger} title="Discard changes?" onclose={() => (asking = false)}>
    *     …{#snippet actions()}<Button label="Keep editing" />…{/snippet}
    *   </Dialog>
@@ -33,6 +38,8 @@
     /** A click on the backdrop closes it. */
     closeOnBackdrop?: boolean;
     closeLabel?: string;
+    /** On a phone (≤ 720 px): a bottom `sheet` (the default) or the `full` visible screen. */
+    phone?: 'sheet' | 'full';
     onclose: () => void;
     children: Snippet;
     actions?: Snippet | undefined;
@@ -48,6 +55,7 @@
     closeButton = true,
     closeOnBackdrop = true,
     closeLabel = 'Close',
+    phone = 'sheet',
     onclose,
     children,
     actions,
@@ -162,6 +170,7 @@
   bind:this={dialog}
   class="dialog"
   class:grow={!!origin}
+  class:full={phone === 'full'}
   style:--width={width}
   aria-labelledby={title ? `${id}-title` : undefined}
   {oncancel}
@@ -281,6 +290,67 @@
     .actions {
       flex-direction: column-reverse;
       align-items: stretch;
+    }
+  }
+  /* On a phone: off the home indicator and above the keyboard, the actions in reach while the
+     body scrolls (they stick to the bottom over a fade). */
+  @media (max-width: 520px) {
+    .dialog[open] {
+      margin-bottom: calc(var(--space-2) + max(env(safe-area-inset-bottom), var(--keyboard, 0px)));
+      max-height: calc(var(--visible-height, 100dvh) - env(safe-area-inset-top) - 2rem);
+      overscroll-behavior: contain;
+    }
+    .dialog > .actions:last-child {
+      position: sticky;
+      bottom: calc(-1 * var(--space-5));
+      margin-inline: calc(-1 * var(--space-6));
+      margin-bottom: calc(-1 * var(--space-5));
+      padding: var(--space-3) var(--space-6) var(--space-5);
+      background: linear-gradient(to bottom, transparent, var(--layer-front-bg) 30%);
+    }
+  }
+  /* phone="full": the whole visible screen, the body scrolling, the actions pinned side by side. */
+  @media (max-width: 720px) {
+    .dialog.full[open] {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      max-width: none;
+      height: var(--visible-height, 100dvh);
+      max-height: none;
+      margin: 0;
+      padding: calc(var(--space-5) + env(safe-area-inset-top)) var(--space-4) 0;
+      border: 0;
+      border-radius: 0;
+      overflow: hidden;
+    }
+    .dialog.full .close {
+      top: calc(var(--space-3) + env(safe-area-inset-top));
+    }
+    .dialog.full > .body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding-bottom: var(--space-4);
+    }
+    .dialog.full > .actions,
+    .dialog.full > .actions:last-child {
+      position: static;
+      flex-direction: row;
+      align-items: center;
+      justify-content: stretch;
+      margin: 0 calc(-1 * var(--space-4));
+      padding: var(--space-3) var(--space-4)
+        calc(var(--space-3) + max(env(safe-area-inset-bottom), 0px));
+      border-top: 1px solid var(--border-strong);
+      background: none;
+    }
+    .dialog.full > .actions > :global(*) {
+      flex: 1;
+    }
+    :global(:root[data-typing]) .dialog.full > .actions {
+      padding-bottom: var(--space-3);
     }
   }
   @keyframes sheet-in {

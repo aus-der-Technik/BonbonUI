@@ -49,6 +49,11 @@ export const introPages = [
     id: 'introduction-layout--layout',
     blurb: 'Stacks, rows, grids and the page frame.',
   },
+  {
+    title: 'On phones',
+    id: 'introduction-on-phones--on-phones',
+    blurb: 'Bottom sheets, gestures, the bottom bar and the keyboard.',
+  },
   { title: 'Recipes', id: 'introduction-recipes--recipes', blurb: 'Whole screens, ready to copy.' },
   {
     title: 'Design tokens',

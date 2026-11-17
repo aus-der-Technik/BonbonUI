@@ -395,3 +395,36 @@ export {
   waitingLines,
   type Greeting,
 } from './utils/delight';
+
+// Phones and touch: bottom sheets, gestures, joined controls, panels side by side, the bottom bar
+export { default as SheetGrip } from './patterns/atoms/SheetGrip.svelte';
+export { default as MoreButton } from './patterns/molecules/MoreButton.svelte';
+export { default as Joined } from './patterns/molecules/Joined.svelte';
+export { default as BottomBar, type BottomBarItem } from './patterns/organisms/BottomBar.svelte';
+export { default as PanelStack } from './patterns/organisms/PanelStack.svelte';
+export { default as StackPanel } from './patterns/organisms/StackPanel.svelte';
+export {
+  fitsBeside,
+  placement,
+  type Placement,
+  type StackEntry,
+} from './patterns/organisms/panels.svelte';
+export {
+  longpress,
+  swipe,
+  dragToClose,
+  squeezeOnce,
+  isEditable,
+  type LongPressParams,
+  type SwipeParams,
+} from './utils/gestures';
+export {
+  Viewport,
+  watchDevice,
+  keyboardInset,
+  takesText,
+  PHONE_QUERY,
+  TOUCH_QUERY,
+  type DeviceOptions,
+} from './utils/device.svelte';
+export { portal } from './utils/portal';

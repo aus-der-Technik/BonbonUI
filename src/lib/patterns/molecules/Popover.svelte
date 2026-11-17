@@ -22,7 +22,8 @@
    * above the trigger when there is no room below. `placement="right-start"` (or `left…`) opens
    * it beside the trigger — from a vertical rail or a sidebar — and flips to the other side when
    * the room runs out; `center` lays it over the trigger. Focus moves to the first control
-   * inside, or to an element marked `data-autofocus`.
+   * inside, or to an element marked `data-autofocus`. `sheet` makes it a bottom sheet on phones
+   * (see SheetGrip): `sheet` as tall as its content, `half`, or `full` screen.
    *
    *   <Popover label="Filters" icon="filter">…form…</Popover>
    *   <Popover title="Share">{#snippet trigger(props)}<button {...props}>Share</button>{/snippet}…</Popover>
@@ -30,6 +31,7 @@
   import type { Snippet } from 'svelte';
   import { tick } from 'svelte';
   import Button from '../atoms/Button.svelte';
+  import SheetGrip from '../atoms/SheetGrip.svelte';
   import type { IconName } from '../atoms/icons';
   import { anchorTo } from './anchor';
 
@@ -49,6 +51,10 @@
     width?: string | undefined;
     /** Inner padding of the panel. */
     padding?: 'none' | 'sm' | 'md';
+    /** On phones (≤ 720 px) a bottom sheet with a grip to pull it down: `true`/`'sheet'`, `'half'`, `'full'`. */
+    sheet?: boolean | 'sheet' | 'half' | 'full';
+    /** Accessible name of the sheet's grip. */
+    gripLabel?: string;
     /** Moves focus into the panel when it opens. */
     autofocus?: boolean;
     /** Your own trigger instead of the button; spread the props onto it. */
@@ -69,6 +75,8 @@
     placement = 'bottom-start',
     width,
     padding = 'md',
+    sheet = false,
+    gripLabel = 'Close',
     autofocus = true,
     trigger,
     onopenchange,
@@ -167,6 +175,7 @@
     tabindex="-1"
     style:width
   >
+    {#if sheet}<SheetGrip {close} size={sheet === true ? 'sheet' : sheet} label={gripLabel} />{/if}
     {#if title}<p class="title">{title}</p>{/if}
     {@render children(close)}
   </div>

@@ -1,3 +1,4 @@
-/* Everything an admin app needs globally: tokens first, then the page base. */
+/* Everything an app needs globally: tokens first, then the page base and the touch rules. */
 @import './tokens.css';
 @import './base.css';
+@import './touch.css';
