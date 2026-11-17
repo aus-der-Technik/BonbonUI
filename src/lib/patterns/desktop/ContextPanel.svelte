@@ -50,7 +50,8 @@
    * inside the viewport (flipped near an edge, sliding as it grows). It is rendered in place, so
    * it keeps the theme and tint of where it opened and the snippet is ordinary content of the
    * caller. Escape, a press outside or `close()` shut it and focus returns where it was; popups
-   * opened from inside it (a Popover, a menu, a select, a dialog) do not count as outside.
+   * opened from inside it (a Popover, a menu, a select, a dialog) do not count as outside. The
+   * target stays readable after closing, so a handler may `close()` first and then use it.
    *
    * Touch: `longpress` lets a finger held still on the area open it the same way (the row under
    * it squeezes once; no text selection or callout instead; text fields keep their own
@@ -104,12 +105,17 @@
 
   // One opening: the target, where it opened, and a counter so a new one replays the entrance.
   let opened = $state<{ target: T; spot: Spot; n: number } | null>(null);
+  /** The target of the last opening, kept after closing: a handler in the panel may close it
+   *  first and then use its target (`close(); remove(row)`) — with `opened.target` that read
+   *  would throw, since the panel's content still reads it while it goes. */
+  let shown = $state.raw<T | null>(null);
   let el = $state<HTMLDivElement>();
   let returnFocus: HTMLElement | null = null;
   let count = 0;
 
   function open(target: T, spot: Spot) {
     if (!opened) returnFocus = document.activeElement as HTMLElement | null;
+    shown = target;
     opened = { target, spot, n: ++count };
   }
 
@@ -285,7 +291,7 @@
           size={sheet === true ? 'sheet' : sheet}
           label={gripLabel}
         />{/if}
-      {@render panel(opened.target, closePanel)}
+      {@render panel(shown as T, closePanel)}
     </div>
   {/key}
 {/if}
