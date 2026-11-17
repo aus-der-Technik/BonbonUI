@@ -89,7 +89,7 @@ BonbonUI installs from a release tag; each tag carries the built package, so not
 on install.
 
 ```bash
-npm install git+ssh://git@github.com/aus-der-Technik/BonbonUI.git#v1.5.1
+npm install git+ssh://git@github.com/aus-der-Technik/BonbonUI.git#v1.6.0
 npm install leaflet   # only for MapView (@bonbon-ui/core/map)
 ```
 
