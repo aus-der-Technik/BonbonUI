@@ -84,12 +84,18 @@
     }
   }
 
-  // Auto-grow: measure the content, clamp between min and max rows.
+  // Auto-grow: measure the content, clamp between min and max rows. The padding is read, not
+  // assumed: inline, it is whatever centres one line on the button.
   $effect(() => {
     void value;
     if (!field) return;
-    const line = parseFloat(getComputedStyle(field).lineHeight) || 22;
-    const pad = field.offsetHeight - field.clientHeight + 16;
+    const style = getComputedStyle(field);
+    const line = parseFloat(style.lineHeight) || 22;
+    const pad =
+      field.offsetHeight -
+      field.clientHeight +
+      (parseFloat(style.paddingTop) || 0) +
+      (parseFloat(style.paddingBottom) || 0);
     field.style.height = 'auto';
     const wanted = Math.min(
       Math.max(field.scrollHeight, minRows * line + pad),
@@ -126,7 +132,7 @@
     <Button
       variant={sendVariant}
       shape="pill"
-      size={layout === 'inline' ? 'lg' : 'md'}
+      size="md"
       {icon}
       label={busy ? busyLabel : buttonLabel}
       {busy}
@@ -157,9 +163,17 @@
   .composer.disabled {
     opacity: var(--disabled-opacity);
   }
+  /* Inline: one line is one control. The button sits in the box like a segment's thumb (3 px
+     in), the field is exactly as tall as the button with its line centred on it, so the whole
+     box is --control-lg. More lines grow the field upwards; the button stays by the last one. */
   .composer--inline {
     grid-template-columns: 1fr auto;
     align-items: end;
+    padding: 3px;
+  }
+  .composer--inline textarea {
+    min-height: var(--control-md);
+    padding-block: max(0px, calc((var(--control-md) - 1lh) / 2));
   }
   .composer--inline .bar {
     display: contents;

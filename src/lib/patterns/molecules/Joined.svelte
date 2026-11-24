@@ -19,6 +19,7 @@
    *   </Joined>
    */
   import type { Snippet } from 'svelte';
+  import { joinParts as parts } from './joined';
 
   interface Props {
     /** Accessible name of the group. */
@@ -43,46 +44,6 @@
     class: extra = '',
     children,
   }: Props = $props();
-
-  /** What counts as a part, however deep a component wraps it (a Popover's trigger, an import
-   *  button in a span). */
-  const PART = '.btn, .search, select, [data-part]';
-  /** Parts with a fill of their own: they stay pills inside the capsule. */
-  const FILLED = '.btn:is(.btn--primary, .btn--tinted, .btn--success, .btn--danger-solid)';
-
-  /** Marks the parts (`data-joined` = first | mid | last | only) and lets their wrappers step
-   *  aside (`display: contents`), so corners and hairlines follow what is visible — buttons come
-   *  and go with rights and state. */
-  function parts(node: HTMLElement) {
-    const mark = () => {
-      const found = [...node.querySelectorAll<HTMLElement>(PART)].filter(
-        (el) =>
-          !el.closest('[popover], dialog') &&
-          !el.parentElement?.closest(PART) &&
-          el.getClientRects().length > 0,
-      );
-      for (const el of node.querySelectorAll<HTMLElement>('[data-joined]')) {
-        if (found.includes(el)) continue;
-        delete el.dataset.joined;
-        el.removeAttribute('data-joined-fill');
-        el.removeAttribute('data-joined-after-fill');
-      }
-      found.forEach((el, i) => {
-        const at =
-          found.length === 1 ? 'only' : i === 0 ? 'first' : i === found.length - 1 ? 'last' : 'mid';
-        if (el.dataset.joined !== at) el.dataset.joined = at;
-        // A filled part is its own pill: no hairline on it, nor on the part after it.
-        el.toggleAttribute('data-joined-fill', el.matches(FILLED));
-        el.toggleAttribute('data-joined-after-fill', i > 0 && found[i - 1]!.matches(FILLED));
-        for (let up = el.parentElement; up && up !== node; up = up.parentElement)
-          up.dataset.joinedWrap = '';
-      });
-    };
-    mark();
-    const watch = new MutationObserver(mark);
-    watch.observe(node, { childList: true, subtree: true });
-    return () => watch.disconnect();
-  }
 </script>
 
 <div

@@ -50,6 +50,10 @@
   let streamed = $state('');
   let streaming = $state(false);
   let toolsOpen = $state(true);
+  let reply = $state('');
+  let longReply = $state(
+    'Looks good to me.\nCan we keep the second version of the chart?\nAnd move the totals to the top.',
+  );
 
   function stream() {
     streamed = '';
@@ -94,6 +98,35 @@
     buttonLabel="Categorise"
     onsubmit={() => {}}
   />
+</Story>
+
+<!-- A reply box: one line is one control — the field as tall as its button, its text centred on
+     it; more lines grow the field upwards and the button stays beside the last one. -->
+<Story name="Composer inline, a reply" asChild>
+  <Stack gap="sm">
+    <Composer
+      bind:value={reply}
+      label="Reply"
+      placeholder="Say something about this…"
+      layout="inline"
+      minRows={1}
+      maxRows={6}
+      hint={false}
+      icon="send"
+      sendVariant="soft"
+      onsubmit={() => (reply = '')}
+    />
+    <Composer
+      bind:value={longReply}
+      label="Reply, several lines"
+      layout="inline"
+      minRows={1}
+      maxRows={6}
+      hint={false}
+      icon="send"
+      onsubmit={() => (longReply = '')}
+    />
+  </Stack>
 </Story>
 
 <!-- A streamed answer: keep passing the growing `source`; a caret blinks while `streaming`. -->
