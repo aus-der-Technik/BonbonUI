@@ -146,6 +146,37 @@ describe('wording', () => {
     expect(composer.querySelector('label')?.textContent).toBe('Message');
   });
 
+  it('Composer inline: one line is as tall as its button, measured with the field’s own padding', async () => {
+    // happy-dom lays nothing out: give the field the styles a browser computes for it inline.
+    const real = window.getComputedStyle.bind(window);
+    const computed = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((el, pseudo) =>
+        el instanceof HTMLTextAreaElement
+          ? ({ lineHeight: '24px', paddingTop: '6px', paddingBottom: '6px' } as CSSStyleDeclaration)
+          : real(el, pseudo),
+      );
+    try {
+      const composer = render(Composer, {
+        label: 'Reply',
+        layout: 'inline',
+        minRows: 1,
+        maxRows: 4,
+        icon: 'send',
+        onsubmit: () => {},
+      });
+      await tick();
+      const field = composer.querySelector('textarea')!;
+      // 1 × 24 px line + 6 px above and below = 36 px, the md button's height.
+      expect(field.style.height).toBe('36px');
+      // The button is the field's size (md), not a larger one that would push the line off centre.
+      expect(composer.querySelector('.btn')?.classList.contains('btn--md')).toBe(true);
+      expect(composer.querySelector('.btn--lg')).toBeNull();
+    } finally {
+      computed.mockRestore();
+    }
+  });
+
   it('CheckboxGroup names its fieldset and keeps focus on a spent action', () => {
     const onchange = vi.fn();
     const host = render(CheckboxGroup, {
