@@ -323,7 +323,7 @@
           groups={nav}
           onnavigate={(item, event) => {
             event.preventDefault();
-            const key = item.href.slice(1) as AdminSection;
+            const key = (item.href ?? '').slice(1) as AdminSection;
             if (SECTION_KEYS.includes(key)) go(key);
           }}
         />

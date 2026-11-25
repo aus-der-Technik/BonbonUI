@@ -47,7 +47,7 @@
     yuki: 'away',
   };
 
-  function go(item: { href: string }, event: MouseEvent) {
+  function go(item: { href?: string | undefined }, event: MouseEvent) {
     event.preventDefault();
     view = item.href === '#calendar' ? 'calendar' : 'board';
     navOpen = false;

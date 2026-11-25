@@ -324,7 +324,7 @@
     label="Studio"
     onnavigate={(item, event) => {
       event.preventDefault();
-      section = item.href;
+      section = item.href ?? section;
     }}
   />
 {/snippet}

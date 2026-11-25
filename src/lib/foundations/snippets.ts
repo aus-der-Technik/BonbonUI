@@ -140,6 +140,27 @@ export const panelStackCode = `<PanelStack onclose={() => ((group = null), (pers
   {/if}
 </PanelStack>`;
 
+export const sideNavCode = `<div class="beside">
+  <SideNav
+    label="Places"
+    sticky
+    groups={[
+      { label: 'Files', items: [
+        { id: 'mine', label: 'My files', href: '/files', icon: 'folder', color: 'brown', active: at === 'mine' },
+        { id: 'sent', label: 'Sent to me', href: '/files?sent', icon: 'inbox', color: 'brown',
+          count: fresh, countLabel: \`\${fresh} new\`, active: at === 'sent' },
+      ] },
+    ]}
+    onnavigate={(item, event) => { event.preventDefault(); goto(item.href); }}
+  />
+  <main>…</main>
+</div>
+
+<style>
+  .beside { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--space-6); }
+  @media (max-width: 900px) { .beside { grid-template-columns: minmax(0, 1fr); } }
+</style>`;
+
 export const joinedCode = `<Joined label="Find or start a conversation">
   <SearchField label="Search conversations" bind:value={query} />
   <Button iconOnly icon="message-plus" label="New message" />

@@ -8,6 +8,7 @@
   import Button from '../atoms/Button.svelte';
   import Card from '../atoms/Card.svelte';
   import Input from '../atoms/Input.svelte';
+  import StatusDot from '../atoms/StatusDot.svelte';
   import Switch from '../atoms/Switch.svelte';
   import Field from '../molecules/Field.svelte';
   import DetailList from '../molecules/DetailList.svelte';
@@ -26,32 +27,36 @@
 
 <script lang="ts">
   let page = $state('users');
+  let place = $state('mine');
   let drawer = $state(false);
   let leftDrawer = $state(false);
   let confirm = $state(false);
   let failing = $state(false);
 </script>
 
-<!-- The section navigation. The current page sits on the selected layer: tinted glass, a tint rim
-     and tint text. Click an item: the selection slides over to it instead of blinking.
-     Below 900px the list turns into a horizontal strip. -->
+<!-- The section navigation. Each item's icon sits on a round disc of its colour (the tint unless
+     it has one); the current page lies on a soft fill of that colour. Click an item: the fill
+     slides over to it instead of blinking. Below 900px the list turns into one row that scrolls
+     sideways and fades at its end, headings, notes and the foot set aside, the current item
+     scrolled into view. -->
 <Story name="SideNav" asChild>
   <Stack style="max-width:16rem">
     <SideNav
       groups={navGroups(page)}
       onnavigate={(item, event) => {
         event.preventDefault();
-        page = item.href.slice(1);
+        page = (item.href ?? '').slice(1);
       }}
     />
   </Stack>
 </Story>
 
-<!-- Three ways to mark the current page (`selection`): a frame (the selected layer, default),
-     the tint alone, or a slim tint bar beside it. Each one flows from item to item. -->
+<!-- Four ways to mark the current page (`selection`): a soft fill of the item's colour (default),
+     a frame (the selected layer), the tint alone, or a slim tint bar beside it. Each one flows
+     from item to item. -->
 <Story name="SideNav selection" asChild>
   <Grid min="13rem" gap="xl">
-    {#each ['frame', 'tint', 'bar'] as const as selection (selection)}
+    {#each ['fill', 'frame', 'tint', 'bar'] as const as selection (selection)}
       <Stack gap="sm">
         <code>selection="{selection}"</code>
         <SideNav
@@ -60,12 +65,114 @@
           groups={navGroups(page)}
           onnavigate={(item, event) => {
             event.preventDefault();
-            page = item.href.slice(1);
+            page = (item.href ?? '').slice(1);
           }}
         />
       </Stack>
     {/each}
   </Grid>
+</Story>
+
+<!-- Places beside an app's content: every item in its own colour, a count that says what it
+     counts, a group's note, a quiet action at the end of a list, a mark after a label
+     (`trailing`), more under the list (`footer`) and `sticky` beside long content. Items without
+     `href` are buttons (a section switched in place). -->
+<Story name="SideNav places" asChild>
+  <Stack style="max-width:16rem">
+    <SideNav
+      label="Places"
+      sticky
+      groups={[
+        {
+          label: 'Files',
+          items: [
+            {
+              id: 'mine',
+              label: 'My files',
+              icon: 'folder',
+              color: 'brown',
+              active: place === 'mine',
+            },
+            {
+              id: 'sent',
+              label: 'Sent to me',
+              icon: 'inbox',
+              color: 'brown',
+              count: 2,
+              countLabel: '2 new',
+              active: place === 'sent',
+            },
+          ],
+        },
+        {
+          label: 'Connected',
+          note: 'Your own storage',
+          items: [
+            {
+              id: 'nas',
+              label: 'Office server',
+              icon: 'server',
+              color: 'indigo',
+              active: place === 'nas',
+            },
+            {
+              id: 'cloud',
+              label: 'Photo bucket',
+              icon: 'cloud',
+              color: 'teal',
+              active: place === 'cloud',
+            },
+            { id: 'add', label: 'Connect another', icon: 'plus', quiet: true },
+          ],
+        },
+      ]}
+      onnavigate={(item) => {
+        if (item.id && item.id !== 'add') place = item.id;
+      }}
+    >
+      {#snippet trailing(item)}
+        {#if item.id === 'nas'}<StatusDot size="sm" tone="ok" />{/if}
+      {/snippet}
+      {#snippet footer()}<small>12.4 GB of 50 GB used</small>{/snippet}
+    </SideNav>
+  </Stack>
+</Story>
+
+<!-- An index of the sections further down the same page: `ariaCurrent="location"` marks the one
+     in view, and a filter may dim the sections it does not find. -->
+<Story name="SideNav index of a page" asChild>
+  <Stack style="max-width:16rem">
+    <SideNav
+      label="Settings by section"
+      ariaCurrent="location"
+      groups={[
+        {
+          items: [
+            {
+              id: 'mail',
+              label: 'Mail',
+              href: '#mail',
+              icon: 'mail',
+              color: 'blue',
+              active: true,
+              count: 2,
+              countLabel: '2 changed',
+            },
+            { id: 'home', label: 'Home', href: '#home', icon: 'home', color: 'orange' },
+            {
+              id: 'calendar',
+              label: 'Calendar',
+              href: '#calendar',
+              icon: 'calendar',
+              color: 'red',
+              dimmed: true,
+            },
+          ],
+        },
+      ]}
+      onnavigate={(_item, event) => event.preventDefault()}
+    />
+  </Stack>
 </Story>
 
 <!-- A drawer glides in from the end edge on liquid glass, a little off the viewport edges. The

@@ -1215,7 +1215,7 @@ export const catalogue: readonly CatalogueEntry[] = [
   e(
     'SideNav',
     'Organisms',
-    'The section navigation of a multi-page app.',
+    'The sections or places beside an app’s content; one sideways row on a phone.',
     ['navigation', 'emits light'],
     'list',
     'organisms-navigation-drawers-forms--side-nav',
