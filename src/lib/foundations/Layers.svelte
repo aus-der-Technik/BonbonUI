@@ -232,8 +232,10 @@
       One component covers all four. Most library parts already pick their own layer:
       <code>Card</code> and <code>Section level="panel"</code> are panels (the one to hold a
       <code>DataTable</code>), <code>Card selected</code> and the current <code>SideNav</code> item
-      are selected, and <code>AppHeader</code>, <code>NavRail</code>, <code>FloatingActions</code>,
-      docks and menu bars are front. <code>KpiTile</code> and <code>ChartCard</code> sit on the ground.
+      with <code>selection="frame"</code> are selected, and <code>AppHeader</code>,
+      <code>NavRail</code>, <code>FloatingActions</code>, docks and menu bars are front.
+      <code>KpiTile</code>
+      and <code>ChartCard</code> sit on the ground.
     </p>
     <LiveExample
       source={fourLayersSource}

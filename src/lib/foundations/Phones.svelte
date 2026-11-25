@@ -17,6 +17,7 @@
     dialogPhoneCode,
     gesturesCode,
     joinedCode,
+    sideNavCode,
     longpressCode,
     panelStackCode,
     phoneSetup,
@@ -55,6 +56,11 @@
       term: 'PanelStack',
       text: 'Panels beside each other (a group, then a person). On a phone each one is the screen, with “‹ back”.',
       href: storyHref('organisms-panelstack--group-then-person'),
+    },
+    {
+      term: 'SideNav',
+      text: 'The places beside an app’s content. Below 900px one row above it that scrolls sideways, the current one in view.',
+      href: storyHref('organisms-navigation-drawers-forms--side-nav-places'),
     },
     {
       term: 'Joined',
@@ -223,6 +229,18 @@
       caption="Open a group, then a person, then “‹ back”."
     />
     <CodeBlock label="PanelStack" code={panelStackCode} />
+  </Section>
+
+  <Section title="Places beside the content">
+    <p>
+      An app’s places or sections stand beside its content as a SideNav: each one on a round disc of
+      its colour, the current one on a soft fill of it. Where the column does not fit (below 900px)
+      the same places become one row above the content that scrolls sideways and fades at its end
+      (“more this way”); the headings, notes and what sits under the list step aside, and the
+      current one slides into view. Keep the layout beside it in step: one column from the same
+      width.
+    </p>
+    <CodeBlock label="SideNav" code={sideNavCode} />
   </Section>
 
   <Section title="Joined controls">

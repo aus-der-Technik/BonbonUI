@@ -696,10 +696,10 @@ describe('design polish', () => {
     expect(host.querySelector('.nav.has-pill')).toBeNull();
   });
 
-  it('SideNav marks the active item with a frame by default, or the tint, or a bar', () => {
+  it('SideNav marks the active item with a soft fill by default, or a frame, the tint or a bar', () => {
     const groups = [{ items: [{ label: 'One', href: '#1', active: true }] }];
-    expect(render(SideNav, { groups }).querySelector('.nav')?.className).toContain('sel--frame');
-    for (const selection of ['tint', 'bar'] as const) {
+    expect(render(SideNav, { groups }).querySelector('.nav')?.className).toContain('sel--fill');
+    for (const selection of ['frame', 'tint', 'bar'] as const) {
       const nav = render(SideNav, { groups, selection }).querySelector('.nav');
       expect(nav?.className).toContain(`sel--${selection}`);
     }

@@ -1,5 +1,5 @@
 // The base components added in the second round: atoms, molecules and organisms.
-import { flushSync } from 'svelte';
+import { createRawSnippet, flushSync } from 'svelte';
 import { click, html, key, render, tick } from '../test/render';
 import Divider from './atoms/Divider.svelte';
 import Link from './atoms/Link.svelte';
@@ -401,6 +401,78 @@ describe('new organisms', () => {
     expect(host.querySelector('[aria-current="page"]')?.textContent).toContain('Users');
     click(host.querySelectorAll('a')[1]);
     expect(onnavigate).toHaveBeenCalledOnce();
+  });
+
+  it('SideNav: items in their colour, buttons without href, plain clicks only on links', () => {
+    const onnavigate = vi.fn((_item, event: MouseEvent) => event.preventDefault());
+    const host = render(SideNav, {
+      groups: [
+        {
+          label: 'Places',
+          note: 'Where things are kept',
+          items: [
+            {
+              label: 'Files',
+              href: '/files',
+              id: 'files',
+              icon: 'folder',
+              color: 'brown',
+              active: true,
+            },
+            { label: 'Received', id: 'received', icon: 'inbox', count: 3, countLabel: '3 new' },
+            { label: 'Archive', href: '/archive', dimmed: true },
+            { label: 'Connect another', href: '/connect', icon: 'plus', quiet: true },
+          ],
+          after: html('<p class="tree">tree</p>'),
+        },
+      ],
+      onnavigate,
+      sticky: true,
+      footer: html('<p class="meter">meter</p>'),
+    });
+    const files = host.querySelector<HTMLElement>('[data-nav="files"]');
+    expect(files?.tagName).toBe('A');
+    expect(files?.style.getPropertyValue('--k')).toBe('var(--color-brown)');
+    expect(files?.getAttribute('aria-current')).toBe('page');
+    const received = host.querySelector<HTMLElement>('[data-nav="received"]');
+    expect(received?.tagName).toBe('BUTTON');
+    expect(received?.style.getPropertyValue('--k')).toBe('var(--accent)');
+    expect(received?.querySelector('.count')?.getAttribute('aria-label')).toBe('3 new');
+    expect(host.querySelector('.item.dimmed')?.textContent).toContain('Archive');
+    expect(host.querySelector('.item.quiet')?.textContent).toContain('Connect another');
+    expect(host.querySelector('.note')?.textContent).toBe('Where things are kept');
+    expect(host.querySelector('.group .tree')).not.toBeNull();
+    expect(host.querySelector('.foot .meter')).not.toBeNull();
+    expect(host.querySelector('nav.sticky')).not.toBeNull();
+    click(received);
+    expect(onnavigate).toHaveBeenCalledTimes(1);
+    // A click with a modifier on a link belongs to the browser (another tab), not the app.
+    files?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true }),
+    );
+    expect(onnavigate).toHaveBeenCalledTimes(1);
+    click(files);
+    expect(onnavigate).toHaveBeenCalledTimes(2);
+  });
+
+  it('SideNav marks a place in view as the location and adds trailing marks', () => {
+    const trailing = createRawSnippet((item: () => { label: string }) => ({
+      render: () => `<i class="mark">${item().label[0]}</i>`,
+    }));
+    const host = render(SideNav, {
+      groups: [
+        {
+          items: [
+            { label: 'Mail', href: '#mail', active: true },
+            { label: 'Home', href: '#home' },
+          ],
+        },
+      ],
+      ariaCurrent: 'location',
+      trailing,
+    });
+    expect(host.querySelector('[aria-current="location"]')?.textContent).toContain('Mail');
+    expect([...host.querySelectorAll('.mark')].map((el) => el.textContent)).toEqual(['M', 'H']);
   });
 
   it('ActivityLog lists entries or says there are none', () => {
