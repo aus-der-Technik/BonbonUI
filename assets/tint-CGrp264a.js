@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";function t(e,t){let n=e?.globals?.tint;return!n||n==="default"?t:void 0}function n(){return(n=e((()=>{})))()}export{t as n,n as t};

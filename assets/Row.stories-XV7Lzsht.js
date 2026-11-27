@@ -1,0 +1,11 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{Ct as t,Ft as n,Ht as r,Pt as i,Sn as a,St as o,l as s,m as c,tt as l,xn as u,xt as d,zt as f}from"./iframe-WlNMZtZ0.js";import{a as p,i as m,n as h,r as g,t as _}from"./create-runtime-stories-CbHiKinS.js";import{n as v,t as y}from"./Button-DHLILcYm.js";import{n as b,t as x}from"./Row-IIXhUlbK.js";import{n as S,t as C}from"./Spacer-BNbRCTsX.js";import{n as w,t as T}from"./DemoBox-DPJ4IT8s.js";function E(e,t){a(t,!1),c();var n=A(),i=f(n);O(i,{name:`Toolbar`,asChild:!0,children:(e,t)=>{x(e,{children:(e,t)=>{var n=k(),i=f(n);y(i,{size:`sm`,icon:`chevron-left`,label:`Back`});var a=r(i,4);C(a,{});var o=r(a,2);y(o,{size:`sm`,icon:`share`,label:`Share`});var s=r(o,2);y(s,{size:`sm`,variant:`primary`,icon:`download`,label:`Export`}),d(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:`A toolbar: left things, a Spacer, right things — vertically centred, wrapping when narrow.`}},__svelteCsf:{rawCode:`<Row>
+  <Button size="sm" icon="chevron-left" label="Back" />
+  <strong>Quarterly report</strong>
+  <Spacer />
+  <Button size="sm" icon="share" label="Share" />
+  <Button size="sm" variant="primary" icon="download" label="Export" />
+</Row>`}}});var s=r(i,2);O(s,{name:`Wrapping chips`,asChild:!0,children:(e,t)=>{x(e,{justify:`center`,children:(e,t)=>{var n=o(),r=f(n);l(r,0,()=>[`Design`,`Engineering`,`Marketing`,`Sales`,`Support`,`Finance`,`Legal`,`People`],e=>e,(e,t)=>{T(e,{get label(){return t}})}),d(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:'Wraps by default; `justify="center"` centres the lines.'}},__svelteCsf:{rawCode:`<Row justify="center">
+  {#each ['Design', 'Engineering', 'Marketing', 'Sales', 'Support', 'Finance', 'Legal', 'People'] as t (t)}
+    <Demo label={t} />
+  {/each}
+</Row>`}}}),d(e,n),u()}var D,O,k,A,j,M,N,P;function F(){return(F=e((()=>{n(),i(),p(),m(),b(),S(),v(),w(),s(),h(),D={title:`Layout/Row`,component:x,tags:[`autodocs`]},{Story:O}=g(D),k=t(`<!> <strong>Quarterly report</strong> <!> <!> <!>`,1),A=t(`<!> <!>`,1),E.__docgen={data:[],name:`Row.stories.svelte`},j=_(E,D),M=[`Toolbar`,`WrappingChips`],N={...j.Toolbar,tags:[`svelte-csf-v5`]},P={...j.WrappingChips,tags:[`svelte-csf-v5`]}})))()}F();export{N as Toolbar,P as WrappingChips,M as __namedExportsOrder,D as default};

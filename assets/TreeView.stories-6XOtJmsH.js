@@ -1,0 +1,8 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{Ct as t,Ft as n,Gt as r,Mn as i,Pt as a,Rt as o,Sn as s,Wt as c,cn as l,l as u,on as d,xn as f,xt as p}from"./iframe-WlNMZtZ0.js";import{i as m,n as h,r as g,t as _}from"./create-runtime-stories-CbHiKinS.js";import{n as v,t as y}from"./TreeView-BQYEGSNZ.js";import{f as b,u as x}from"./mock-desktop-DZRORnrh.js";function S(e,t){s(t,!0);let n=l(`window`),a=l(c([`src`,`lib`]));w(e,{name:`TreeView`,asChild:!0,children:(e,t)=>{var s=T(),c=o(s);y(c,{get nodes(){return x},label:`Project files`,get value(){return r(n)},set value(e){d(n,e,!0)},get expanded(){return r(a)},set expanded(e){d(a,e,!0)}}),i(s),p(e,s)},$$slots:{default:!0},parameters:{docs:{description:{story:`A project tree. Up / Down move, Right opens or steps in, Left closes or steps out, Enter
+    selects.
+
+    Why not a solid coloured row for the selection? In a tree you scan icons and names; a solid
+    slab of colour hides the file-type colours exactly where you are looking. The selected
+    layer keeps them visible and matches the SourceList next to it.`}},__svelteCsf:{rawCode:`<div style="max-width:20rem">
+  <TreeView nodes={fileTree} bind:value bind:expanded label="Project files" />
+</div>`}}}),f()}var C,w,T,E,D,O;function k(){return(k=e((()=>{n(),a(),m(),v(),b(),u(),h(),C={title:`Organisms/Desktop & OS/TreeView`,component:y,tags:[`autodocs`]},{Story:w}=g(C),T=t(`<div style="max-width:20rem"><!></div>`),S.__docgen={data:[],name:`TreeView.stories.svelte`},E=_(S,C),D=[`TreeView`],O={...E.TreeView,tags:[`svelte-csf-v5`]}})))()}k();export{O as TreeView,D as __namedExportsOrder,C as default};

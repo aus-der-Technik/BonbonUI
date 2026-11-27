@@ -1,0 +1,10 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{Cn as t,Ct as n,Ft as r,Gt as i,Ht as a,Pn as o,Pt as s,Rt as c,cn as l,l as u,on as d,wn as f,xt as p,zt as m}from"./iframe-D3QpTFc1.js";import{i as h,n as g,r as _,t as v}from"./create-runtime-stories-bgfxAijx.js";import{n as y,t as b}from"./SourceList-3PApVs2u.js";import{_ as x,f as S,m as C}from"./mock-desktop-Cq7Fn4sQ.js";function w(e,n){f(n,!0);let r=l(`inbox`);var s=O(),u=m(s);E(u,{name:`Mailboxes`,asChild:!0,children:(e,t)=>{var n=D(),a=c(n);b(a,{get sections(){return C},label:`Mailboxes`,get value(){return i(r)},set value(e){d(r,e,!0)}}),o(n),p(e,n)},$$slots:{default:!0},parameters:{docs:{description:{story:`Mailboxes with counts; the labelled sections fold. Up / Down move, Enter selects.
+
+    Why tinted glass for the selected item instead of a solid accent bar? Sidebars are read all
+    day; a solid bar is the loudest thing in the window. The selected layer (tint wash + rim +
+    soft glow) is the same "chosen" signal as everywhere else and keeps the icons' candy
+    colours readable on top of it.`}},__svelteCsf:{rawCode:`<div style="max-width:15rem">
+  <SourceList sections={mailboxes} bind:value label="Mailboxes" />
+</div>`}}});var h=a(u,2);E(h,{name:`Places`,asChild:!0,children:(e,t)=>{var n=D(),r=c(n);b(r,{get sections(){return x},value:`documents`,label:`Places`}),o(n),p(e,n)},$$slots:{default:!0},parameters:{docs:{description:{story:`Places of a file manager, with coloured tags.`}},__svelteCsf:{rawCode:`<div style="max-width:15rem">
+  <SourceList sections={places} value="documents" label="Places" />
+</div>`}}}),p(e,s),t()}var T,E,D,O,k,A,j,M;function N(){return(N=e((()=>{r(),s(),h(),y(),S(),u(),g(),T={title:`Organisms/Desktop & OS/SourceList`,component:b,tags:[`autodocs`]},{Story:E}=_(T),D=n(`<div style="max-width:15rem"><!></div>`),O=n(`<!> <!>`,1),w.__docgen={data:[],name:`SourceList.stories.svelte`},k=v(w,T),A=[`Mailboxes`,`Places`],j={...k.Mailboxes,tags:[`svelte-csf-v5`]},M={...k.Places,tags:[`svelte-csf-v5`]}})))()}N();export{j as Mailboxes,M as Places,A as __namedExportsOrder,T as default};

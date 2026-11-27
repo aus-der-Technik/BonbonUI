@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>storybook - Storybook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    
+    <style>
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-regular.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: italic;
+        font-weight: 400;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-italic.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-bold.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Nunito Sans';
+        font-style: italic;
+        font-weight: 700;
+        font-display: swap;
+        src: url('./sb-common-assets/nunito-sans-bold-italic.woff2') format('woff2');
+      }
+    </style>
+
+    <link href="./sb-manager/runtime.js" rel="modulepreload" />
+
+    
+    <link href="./sb-addons/storybook-core-server-presets-0/common-manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/docs-1/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/a11y-2/manager-bundle.js" rel="modulepreload" />
+    
+    <link href="./sb-addons/storybook-3/manager-bundle.js" rel="modulepreload" />
+      <!--
+  The Storybook frame in BonbonUI's look, on top of the theme in manager.ts. Only stable hooks are
+  used (ids, `.sidebar-item`, `.sidebar-subheading`, `.sb-bar`, data attributes) — never the
+  generated css-… class names — so a Storybook upgrade is unlikely to break it.
+-->
+<style>
+  :root {
+    --bb-ground: #e9eae6;
+    --bb-panel: #f3f4f1;
+    --bb-text: #1a1a1a;
+    --bb-muted: #636363;
+    --bb-accent: #5a9854;
+    --bb-accent-ink: #3f6e3b;
+    --bb-accent-soft: rgba(90, 152, 84, 0.16);
+    --bb-hover: rgba(127, 127, 127, 0.1);
+    --bb-hairline: rgba(20, 20, 30, 0.08);
+    --bb-shadow: 0 1px 2px rgba(20, 20, 40, 0.04), 0 18px 40px -24px rgba(20, 20, 40, 0.22);
+    --bb-blob-1: rgba(90, 152, 84, 0.2);
+    --bb-blob-2: rgba(63, 163, 154, 0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bb-ground: #141616;
+      --bb-panel: #1b1d1d;
+      --bb-text: #f2f2f0;
+      --bb-muted: #8f8e86;
+      --bb-accent: #6fae68;
+      --bb-accent-ink: #9fd199;
+      --bb-accent-soft: rgba(111, 174, 104, 0.2);
+      --bb-hover: rgba(255, 255, 255, 0.06);
+      --bb-hairline: rgba(255, 255, 255, 0.08);
+      --bb-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 40px -24px rgba(0, 0, 0, 0.6);
+      --bb-blob-1: rgba(90, 152, 84, 0.16);
+      --bb-blob-2: rgba(63, 163, 154, 0.08);
+    }
+  }
+
+  /* The ground: soft stone with two quiet tint blobs, like the pages' backdrop. */
+  #root > div {
+    background:
+      radial-gradient(40rem 30rem at 0% 0%, var(--bb-blob-1), transparent 70%),
+      radial-gradient(44rem 34rem at 100% 100%, var(--bb-blob-2), transparent 70%), var(--bb-ground) !important;
+  }
+
+  /* Sidebar: on the ground, items are soft pills, the current one tinted (like SideNav). */
+  #storybook-explorer-menu,
+  #storybook-explorer-tree {
+    background: transparent !important;
+  }
+  .sidebar-item {
+    margin-inline: 6px;
+    border-radius: 999px !important;
+    transition:
+      background-color 120ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      color 120ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .sidebar-item:hover {
+    background: var(--bb-hover) !important;
+  }
+  .sidebar-item[data-selected='true'],
+  .sidebar-item[data-selected='true']:hover {
+    background: var(--bb-accent-soft) !important;
+    color: var(--bb-accent-ink) !important;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bb-accent) 35%, transparent);
+  }
+  .sidebar-item[data-selected='true'] svg {
+    color: var(--bb-accent-ink) !important;
+  }
+  /* Storybook's own teal and blue item icons take the tint instead. */
+  .sidebar-item svg {
+    color: color-mix(in srgb, var(--bb-accent) 80%, var(--bb-muted)) !important;
+  }
+  .sidebar-subheading {
+    color: var(--bb-muted) !important;
+    letter-spacing: 0.12em;
+  }
+
+  /* Search: a pill, like every field you act in. */
+  #storybook-explorer-searchfield {
+    border-radius: 999px !important;
+  }
+  #storybook-explorer-searchfield + * {
+    border-radius: 999px !important;
+  }
+
+  /* The preview is the one panel on the ground: a solid, rounded tile. */
+  #storybook-preview-wrapper {
+    border-radius: 18px;
+    overflow: clip;
+    box-shadow: var(--bb-shadow);
+  }
+  .sb-bar {
+    border-bottom: 1px solid var(--bb-hairline) !important;
+    box-shadow: none !important;
+  }
+  .sb-bar button {
+    border-radius: 999px !important;
+  }
+
+  /* The add-on panel below the preview: a calm panel with soft corners. */
+  #storybook-panel-root {
+    border-radius: 18px 18px 0 0;
+    overflow: clip;
+  }
+</style>
+ 
+
+    <style>
+      #storybook-root[hidden] {
+        display: none !important;
+      }
+    </style>
+
+    
+  </head>
+  <body>
+    <div id="root"></div>
+
+    
+    <script>
+      
+        
+          window['FEATURES'] = {
+  "actions": true,
+  "argTypeTargetsV7": true,
+  "babelRemoveBugfixes": false,
+  "backgrounds": true,
+  "changeDetection": true,
+  "componentsManifest": false,
+  "controls": true,
+  "disallowImplicitActionsInRenderV8": true,
+  "highlight": true,
+  "interactions": true,
+  "legacyDecoratorFileOrder": false,
+  "measure": true,
+  "outline": true,
+  "menuOnboardingChecklist": true,
+  "sidebarOnboardingChecklist": true,
+  "viewport": true
+};
+        
+      
+        
+          window['REFS'] = {};
+        
+      
+        
+          window['LOGLEVEL'] = "info";
+        
+      
+        
+          window['DOCS_OPTIONS'] = {
+  "defaultName": "Docs"
+};
+        
+      
+        
+          window['CONFIG_TYPE'] = "PRODUCTION";
+        
+      
+        
+          window['DOCGEN_STORY_PREPARED'] = false;
+        
+      
+        
+      
+        
+      
+        
+          window['TAGS_OPTIONS'] = {};
+        
+      
+        
+          window['STORYBOOK_BUILDER'] = "vite";
+        
+      
+        
+          window['STORYBOOK_FRAMEWORK'] = "svelte-vite";
+        
+      
+        
+          window['STORYBOOK_RENDERER'] = "svelte";
+        
+      
+        
+      
+    </script>
+    
+
+    <script type="module">
+      import './sb-manager/globals-runtime.js';
+
+      
+        import './sb-addons/storybook-core-server-presets-0/common-manager-bundle.js';
+      
+        import './sb-addons/docs-1/manager-bundle.js';
+      
+        import './sb-addons/a11y-2/manager-bundle.js';
+      
+        import './sb-addons/storybook-3/manager-bundle.js';
+      
+
+      import './sb-manager/runtime.js';
+    </script>
+  </body>
+</html>

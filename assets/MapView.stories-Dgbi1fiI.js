@@ -1,0 +1,17 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{Ct as t,Ft as n,Gt as r,Ht as i,Pt as a,Sn as o,l as s,m as c,pn as l,xn as u,xt as d,zt as f}from"./iframe-WlNMZtZ0.js";import{a as p,i as m,n as h,r as g,t as _}from"./create-runtime-stories-CbHiKinS.js";import{n as v,t as y}from"./Card-BqZAAHlF.js";import{n as b,t as x}from"./Legend-Cl49sPrP.js";import{n as S,t as C}from"./Stack-BjV-rmuj.js";import{c as w,l as T}from"./mock-CO6eygD8.js";import{n as E,t as D}from"./MapView-CJwKyFAN.js";function O(e,t){o(t,!1),c();var n=N(),a=f(n);A(a,{name:`Search hits`,asChild:!0,children:(e,t)=>{C(e,{style:`height:32rem`,children:(e,t)=>{{let t=l(w);D(e,{get markers(){return r(t)},label:`Search hits around Frankfurt`})}},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:`Circle markers in their category colour, a hover label and a frosted popup of details;
+    the map fits itself to the markers.`}},__svelteCsf:{rawCode:`<Stack style="height:32rem">
+  <MapView markers={frankfurtHits()} label="Search hits around Frankfurt" />
+</Stack>`}}});var s=i(a,2);A(s,{name:`On a card`,asChild:!0,children:(e,t)=>{y(e,{title:`Locations`,padding:`sm`,children:(e,t)=>{C(e,{gap:`sm`,style:`height:28rem`,children:(e,t)=>{var n=M(),r=f(n);x(r,{items:[{label:`Office`,color:`#007aff`},{label:`Studio`,color:`#af52de`},{label:`Warehouse`,color:`#ff9500`}]});var a=i(r,2);C(a,{grow:!0,children:(e,t)=>{D(e,{get markers(){return j},label:`Our locations`})},$$slots:{default:!0}}),d(e,n)},$$slots:{default:!0}})},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:`On a card with a legend: give the parent a height, the map fills it.`}},__svelteCsf:{rawCode:`<Card title="Locations" padding="sm">
+  <Stack gap="sm" style="height:28rem">
+    <Legend
+      items={[
+        { label: 'Office', color: '#007aff' },
+        { label: 'Studio', color: '#af52de' },
+        { label: 'Warehouse', color: '#ff9500' },
+      ]}
+    />
+    <Stack grow><MapView markers={offices} label="Our locations" /></Stack>
+  </Stack>
+</Card>`}}});var p=i(s,2);A(p,{name:`Empty`,asChild:!0,children:(e,t)=>{C(e,{style:`height:32rem`,children:(e,t)=>{D(e,{markers:[]})},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:"Nothing to show: the map rests on its `home` bounds."}},__svelteCsf:{rawCode:`<Stack style="height:32rem">
+  <MapView markers={[]} />
+</Stack>`}}}),d(e,n),u()}var k,A,j,M,N,P,F,I,L,R;function z(){return(z=e((()=>{n(),a(),p(),m(),E(),v(),b(),S(),T(),s(),h(),k={title:`Organisms/MapView`,component:D,tags:[`autodocs`],parameters:{layout:`padded`,docs:{description:{component:``}}}},{Story:A}=g(k),j=[{lat:52.52,lon:13.405,title:`Berlin office`,subtitle:`Headquarters`,color:`#007aff`,details:[[`People`,`48`],[`Open`,`Mon–Fri 8–18`]]},{lat:53.5511,lon:9.9937,title:`Hamburg studio`,subtitle:`Design team`,color:`#af52de`,details:[[`People`,`12`]]},{lat:48.1351,lon:11.582,title:`Munich warehouse`,subtitle:`Shipping`,color:`#ff9500`,details:[[`Parcels today`,`1,204`]]}],M=t(`<!> <!>`,1),N=t(`<!> <!> <!>`,1),O.__docgen={data:[],name:`MapView.stories.svelte`},P=_(O,k),F=[`SearchHits`,`OnACard`,`Empty`],I={...P.SearchHits,tags:[`svelte-csf-v5`]},L={...P.OnACard,tags:[`svelte-csf-v5`]},R={...P.Empty,tags:[`svelte-csf-v5`]}})))()}z();export{R as Empty,L as OnACard,I as SearchHits,F as __namedExportsOrder,k as default};

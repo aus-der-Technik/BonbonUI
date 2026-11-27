@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";var t;function n(){return(n=e((()=>{t=new URL(`smart-home-backdrop-DQu_kt-e.jpg`,import.meta.url).href})))()}export{t as n,n as t};

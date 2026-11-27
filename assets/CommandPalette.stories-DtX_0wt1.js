@@ -1,0 +1,10 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{Ct as t,Ft as n,Gt as r,Ht as i,Mn as a,Pt as o,Rt as s,Sn as c,cn as l,l as u,on as d,xn as f,xt as p}from"./iframe-WlNMZtZ0.js";import{i as m,n as h,r as g,t as _}from"./create-runtime-stories-CbHiKinS.js";import{n as v,t as y}from"./Button-DHLILcYm.js";import{n as b,t as x}from"./CommandPalette-EXjQ6r-J.js";import{f as S,o as C}from"./mock-desktop-DZRORnrh.js";function w(e,t){c(t,!0);let n=l(!1);E(e,{name:`CommandPalette`,asChild:!0,children:(e,t)=>{var o=O(),c=s(o);y(c,{icon:`command`,label:`Open command palette`,onclick:()=>d(n,!0)});var l=i(c,2);x(l,{get groups(){return D},get open(){return r(n)},set open(e){d(n,e,!0)}}),a(o),p(e,o)},$$slots:{default:!0},parameters:{docs:{description:{story:`Press ⌘K (Ctrl+K) anywhere, or use the button. Type to filter, Up / Down, Enter.
+
+    Why does the active row look like a selected list row (tinted glass, tint rim) instead of a
+    solid coloured bar? Because it is the same idea — "this one" — and the system says it one
+    way everywhere. The active row's icon turns into a small candy button: the one thing that
+    will happen when you press Enter. The panel pops from the top centre, where your eyes
+    already are, and an empty search answers kindly: "Nothing here — try fewer words."`}},__svelteCsf:{rawCode:`<div>
+  <Button icon="command" label="Open command palette" onclick={() => (open = true)} />
+  <CommandPalette bind:open {groups} />
+</div>`}}}),f()}var T,E,D,O,k,A,j;function M(){return(M=e((()=>{n(),o(),m(),b(),v(),S(),u(),h(),T={title:`Organisms/Desktop & OS/CommandPalette`,component:x,tags:[`autodocs`]},{Story:E}=g(T),D=C({open:()=>{},theme:()=>{},tint:()=>{}}),O=t(`<div><!> <!></div>`),w.__docgen={data:[],name:`CommandPalette.stories.svelte`},k=_(w,T),A=[`CommandPalette`],j={...k.CommandPalette,tags:[`svelte-csf-v5`]}})))()}M();export{j as CommandPalette,A as __namedExportsOrder,T as default};

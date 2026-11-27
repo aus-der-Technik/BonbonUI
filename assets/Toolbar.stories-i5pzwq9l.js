@@ -1,0 +1,14 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{Ct as t,Ft as n,Gt as r,Ht as i,Mn as a,On as o,Pt as s,Rt as c,Sn as l,cn as u,l as d,on as f,p,xn as m,xt as h,zt as g}from"./iframe-WlNMZtZ0.js";import{i as _,n as v,r as y,t as b}from"./create-runtime-stories-CbHiKinS.js";import{n as x,t as S}from"./Toolbar-BOdKh-Ob.js";function C(e,t){l(t,!0);let n=u(``);var s=O(),d=g(s);T(d,{name:`Playground`,template:(e,t=o)=>{S(e,p(t,{get items(){return E},get search(){return r(n)},set search(e){f(n,e,!0)}}))},$$slots:{template:!0},parameters:{docs:{description:{story:`Groups of icon buttons with separators, a spacer and a search. \`floating\` is a sticky
+    liquid-glass pill, \`bar\` a full-width sticky bar, \`plain\` sits in a Window's title bar.
+
+    Why pills? In this system a pill means "you can press it", so every tool is one; a toggled
+    tool (Flag) sits on the selected layer instead of turning solid. Press one: it squishes
+    like a gummy and springs back — a tiny physical "yes" without any extra pixels.`}},__svelteCsf:{rawCode:`<Toolbar {...args} {items} bind:search />`}}});var _=i(d,2);T(_,{name:`Out of room`,asChild:!0,children:(e,t)=>{var i=D(),o=c(i);S(o,{title:`Inbox`,variant:`floating`,get items(){return E},get search(){return r(n)},set search(e){f(n,e,!0)}}),a(i),h(e,i)},$$slots:{default:!0},parameters:{docs:{description:{story:`Out of room — a narrow window, a phone — the buttons fold into **More** from the end. The
+    main action (\`primary\`) and the search stay where they were; More names itself, shows how
+    many tools it holds and opens them as a menu right under it.
+
+    Why not let the toolbar scroll? A scrolling toolbar hides tools with no hint that they exist,
+    and a bare count says nothing about what it counts. A labelled More says "there is more here",
+    keeps every tool one click away, and never moves the ones you use most.`}},__svelteCsf:{rawCode:`<div style="width:20rem;max-width:100%">
+  <Toolbar title="Inbox" variant="floating" {items} bind:search />
+</div>`}}}),h(e,s),m()}var w,T,E,D,O,k,A,j,M;function N(){return(N=e((()=>{n(),s(),_(),x(),d(),v(),w={title:`Organisms/Desktop & OS/Toolbar`,component:S,tags:[`autodocs`],args:{title:`Inbox`,subtitle:`4 unread`,variant:`floating`},argTypes:{variant:{control:`inline-radio`,options:[`floating`,`bar`,`plain`]}}},{Story:T}=y(w),E=[{icon:`edit`,label:`New message`,primary:!0},{separator:!0},{icon:`bookmark`,label:`Archive`},{icon:`trash`,label:`Delete`},{icon:`flag`,label:`Flag`,active:!0},{spacer:!0},{icon:`sidebar`,label:`Inspector`,showLabel:!0}],D=t(`<div style="width:20rem;max-width:100%"><!></div>`),O=t(`<!> <!>`,1),C.__docgen={data:[],name:`Toolbar.stories.svelte`},k=b(C,w),A=[`Playground`,`OutOfRoom`],j={...k.Playground,tags:[`svelte-csf-v5`]},M={...k.OutOfRoom,tags:[`svelte-csf-v5`]}})))()}N();export{M as OutOfRoom,j as Playground,A as __namedExportsOrder,w as default};

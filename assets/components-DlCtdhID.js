@@ -1,0 +1,1 @@
+import{at as e,ot as t}from"./DocsRenderer-JROSPFPF-BBXxKv5E.js";t();export{e as createCopyToClipboardFunction};

@@ -1,0 +1,13 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{Cn as t,Ct as n,Ft as r,Gt as i,Ht as a,Pt as o,Wt as s,_n as c,cn as l,l as u,on as d,wn as f,xt as p,zt as m}from"./iframe-D3QpTFc1.js";import{i as h,n as g,r as _,t as v}from"./create-runtime-stories-bgfxAijx.js";import{n as y,t as b}from"./Popover-B-zbiW7D.js";import{n as x,t as S}from"./NotificationList-CHYfWV_S.js";import{n as C,t as w}from"./Layer-CRpvsKt9.js";import{l as T,t as E,u as D}from"./mock-collab-Dc5VTaAB.js";function O(e,n){f(n,!0);let r=l(s(D())),o=c(()=>i(r).filter(e=>e.unread).length);var u=j(),h=m(u);A(h,{name:`On a panel`,asChild:!0,children:(e,t)=>{w(e,{level:`panel`,padding:`sm`,style:`max-width:24rem`,children:(e,t)=>{S(e,{get now(){return E},onopen:()=>{},get items(){return i(r)},set items(e){d(r,e,!0)}})},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:`Mentions show the person, other events a candy icon tile; unread items are tinted with a
+dot.`}},__svelteCsf:{rawCode:`<Layer level="panel" padding="sm" style="max-width:24rem">
+  <NotificationList bind:items now={NOW} onopen={() => {}} />
+</Layer>`}}});var g=a(h,2);A(g,{name:`In a popover`,asChild:!0,children:(e,t)=>{{let t=c(()=>i(o)?`Notifications (${i(o)} unread)`:`Notifications`);b(e,{get label(){return i(t)},icon:`bell`,variant:`glass`,iconOnly:!0,width:`22rem`,padding:`sm`,children:(e,t)=>{S(e,{get now(){return E},onopen:()=>{},get items(){return i(r)},set items(e){d(r,e,!0)}})},$$slots:{default:!0}})}},$$slots:{default:!0},parameters:{docs:{description:{story:`Behind a bell in a popover.`}},__svelteCsf:{rawCode:`<Popover
+  label={unread ? \`Notifications (\${unread} unread)\` : 'Notifications'}
+  icon="bell"
+  variant="glass"
+  iconOnly
+  width="22rem"
+  padding="sm"
+>
+  <NotificationList bind:items now={NOW} onopen={() => {}} />
+</Popover>`}}});var _=a(g,2);A(_,{name:`Empty`,args:{items:[]},parameters:{__svelteCsf:{rawCode:`<NotificationList {...args} />`}}}),p(e,u),t()}var k,A,j,M,N,P,F,I;function L(){return(L=e((()=>{r(),o(),h(),x(),y(),C(),T(),u(),g(),k={title:`Organisms/NotificationList`,component:S,tags:[`autodocs`],args:{items:D(),now:E}},{Story:A}=_(k),j=n(`<!> <!> <!>`,1),O.__docgen={data:[],name:`NotificationList.stories.svelte`},M=v(O,k),N=[`OnAPanel`,`InAPopover`,`Empty`],P={...M.OnAPanel,tags:[`svelte-csf-v5`]},F={...M.InAPopover,tags:[`svelte-csf-v5`]},I={...M.Empty,tags:[`svelte-csf-v5`]}})))()}L();export{I as Empty,F as InAPopover,P as OnAPanel,N as __namedExportsOrder,k as default};

@@ -1,0 +1,15 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{Ct as t,Ft as n,Ht as r,Pt as i,Sn as a,l as o,m as s,xn as c,xt as l,zt as u}from"./iframe-WlNMZtZ0.js";import{a as d,i as f,n as p,r as m,t as h}from"./create-runtime-stories-CbHiKinS.js";import{n as g,t as _}from"./Stack-BjV-rmuj.js";import{n as v,t as y}from"./Row-IIXhUlbK.js";import{n as b,t as x}from"./Price-BG_u6l5i.js";function S(e,t){a(t,!1),s();var n=T(),i=u(n);w(i,{name:`Playground`,parameters:{__svelteCsf:{rawCode:`<Price {...args} />`}}});var o=r(i,2);w(o,{name:`Sizes`,asChild:!0,children:(e,t)=>{_(e,{gap:`sm`,children:(e,t)=>{var n=T(),i=u(n);x(i,{amount:9.9,size:`sm`});var a=r(i,2);x(a,{amount:24});var o=r(a,2);x(o,{amount:349,compareAt:429,size:`lg`});var s=r(o,2);x(s,{amount:1299,size:`xl`,fractionDigits:0}),l(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{__svelteCsf:{rawCode:`<Stack gap="sm">
+  <Price amount={9.9} size="sm" />
+  <Price amount={24} />
+  <Price amount={349} compareAt={429} size="lg" />
+  <Price amount={1299} size="xl" fractionDigits={0} />
+</Stack>`}}});var d=r(o,2);w(d,{name:`Plans`,asChild:!0,children:(e,t)=>{y(e,{gap:`lg`,children:(e,t)=>{var n=E(),i=u(n);x(i,{amount:0,freeLabel:`Free`,size:`lg`});var a=r(i,2);x(a,{amount:12,unit:`/ month`,size:`lg`});var o=r(a,2);x(o,{amount:29,compareAt:35,unit:`/ seat / month`,size:`lg`}),l(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:`Plans with a unit and a free tier.`}},__svelteCsf:{rawCode:`<Row gap="lg">
+  <Price amount={0} freeLabel="Free" size="lg" />
+  <Price amount={12} unit="/ month" size="lg" />
+  <Price amount={29} compareAt={35} unit="/ seat / month" size="lg" />
+</Row>`}}});var f=r(d,2);w(f,{name:`Currencies`,asChild:!0,children:(e,t)=>{_(e,{gap:`xs`,children:(e,t)=>{var n=T(),i=u(n);x(i,{amount:1234.5});var a=r(i,2);x(a,{amount:1234.5,currency:`USD`,locale:`en-US`});var o=r(a,2);x(o,{amount:1234.5,currency:`GBP`,locale:`en-GB`});var s=r(o,2);x(s,{amount:1234,currency:`JPY`,locale:`ja-JP`}),l(e,n)},$$slots:{default:!0}})},$$slots:{default:!0},parameters:{docs:{description:{story:"Any currency and locale through `Intl.NumberFormat`."}},__svelteCsf:{rawCode:`<Stack gap="xs">
+  <Price amount={1234.5} />
+  <Price amount={1234.5} currency="USD" locale="en-US" />
+  <Price amount={1234.5} currency="GBP" locale="en-GB" />
+  <Price amount={1234} currency="JPY" locale="ja-JP" />
+</Stack>`}}}),l(e,n),c()}var C,w,T,E,D,O,k,A,j,M;function N(){return(N=e((()=>{n(),i(),d(),f(),v(),g(),b(),o(),p(),C={title:`Atoms/Price`,component:x,tags:[`autodocs`],args:{amount:39,compareAt:49,currency:`EUR`,locale:`en`,size:`lg`},argTypes:{size:{control:`inline-radio`,options:[`sm`,`md`,`lg`,`xl`]}}},{Story:w}=m(C),T=t(`<!> <!> <!> <!>`,1),E=t(`<!> <!> <!>`,1),S.__docgen={data:[],name:`Price.stories.svelte`},D=h(S,C),O=[`Playground`,`Sizes`,`Plans`,`Currencies`],k={...D.Playground,tags:[`svelte-csf-v5`]},A={...D.Sizes,tags:[`svelte-csf-v5`]},j={...D.Plans,tags:[`svelte-csf-v5`]},M={...D.Currencies,tags:[`svelte-csf-v5`]}})))()}N();export{M as Currencies,j as Plans,k as Playground,A as Sizes,O as __namedExportsOrder,C as default};

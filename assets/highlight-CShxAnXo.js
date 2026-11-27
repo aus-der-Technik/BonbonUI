@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-Dxh6kD9_.js";import{n as t,r as n}from"./changed-FtIvqccv.js";function r(e,n,r){let i=[...e?.querySelectorAll(n)??[]].find(e=>e.dataset.key===r);return i?(t(i),i.scrollIntoView?.({block:`nearest`,behavior:`smooth`}),!0):!1}function i(){return(i=e((()=>{n()})))()}export{i as n,r as t};
