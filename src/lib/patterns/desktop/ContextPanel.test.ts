@@ -90,6 +90,43 @@ describe('ContextPanel', () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it('stays open while a data-pans surface is dragged or pinched, and closes on a tap there', () => {
+    const host = render(ContextPanelFixture, { onopen: () => 'a' });
+    const map = host.querySelector('.map')!;
+    const pointer = (type: string, id: number, x: number, y: number) => {
+      document.querySelector('.map')!.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          button: 0,
+          pointerId: id,
+          clientX: x,
+          clientY: y,
+        }),
+      );
+      flushSync();
+    };
+    rightClick(host.querySelector('.row'));
+    pointer('pointerdown', 1, 100, 100);
+    pointer('pointermove', 1, 180, 140);
+    pointer('pointerup', 1, 180, 140);
+    expect(dialog(), 'a drag on the map leaves it open').not.toBeNull();
+
+    pointer('pointerdown', 1, 100, 100);
+    pointer('pointerdown', 2, 140, 100);
+    pointer('pointerup', 1, 100, 100);
+    pointer('pointerup', 2, 140, 100);
+    expect(dialog(), 'a pinch leaves it open').not.toBeNull();
+
+    pointer('pointerdown', 1, 100, 100);
+    pointer('pointerup', 1, 102, 101);
+    expect(dialog(), 'a tap on the map closes it').toBeNull();
+    expect(map.isConnected).toBe(true);
+
+    rightClick(host.querySelector('.row'));
+    press(document.body);
+    expect(dialog(), 'elsewhere a press still closes it at once').toBeNull();
+  });
+
   it('keeps the target readable for a handler that closes first', () => {
     const onuse = vi.fn();
     const host = render(ContextPanelFixture, { onopen: () => 'a', onuse });
