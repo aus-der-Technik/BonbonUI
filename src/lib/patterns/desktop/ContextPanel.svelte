@@ -49,7 +49,8 @@
    * It floats on glass in the top layer, so no panel, window or transform clips it, and stays
    * inside the viewport (flipped near an edge, sliding as it grows). It is rendered in place, so
    * it keeps the theme and tint of where it opened and the snippet is ordinary content of the
-   * caller. Escape, a press outside or `close()` shut it and focus returns where it was; popups
+   * caller. Escape, a press outside or `close()` shut it and focus returns where it was — on a
+   * surface marked `data-pans` (a map) only a tap counts, a drag or pinch there leaves it open; popups
    * opened from inside it (a Popover, a menu, a select, a dialog) do not count as outside. The
    * target stays readable after closing, so a handler may `close()` first and then use it.
    *
@@ -186,6 +187,15 @@
     openFor(event.target as Element, target);
   }
 
+  /** How far (px) a press on a `data-pans` surface may move and still be a tap. */
+  const PAN_SLOP = 6;
+
+  /** Is this inside a surface one drags to look around (`data-pans`)? */
+  function pansAt(node: EventTarget | null): boolean {
+    const host = node instanceof Element ? node : node instanceof Node ? node.parentElement : null;
+    return !!host?.closest('[data-pans]');
+  }
+
   /** A press in a popup opened from the panel (rendered elsewhere in the top layer, like a
    *  ContextMenu or a dialog) belongs to the panel. */
   function belongs(node: EventTarget | null): boolean {
@@ -231,8 +241,27 @@
       typeof ResizeObserver === 'function' ? new ResizeObserver(() => reposition()) : undefined;
     observer?.observe(panelEl);
 
+    // On a surface one drags to look around (`data-pans`: a map, a canvas), a press closes the
+    // panel only as a tap — released where it began, one finger; a drag or a pinch there leaves
+    // it open, so the panel's own "fly back" stays in reach after moving the map.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity -- bookkeeping of one gesture, never drawn
+    const presses = new Map<number, { x: number; y: number }>();
+    let dragged = false;
     const outside = (event: PointerEvent) => {
-      if (!belongs(event.target)) shut(false);
+      if (belongs(event.target)) return;
+      if (!pansAt(event.target)) return shut(false);
+      if (!presses.size) dragged = false;
+      presses.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (presses.size > 1) dragged = true;
+    };
+    const moving = (event: PointerEvent) => {
+      const from = presses.get(event.pointerId);
+      if (from && Math.hypot(event.clientX - from.x, event.clientY - from.y) > PAN_SLOP)
+        dragged = true;
+    };
+    const lifted = (event: PointerEvent) => {
+      if (!presses.delete(event.pointerId)) return;
+      if (!presses.size && !dragged && event.type === 'pointerup') shut(false);
     };
     // On the window, after everything else: a popup inside that handled Escape (a Popover, a
     // menu, an armed delete) marks it handled, and the panel stays.
@@ -245,11 +274,17 @@
       close();
     };
     document.addEventListener('pointerdown', outside, true);
+    document.addEventListener('pointermove', moving, true);
+    document.addEventListener('pointerup', lifted, true);
+    document.addEventListener('pointercancel', lifted, true);
     window.addEventListener('keydown', escape);
     window.addEventListener('resize', reposition);
     return () => {
       observer?.disconnect();
       document.removeEventListener('pointerdown', outside, true);
+      document.removeEventListener('pointermove', moving, true);
+      document.removeEventListener('pointerup', lifted, true);
+      document.removeEventListener('pointercancel', lifted, true);
       window.removeEventListener('keydown', escape);
       window.removeEventListener('resize', reposition);
     };

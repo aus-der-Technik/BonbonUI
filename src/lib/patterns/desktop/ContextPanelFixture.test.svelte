@@ -47,3 +47,4 @@
   <p class="row">Row A</p>
   <p class="heading">Heading</p>
 </ContextPanel>
+<div class="map" data-pans>map</div>
