@@ -1,0 +1,60 @@
+/*
+ * Phones and touch screens. One definition of a phone: ≤ 720 px wide (`PHONE_QUERY`); touch is
+ * `(hover: none) and (pointer: coarse)`. Nothing here changes a desktop with a mouse.
+ * The components bring their own phone rules (SheetGrip, Dialog, PanelStack, BottomBar); these
+ * are the page-wide ones.
+ */
+
+html {
+  /* No grey flash on tap: pressed states come from the controls themselves. */
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  /* Double-tap zoom off for controls (no click delay); pinch zoom stays. */
+  touch-action: manipulation;
+}
+
+/* A finger needs 44 × 44 px. Buttons and small tools grow an invisible hit area to
+   --target-min, so nothing looks bigger; `data-tap` gives any other control the same pad. */
+@media (pointer: coarse) {
+  :root {
+    --target-min: 44px;
+  }
+  [data-tap] {
+    position: relative;
+  }
+  [data-tap]::after {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((100% - var(--target-min)) / 2));
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  /* Keyboard hints mean nothing to a finger. */
+  kbd {
+    display: none !important;
+  }
+  /* iOS zooms into any field under 16 px when it gets focus: the library's fields are 16 px for
+     a finger (the large ones are bigger already). `data-field-16` gives your own the same. */
+  input.input:not(.input--lg),
+  .search:not(.search--lg) > input,
+  .wrap > textarea,
+  .composer > textarea,
+  select,
+  dialog[data-glass]
+    :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']), textarea),
+  [popover]
+    :is(input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']), textarea),
+  [data-field-16] {
+    font-size: 16px !important;
+  }
+}
+
+/* While typing on a phone (`data-typing`, set by watchDevice) app shells can take the visible
+   height, so a composer sits right above the keys. */
+@media (max-width: 720px) {
+  :root[data-typing] {
+    --app-height: var(--visible-height, 100dvh);
+  }
+}
